@@ -53,6 +53,7 @@ export type Database = {
           approved_date: string | null
           assigned_admin: string | null
           claim_number: string
+          consumables_cost: number | null
           created_by: string
           created_date: string
           credit_note_number: string | null
@@ -61,22 +62,34 @@ export type Database = {
           customer_email: string | null
           customer_name: string
           customer_notes: string | null
+          customer_number: string | null
           customer_phone: string | null
           department: Database["public"]["Enums"]["department"]
           detailed_description: string | null
           evatic_job_number: string | null
           expected_refund: number | null
+          external_services_cost: number | null
           files: Json | null
           hourly_rate: number | null
           id: string
           internal_notes: string | null
           issue_description: string
           issue_type: Database["public"]["Enums"]["issue_type"]
+          ms_job_number: string | null
+          net_cost: number | null
+          other_cost_refunded: boolean | null
           parts_cost: number | null
+          parts_cost_refunded: boolean | null
           product_model: string | null
           product_name: string
           purchase_date: string | null
+          refund_date_received: string | null
           refund_status: Database["public"]["Enums"]["refund_status"] | null
+          refunded_other_cost: number | null
+          refunded_parts_cost: number | null
+          refunded_travel_cost: number | null
+          refunded_vehicle_cost: number | null
+          refunded_work_cost: number | null
           serial_number: string | null
           status: Database["public"]["Enums"]["claim_status"]
           supplier: string
@@ -85,10 +98,17 @@ export type Database = {
           supplier_response_date: string | null
           technician_name: string
           total_cost: number | null
+          total_refunded: number | null
           travel_cost: number | null
+          travel_cost_refunded: boolean | null
+          travel_distance_km: number | null
+          travel_hours: number | null
           updated_date: string
           urgency_level: Database["public"]["Enums"]["urgency_level"]
+          vehicle_cost_per_km: number | null
+          vehicle_cost_refunded: boolean | null
           warranty_period: string | null
+          work_cost_refunded: boolean | null
           work_hours: number | null
         }
         Insert: {
@@ -99,6 +119,7 @@ export type Database = {
           approved_date?: string | null
           assigned_admin?: string | null
           claim_number: string
+          consumables_cost?: number | null
           created_by: string
           created_date?: string
           credit_note_number?: string | null
@@ -107,22 +128,34 @@ export type Database = {
           customer_email?: string | null
           customer_name: string
           customer_notes?: string | null
+          customer_number?: string | null
           customer_phone?: string | null
           department: Database["public"]["Enums"]["department"]
           detailed_description?: string | null
           evatic_job_number?: string | null
           expected_refund?: number | null
+          external_services_cost?: number | null
           files?: Json | null
           hourly_rate?: number | null
           id?: string
           internal_notes?: string | null
           issue_description: string
           issue_type: Database["public"]["Enums"]["issue_type"]
+          ms_job_number?: string | null
+          net_cost?: number | null
+          other_cost_refunded?: boolean | null
           parts_cost?: number | null
+          parts_cost_refunded?: boolean | null
           product_model?: string | null
           product_name: string
           purchase_date?: string | null
+          refund_date_received?: string | null
           refund_status?: Database["public"]["Enums"]["refund_status"] | null
+          refunded_other_cost?: number | null
+          refunded_parts_cost?: number | null
+          refunded_travel_cost?: number | null
+          refunded_vehicle_cost?: number | null
+          refunded_work_cost?: number | null
           serial_number?: string | null
           status?: Database["public"]["Enums"]["claim_status"]
           supplier: string
@@ -131,10 +164,17 @@ export type Database = {
           supplier_response_date?: string | null
           technician_name: string
           total_cost?: number | null
+          total_refunded?: number | null
           travel_cost?: number | null
+          travel_cost_refunded?: boolean | null
+          travel_distance_km?: number | null
+          travel_hours?: number | null
           updated_date?: string
           urgency_level?: Database["public"]["Enums"]["urgency_level"]
+          vehicle_cost_per_km?: number | null
+          vehicle_cost_refunded?: boolean | null
           warranty_period?: string | null
+          work_cost_refunded?: boolean | null
           work_hours?: number | null
         }
         Update: {
@@ -145,6 +185,7 @@ export type Database = {
           approved_date?: string | null
           assigned_admin?: string | null
           claim_number?: string
+          consumables_cost?: number | null
           created_by?: string
           created_date?: string
           credit_note_number?: string | null
@@ -153,22 +194,34 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string
           customer_notes?: string | null
+          customer_number?: string | null
           customer_phone?: string | null
           department?: Database["public"]["Enums"]["department"]
           detailed_description?: string | null
           evatic_job_number?: string | null
           expected_refund?: number | null
+          external_services_cost?: number | null
           files?: Json | null
           hourly_rate?: number | null
           id?: string
           internal_notes?: string | null
           issue_description?: string
           issue_type?: Database["public"]["Enums"]["issue_type"]
+          ms_job_number?: string | null
+          net_cost?: number | null
+          other_cost_refunded?: boolean | null
           parts_cost?: number | null
+          parts_cost_refunded?: boolean | null
           product_model?: string | null
           product_name?: string
           purchase_date?: string | null
+          refund_date_received?: string | null
           refund_status?: Database["public"]["Enums"]["refund_status"] | null
+          refunded_other_cost?: number | null
+          refunded_parts_cost?: number | null
+          refunded_travel_cost?: number | null
+          refunded_vehicle_cost?: number | null
+          refunded_work_cost?: number | null
           serial_number?: string | null
           status?: Database["public"]["Enums"]["claim_status"]
           supplier?: string
@@ -177,10 +230,17 @@ export type Database = {
           supplier_response_date?: string | null
           technician_name?: string
           total_cost?: number | null
+          total_refunded?: number | null
           travel_cost?: number | null
+          travel_cost_refunded?: boolean | null
+          travel_distance_km?: number | null
+          travel_hours?: number | null
           updated_date?: string
           urgency_level?: Database["public"]["Enums"]["urgency_level"]
+          vehicle_cost_per_km?: number | null
+          vehicle_cost_refunded?: boolean | null
           warranty_period?: string | null
+          work_cost_refunded?: boolean | null
           work_hours?: number | null
         }
         Relationships: []
@@ -218,6 +278,42 @@ export type Database = {
           last_login?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
+      supplier_refund_profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          refunds_parts: boolean | null
+          refunds_travel: boolean | null
+          refunds_vehicle: boolean | null
+          refunds_work: boolean | null
+          supplier_name: string
+          travel_limit_km: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          refunds_parts?: boolean | null
+          refunds_travel?: boolean | null
+          refunds_vehicle?: boolean | null
+          refunds_work?: boolean | null
+          supplier_name: string
+          travel_limit_km?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          refunds_parts?: boolean | null
+          refunds_travel?: boolean | null
+          refunds_vehicle?: boolean | null
+          refunds_work?: boolean | null
+          supplier_name?: string
+          travel_limit_km?: number | null
         }
         Relationships: []
       }

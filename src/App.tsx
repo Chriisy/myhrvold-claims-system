@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
-import ClaimsForm from "./pages/ClaimsForm";
+import ClaimsFormAdvanced from "./pages/ClaimsFormAdvanced";
 import ClaimsList from "./pages/ClaimsList";
 import ClaimDetails from "./pages/ClaimDetails";
 import Auth from "./pages/Auth";
