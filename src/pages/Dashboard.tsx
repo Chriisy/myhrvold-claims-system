@@ -1,23 +1,83 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import NavHeader from "@/components/NavHeader";
 
 const Dashboard = () => {
-  // Mock data for demonstration
-  const stats = [
-    { title: "Nye krav", count: 12, icon: AlertCircle, color: "text-accent" },
-    { title: "Under behandling", count: 45, icon: Clock, color: "text-secondary" },
-    { title: "Sendt til leverandør", count: 23, icon: FileText, color: "text-primary" },
-    { title: "Løst", count: 156, icon: CheckCircle2, color: "text-green-600" },
-  ];
+  const { profile } = useAuth();
+  const [stats, setStats] = useState({
+    totalClaims: 0,
+    pendingApproval: 0,
+    underProcessing: 0,
+    resolved: 0,
+    totalCosts: 0,
+    expectedRefunds: 0,
+  });
+  const [recentClaims, setRecentClaims] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const recentClaims = [
-    { id: "RK-2024-001", customer: "Rema 1000 Stavanger", product: "Kjøleskap Model X200", status: "Ny", date: "2024-01-15" },
-    { id: "RK-2024-002", customer: "ICA Maxi Bergen", product: "Fryser Model F100", status: "Under behandling", date: "2024-01-14" },
-    { id: "RK-2024-003", customer: "Coop Extra Oslo", product: "Kaffemaskin Pro", status: "Sendt til leverandør", date: "2024-01-13" },
-  ];
+  useEffect(() => {
+    if (profile) {
+      fetchDashboardData();
+    }
+  }, [profile]);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Build query based on user role
+      let claimsQuery = supabase
+        .from('claims')
+        .select('*');
+
+      if (profile?.role === 'technician') {
+        // Technicians see only their department's claims
+        claimsQuery = claimsQuery.eq('department', profile.department);
+      }
+
+      const { data: claims, error } = await claimsQuery.order('created_date', { ascending: false });
+
+      if (error) throw error;
+
+      // Calculate statistics
+      const totalClaims = claims?.length || 0;
+      const pendingApproval = claims?.filter(c => c.status === 'pending_approval').length || 0;
+      const underProcessing = claims?.filter(c => c.status === 'under_processing').length || 0;
+      const resolved = claims?.filter(c => c.status === 'resolved').length || 0;
+      const totalCosts = claims?.reduce((sum, c) => sum + (c.total_cost || 0), 0) || 0;
+      const expectedRefunds = claims?.reduce((sum, c) => sum + (c.expected_refund || 0), 0) || 0;
+
+      setStats({
+        totalClaims,
+        pendingApproval,
+        underProcessing,
+        resolved,
+        totalCosts,
+        expectedRefunds,
+      });
+
+      setRecentClaims(claims?.slice(0, 5) || []);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('nb-NO', {
+      style: 'currency',
+      currency: 'NOK',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('nb-NO');
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -50,18 +110,63 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-6">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.count}</div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Totale reklamasjoner</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalClaims}</div>
+              <p className="text-xs text-muted-foreground">
+                {profile?.role === 'technician' ? 'I din avdeling' : 'Totalt i systemet'}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Venter godkjenning</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.pendingApproval}</div>
+              <p className="text-xs text-muted-foreground">Krever handling</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Under behandling</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.underProcessing}</div>
+              <p className="text-xs text-muted-foreground">Aktive saker</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Løste saker</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.resolved}</div>
+              <p className="text-xs text-muted-foreground">Fullførte saker</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total kostnad</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(stats.totalCosts)}</div>
+              <p className="text-xs text-muted-foreground">Forventet: {formatCurrency(stats.expectedRefunds)}</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Recent Claims */}
