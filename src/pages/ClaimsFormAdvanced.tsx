@@ -147,6 +147,46 @@ const ClaimsFormAdvanced = () => {
     if (field === 'supplier') {
       const profile = supplierProfiles.find(p => p.supplier_name === value);
       setSelectedSupplierProfile(profile);
+      
+      // Auto-suggest refund eligibility based on supplier business rules
+      if (parts.length > 0) {
+        autoSuggestRefunds(value);
+      }
+    }
+  };
+
+  // Auto-suggest refunds based on supplier policies
+  const autoSuggestRefunds = (supplierName: string) => {
+    const lowerSupplier = supplierName.toLowerCase();
+    
+    setParts(prevParts => prevParts.map(part => {
+      let shouldRefund = false;
+      
+      // Business rules for different suppliers
+      if (lowerSupplier.includes('rational')) {
+        shouldRefund = true; // Rational typically refunds all parts under warranty
+      } else if (lowerSupplier.includes('hobart')) {
+        shouldRefund = true; // Hobart typically refunds parts only, not labor
+      } else if (lowerSupplier.includes('comenda')) {
+        shouldRefund = true; // Comenda refunds everything if under warranty
+      } else if (lowerSupplier.includes('electrolux')) {
+        shouldRefund = true; // Electrolux good refund policy
+      } else if (lowerSupplier.includes('miele')) {
+        shouldRefund = true; // Miele excellent warranty support
+      } else {
+        shouldRefund = false; // Conservative default for unknown suppliers
+      }
+      
+      return { ...part, refundRequested: shouldRefund };
+    }));
+    
+    // Show notification about auto-suggestions
+    if (parts.length > 0) {
+      toast({
+        title: "Auto-forslag aktivert",
+        description: `Refusjonsforslag basert på ${supplierName} sine retningslinjer er satt.`,
+        duration: 3000,
+      });
     }
   };
 
@@ -193,10 +233,24 @@ const ClaimsFormAdvanced = () => {
   };
 
   const updatePart = (id: string, field: string, value: string | number | boolean) => {
-    setParts(parts.map(part => 
-      part.id === id ? { ...part, [field]: value } : part
-    ));
-    updatePartsTotal();
+    setParts(prevParts => {
+      const updatedParts = prevParts.map(part => 
+        part.id === id ? { ...part, [field]: value } : part
+      );
+      
+      // Immediate calculation for parts cost
+      const newTotal = updatedParts.reduce((sum, part) => sum + (part.price || 0), 0);
+      handleInputChange('partsCost', newTotal);
+      
+      // Immediate calculation for refunded parts cost
+      const refundedTotal = updatedParts.reduce((sum, part) => 
+        part.refundRequested ? sum + part.price : sum, 0
+      );
+      handleInputChange('refundedPartsCost', refundedTotal);
+      handleInputChange('partsCostRefunded', refundedTotal > 0);
+      
+      return updatedParts;
+    });
   };
 
   const updatePartsTotal = () => {
@@ -213,10 +267,6 @@ const ClaimsFormAdvanced = () => {
   // Use effect to update parts total whenever parts change
   useEffect(() => {
     updatePartsTotal();
-  }, [parts]);
-
-  // Auto-update refunded parts cost when parts refund status changes
-  useEffect(() => {
     const refundedTotal = calculateRefundedPartsTotal();
     handleInputChange('refundedPartsCost', refundedTotal);
     handleInputChange('partsCostRefunded', refundedTotal > 0);
@@ -924,23 +974,40 @@ const ClaimsFormAdvanced = () => {
                     {/* Individual Parts Breakdown */}
                     {parts.length > 0 && (
                       <div className="mb-4">
-                        <Label className="text-sm font-medium text-muted-foreground">Reservedeler (fra Problem & Løsning)</Label>
+                        <Label className="text-sm font-medium text-muted-foreground mb-2 block">
+                          Reservedeler (fra Problem & Løsning) - Read-only
+                        </Label>
                         <div className="border rounded-lg p-4 bg-muted/50 space-y-2">
-                          {parts.map((part) => (
-                            <div key={part.id} className="flex justify-between items-center py-1">
+                          {parts.map((part, index) => (
+                            <div key={part.id} className="flex justify-between items-center py-2 px-2 bg-background rounded border">
                               <div className="flex-1">
-                                <span className="font-medium">{part.partNumber}:</span>
-                                <span className="ml-2 text-muted-foreground">{part.description}</span>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm text-muted-foreground">#{index + 1}</span>
+                                  <span className="font-medium text-primary">{part.partNumber}</span>
+                                  <span className="text-muted-foreground">|</span>
+                                  <span className="text-sm">{part.description}</span>
+                                </div>
                               </div>
-                              <span className="font-semibold">{part.price.toFixed(2)} kr</span>
+                              <div className="text-right">
+                                <span className="font-semibold">{part.price.toFixed(2)} kr</span>
+                                {part.refundRequested && (
+                                  <div className="text-xs text-green-600">✅ Merket for refusjon</div>
+                                )}
+                              </div>
                             </div>
                           ))}
-                          <div className="border-t pt-2 mt-2">
+                          <div className="border-t pt-3 mt-3 bg-primary/5 rounded p-2">
                             <div className="flex justify-between items-center font-bold">
                               <span>Total reservedeler:</span>
-                              <span className="text-primary">{formData.partsCost.toFixed(2)} kr</span>
+                              <span className="text-primary text-lg">{formData.partsCost.toFixed(2)} kr</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {parts.length} del{parts.length !== 1 ? 'er' : ''} registrert
                             </div>
                           </div>
+                        </div>
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          💡 For å endre deler, gå til "Problem & Løsning" fanen
                         </div>
                       </div>
                     )}
@@ -954,7 +1021,7 @@ const ClaimsFormAdvanced = () => {
                           className="bg-muted font-semibold"
                         />
                         <p className="text-sm text-muted-foreground mt-1">
-                          Ingen reservedeler lagt til i Problem & Løsning fanen
+                          💡 Ingen reservedeler lagt til i "Problem & Løsning" fanen
                         </p>
                       </div>
                     )}
