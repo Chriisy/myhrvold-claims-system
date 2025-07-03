@@ -245,6 +245,89 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          id: string
+          overdue_alerts: boolean
+          reminder_frequency: number
+          status_updates: boolean
+          supplier_responses: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          overdue_alerts?: boolean
+          reminder_frequency?: number
+          status_updates?: boolean
+          supplier_responses?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          overdue_alerts?: boolean
+          reminder_frequency?: number
+          status_updates?: boolean
+          supplier_responses?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          claim_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          scheduled_for: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          claim_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          scheduled_for?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          claim_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          scheduled_for?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_date: string
@@ -349,6 +432,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_overdue_claims: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_claim_id: string
+          p_type: string
+          p_title: string
+          p_message: string
+          p_scheduled_for?: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
       generate_account_code: {
         Args: {
           p_issue_type: Database["public"]["Enums"]["issue_type"]

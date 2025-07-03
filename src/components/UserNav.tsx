@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import NotificationBell from "./NotificationBell";
 
 const UserNav = () => {
   const { profile, user, loading } = useAuth();
@@ -88,20 +89,22 @@ const UserNav = () => {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-              <User className="h-4 w-4 text-primary" />
+    <div className="flex items-center gap-2">
+      <NotificationBell />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-medium">{profile.full_name}</p>
+                <p className="text-xs text-muted-foreground">{getDepartmentLabel(profile.department)}</p>
+              </div>
             </div>
-            <div className="hidden md:block text-left">
-              <p className="text-sm font-medium">{profile.full_name}</p>
-              <p className="text-xs text-muted-foreground">{getDepartmentLabel(profile.department)}</p>
-            </div>
-          </div>
-        </Button>
-      </DropdownMenuTrigger>
+          </Button>
+        </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <div className="p-3 border-b">
           <div className="flex items-center gap-3">
@@ -151,7 +154,8 @@ const UserNav = () => {
           {isLoggingOut ? 'Logger ut...' : 'Logg ut'}
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
+      </DropdownMenu>
+    </div>
   );
 };
 
