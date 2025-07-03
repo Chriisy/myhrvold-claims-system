@@ -48,7 +48,7 @@ const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
     email: "",
     full_name: "",
     role: "technician" as "admin" | "technician",
-    department: "" as "oslo" | "bergen" | "trondheim" | "stavanger" | "kristiansand" | "nord_norge" | "innlandet" | "",
+    department: "oslo" as "oslo" | "bergen" | "trondheim" | "stavanger" | "kristiansand" | "nord_norge" | "innlandet",
     phone: "",
     is_active: true,
     password: ""
