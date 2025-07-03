@@ -92,6 +92,8 @@ const ClaimsFormAdvanced = () => {
     partNumber: string;
     description: string;
     price: number;
+    refundRequested: boolean;
+    refundApproved: boolean;
   }>>([]);
 
   useEffect(() => {
@@ -178,7 +180,9 @@ const ClaimsFormAdvanced = () => {
       id: Date.now().toString(),
       partNumber: "",
       description: "",
-      price: 0
+      price: 0,
+      refundRequested: false,
+      refundApproved: false
     };
     setParts([...parts, newPart]);
   };
@@ -188,7 +192,7 @@ const ClaimsFormAdvanced = () => {
     updatePartsTotal();
   };
 
-  const updatePart = (id: string, field: string, value: any) => {
+  const updatePart = (id: string, field: string, value: string | number | boolean) => {
     setParts(parts.map(part => 
       part.id === id ? { ...part, [field]: value } : part
     ));
@@ -200,9 +204,22 @@ const ClaimsFormAdvanced = () => {
     handleInputChange('partsCost', total);
   };
 
+  const calculateRefundedPartsTotal = () => {
+    return parts.reduce((sum, part) => 
+      part.refundRequested ? sum + part.price : sum, 0
+    );
+  };
+
   // Use effect to update parts total whenever parts change
   useEffect(() => {
     updatePartsTotal();
+  }, [parts]);
+
+  // Auto-update refunded parts cost when parts refund status changes
+  useEffect(() => {
+    const refundedTotal = calculateRefundedPartsTotal();
+    handleInputChange('refundedPartsCost', refundedTotal);
+    handleInputChange('partsCostRefunded', refundedTotal > 0);
   }, [parts]);
 
   // Tab validation functions
@@ -900,18 +917,49 @@ const ClaimsFormAdvanced = () => {
                     </div>
                   </div>
 
-                  {/* Material Costs */}
+                  {/* Material Costs with Individual Parts */}
                   <div>
                     <h4 className="font-semibold mb-3">Materialkostnader</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
+                    
+                    {/* Individual Parts Breakdown */}
+                    {parts.length > 0 && (
+                      <div className="mb-4">
+                        <Label className="text-sm font-medium text-muted-foreground">Reservedeler (fra Problem & Løsning)</Label>
+                        <div className="border rounded-lg p-4 bg-muted/50 space-y-2">
+                          {parts.map((part) => (
+                            <div key={part.id} className="flex justify-between items-center py-1">
+                              <div className="flex-1">
+                                <span className="font-medium">{part.partNumber}:</span>
+                                <span className="ml-2 text-muted-foreground">{part.description}</span>
+                              </div>
+                              <span className="font-semibold">{part.price.toFixed(2)} kr</span>
+                            </div>
+                          ))}
+                          <div className="border-t pt-2 mt-2">
+                            <div className="flex justify-between items-center font-bold">
+                              <span>Total reservedeler:</span>
+                              <span className="text-primary">{formData.partsCost.toFixed(2)} kr</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {parts.length === 0 && (
+                      <div className="mb-4">
                         <Label>Reservedeler (auto-beregnet)</Label>
                         <Input 
                           value={`${formData.partsCost.toFixed(2)} kr`}
                           readOnly
                           className="bg-muted font-semibold"
                         />
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Ingen reservedeler lagt til i Problem & Løsning fanen
+                        </p>
                       </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="consumablesCost">Forbruksmateriell (kr)</Label>
                         <Input 
@@ -958,9 +1006,52 @@ const ClaimsFormAdvanced = () => {
                   <CardDescription>Detaljert refusjonsoversikt og kreditnota informasjon</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Refund Details */}
+                  {/* Refund Details with Individual Parts Tracking */}
                   <div>
                     <h4 className="font-semibold mb-3">Refunderte kostnader</h4>
+                    
+                    {/* Individual Parts Refund Tracking */}
+                    {parts.length > 0 && (
+                      <div className="mb-6">
+                        <Label className="text-sm font-medium text-muted-foreground">Reservedeler refusjon (individuell tracking)</Label>
+                        <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+                          {parts.map((part) => (
+                            <div key={part.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-b-0">
+                              <div className="flex items-center space-x-3 flex-1">
+                                <Checkbox 
+                                  checked={part.refundRequested}
+                                  onCheckedChange={(checked) => updatePart(part.id, 'refundRequested', checked)}
+                                />
+                                <div className="flex-1">
+                                  <span className="font-medium">{part.partNumber}:</span>
+                                  <span className="ml-2">{part.description}</span>
+                                </div>
+                                <span className="font-semibold">{part.price.toFixed(2)} kr</span>
+                                <span className={`text-sm px-2 py-1 rounded ${
+                                  part.refundRequested 
+                                    ? 'bg-green-100 text-green-700' 
+                                    : 'bg-red-100 text-red-700'
+                                }`}>
+                                  {part.refundRequested ? '✅ Refundert' : '❌ Ikke refundert'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                          <div className="border-t pt-3 mt-3 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Refunderte deler:</span>
+                              <span className="font-bold text-green-600">{calculateRefundedPartsTotal().toFixed(2)} kr</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Ikke refunderte deler:</span>
+                              <span className="font-bold text-red-600">{(formData.partsCost - calculateRefundedPartsTotal()).toFixed(2)} kr</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Other Refund Categories */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center space-x-2">
                         <Checkbox 
@@ -1014,24 +1105,6 @@ const ClaimsFormAdvanced = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Checkbox 
-                          id="partsCostRefunded"
-                          checked={formData.partsCostRefunded}
-                          onCheckedChange={(checked) => handleInputChange('partsCostRefunded', checked)}
-                        />
-                        <Label htmlFor="partsCostRefunded">Refunderte deler</Label>
-                        <Input 
-                          type="number"
-                          value={formData.refundedPartsCost}
-                          onChange={(e) => handleInputChange('refundedPartsCost', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                          className="flex-1"
-                        />
-                        <span className="text-sm text-muted-foreground">kr</span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
                           id="otherCostRefunded"
                           checked={formData.otherCostRefunded}
                           onCheckedChange={(checked) => handleInputChange('otherCostRefunded', checked)}
@@ -1047,6 +1120,25 @@ const ClaimsFormAdvanced = () => {
                         <span className="text-sm text-muted-foreground">kr</span>
                       </div>
                     </div>
+
+                    {/* Parts refund summary (read-only, auto-calculated) */}
+                    {parts.length > 0 && (
+                      <div className="mt-4 p-3 bg-muted/30 rounded border">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            checked={formData.partsCostRefunded}
+                            disabled
+                          />
+                          <Label className="text-muted-foreground">Refunderte deler (auto-beregnet)</Label>
+                          <Input 
+                            value={formData.refundedPartsCost.toFixed(2)}
+                            readOnly
+                            className="flex-1 bg-muted font-semibold"
+                          />
+                          <span className="text-sm text-muted-foreground">kr</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Credit Note Info */}
