@@ -100,9 +100,9 @@ const Dashboard = () => {
               </div>
               <div className="flex gap-2">
                 {profile?.role === 'admin' && (
-                  <Link to="/suppliers">
+                  <Link to="/admin">
                     <Button variant="outline">
-                      Leverandører
+                      Administrator instillinger
                     </Button>
                   </Link>
                 )}
