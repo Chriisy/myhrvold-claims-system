@@ -8,6 +8,7 @@ import { Search, Filter, ArrowLeft, Eye, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import UserNav from "@/components/UserNav";
 
 const ClaimsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -103,17 +104,20 @@ const ClaimsList = () => {
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Tilbake
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-primary">Alle reklamasjoner</h1>
-              <p className="text-muted-foreground">Oversikt over alle registrerte reklamasjoner</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link to="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Tilbake
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-primary">Alle reklamasjoner</h1>
+                <p className="text-muted-foreground">Oversikt over alle registrerte reklamasjoner</p>
+              </div>
             </div>
+            <UserNav />
           </div>
         </div>
       </header>

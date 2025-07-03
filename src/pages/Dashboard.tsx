@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import NavHeader from "@/components/NavHeader";
+import UserNav from "@/components/UserNav";
 
 const Dashboard = () => {
   const { profile } = useAuth();
@@ -98,20 +99,14 @@ const Dashboard = () => {
                 <h1 className="text-2xl font-bold text-primary">Myhrvoldgruppen</h1>
                 <p className="text-muted-foreground">Reklamasjonsbehandling</p>
               </div>
-              <div className="flex gap-2">
-                {profile?.role === 'admin' && (
-                  <Link to="/admin">
-                    <Button variant="outline">
-                      Administrator instillinger
-                    </Button>
-                  </Link>
-                )}
+              <div className="flex items-center gap-4">
                 <Link to="/claims/new">
                   <Button className="bg-primary hover:bg-primary/90">
                     <Plus className="mr-2 h-4 w-4" />
                     Ny reklamasjon
                   </Button>
                 </Link>
+                <UserNav />
               </div>
             </div>
         </div>
