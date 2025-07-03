@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp } from "lucide-react";
+import { Plus, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,6 +100,12 @@ const Dashboard = () => {
                 <p className="text-muted-foreground">Reklamasjonsbehandling</p>
               </div>
               <div className="flex items-center gap-4">
+                <Link to="/analytics">
+                  <Button variant="outline">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Analytics
+                  </Button>
+                </Link>
                 <Link to="/claims/new">
                   <Button className="bg-primary hover:bg-primary/90">
                     <Plus className="mr-2 h-4 w-4" />
