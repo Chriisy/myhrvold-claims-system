@@ -93,18 +93,27 @@ const Dashboard = () => {
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-primary">Myhrvoldgruppen</h1>
-              <p className="text-muted-foreground">Reklamasjonsbehandling</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-primary">Myhrvoldgruppen</h1>
+                <p className="text-muted-foreground">Reklamasjonsbehandling</p>
+              </div>
+              <div className="flex gap-2">
+                {profile?.role === 'admin' && (
+                  <Link to="/suppliers">
+                    <Button variant="outline">
+                      Leverandører
+                    </Button>
+                  </Link>
+                )}
+                <Link to="/claims/new">
+                  <Button className="bg-primary hover:bg-primary/90">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ny reklamasjon
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <Link to="/claims/new">
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="mr-2 h-4 w-4" />
-                Ny reklamasjon
-              </Button>
-            </Link>
-          </div>
         </div>
       </header>
 

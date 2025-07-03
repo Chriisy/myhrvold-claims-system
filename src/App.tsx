@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import ClaimsFormAdvanced from "./pages/ClaimsFormAdvanced";
 import ClaimsList from "./pages/ClaimsList";
 import ClaimDetails from "./pages/ClaimDetails";
+import SupplierManagement from "./pages/SupplierManagement";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/claims" element={<ProtectedRoute><ClaimsList /></ProtectedRoute>} />
             <Route path="/claims/new" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
             <Route path="/claims/:id" element={<ProtectedRoute><ClaimDetails /></ProtectedRoute>} />
+            <Route path="/suppliers" element={<ProtectedRoute><SupplierManagement /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
