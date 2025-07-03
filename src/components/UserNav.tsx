@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const UserNav = () => {
-  const { profile, user } = useAuth();
+  const { profile, user, loading } = useAuth();
   const { toast } = useToast();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -68,6 +68,13 @@ const UserNav = () => {
     };
     return departments[dept] || dept;
   };
+
+  // Show loading state to prevent flickering
+  if (loading) {
+    return (
+      <div className="w-20 h-9 bg-muted animate-pulse rounded-md"></div>
+    );
+  }
 
   if (!user || !profile) {
     return (
