@@ -2,11 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Download, Edit, CheckCircle2, Clock, FileText } from "lucide-react";
+import { ArrowLeft, Download, Edit, CheckCircle2, Clock, FileText, Mail } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
+import SendSupplierEmailDialog from "@/components/SendSupplierEmailDialog";
 
 const ClaimDetails = () => {
   const { id } = useParams();
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
   // Mock data for demonstration
   const claim = {
@@ -246,7 +249,12 @@ const ClaimDetails = () => {
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Marker som løst
                 </Button>
-                <Button className="w-full" variant="outline">
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={() => setEmailDialogOpen(true)}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
                   Send til leverandør
                 </Button>
                 <Button className="w-full" variant="outline">
@@ -257,6 +265,14 @@ const ClaimDetails = () => {
           </div>
         </div>
       </main>
+
+      <SendSupplierEmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        claimId={claim.id}
+        supplierName={claim.product.supplier}
+        defaultEmail=""
+      />
     </div>
   );
 };
