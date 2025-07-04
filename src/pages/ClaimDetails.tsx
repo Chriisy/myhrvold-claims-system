@@ -9,6 +9,7 @@ import { IssueDescription } from "@/components/claim-details/IssueDescription";
 import { ClaimFiles } from "@/components/claim-details/ClaimFiles";
 import { ClaimTimeline } from "@/components/claim-details/ClaimTimeline";
 import { QuickActions } from "@/components/claim-details/QuickActions";
+import { PageLoading } from "@/components/ui/loading";
 import SendSupplierEmailDialog from "@/components/SendSupplierEmailDialog";
 
 const ClaimDetails = () => {
@@ -17,14 +18,7 @@ const ClaimDetails = () => {
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <div className="w-8 h-8 bg-primary rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Laster reklamasjon...</p>
-        </div>
-      </div>
-    );
+    return <PageLoading text="Laster reklamasjon..." />;
   }
 
   if (error) {
@@ -70,7 +64,10 @@ const ClaimDetails = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <ClaimTimeline timeline={claim.timeline} />
-            <QuickActions onSendToSupplier={() => setEmailDialogOpen(true)} />
+            <QuickActions 
+              claimId={claimData.id} 
+              onSendToSupplier={() => setEmailDialogOpen(true)} 
+            />
           </div>
         </div>
       </main>
