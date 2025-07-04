@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useClaim } from "@/hooks/useClaim";
+import { transformClaimForUI } from "@/utils/claim-transforms";
 import { ClaimHeader } from "@/components/claim-details/ClaimHeader";
 import { CustomerInfo } from "@/components/claim-details/CustomerInfo";
 import { ProductInfo } from "@/components/claim-details/ProductInfo";
@@ -12,10 +13,10 @@ import SendSupplierEmailDialog from "@/components/SendSupplierEmailDialog";
 
 const ClaimDetails = () => {
   const { id } = useParams();
-  const { claim, loading, error } = useClaim(id);
+  const { data: claimData, isLoading, error } = useClaim(id);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-center">
@@ -26,16 +27,31 @@ const ClaimDetails = () => {
     );
   }
 
-  if (error || !claim) {
+  if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-destructive mb-4">Feil</h1>
-          <p className="text-muted-foreground">{error || 'Reklamasjon ikke funnet'}</p>
+          <p className="text-muted-foreground">
+            {error instanceof Error ? error.message : 'Kunne ikke laste reklamasjon'}
+          </p>
         </div>
       </div>
     );
   }
+
+  if (!claimData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-muted-foreground mb-4">Ikke funnet</h1>
+          <p className="text-muted-foreground">Reklamasjon med ID {id} ble ikke funnet</p>
+        </div>
+      </div>
+    );
+  }
+
+  const claim = transformClaimForUI(claimData);
 
   return (
     <div className="min-h-screen bg-background">
