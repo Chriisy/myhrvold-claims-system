@@ -1,16 +1,14 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormField } from '@/components/ui/form-components';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useEnhancedToast } from '@/hooks/useEnhancedToast';
 import { ButtonLoading } from '@/components/ui/loading';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail } from 'lucide-react';
-import { supplierEmailSchema, SupplierEmailFormData } from '@/schemas/validationSchemas';
+import { validateSupplierEmail, SupplierEmailFormData } from '@/schemas/validationSchemas';
 
 interface SendSupplierEmailDialogProps {
   open: boolean;
@@ -28,22 +26,31 @@ const SendSupplierEmailDialog: React.FC<SendSupplierEmailDialogProps> = ({
   defaultEmail = ''
 }) => {
   const { showSuccess, showError } = useEnhancedToast();
-
-  const form = useForm<SupplierEmailFormData>({
-    resolver: zodResolver(supplierEmailSchema),
-    defaultValues: {
-      supplierEmail: defaultEmail,
-      language: 'no'
-    }
+  const [formData, setFormData] = useState<SupplierEmailFormData>({
+    supplierEmail: defaultEmail,
+    language: 'no'
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = async (data: SupplierEmailFormData) => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const validation = validateSupplierEmail(formData);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+
     try {
       const { error } = await supabase.functions.invoke('send-supplier-email', {
         body: {
           claimId,
-          language: data.language,
-          supplierEmail: data.supplierEmail.trim()
+          language: formData.language,
+          supplierEmail: formData.supplierEmail.trim()
         }
       });
 
@@ -51,24 +58,27 @@ const SendSupplierEmailDialog: React.FC<SendSupplierEmailDialogProps> = ({
 
       showSuccess(
         "E-post sendt",
-        `E-post ble sendt til ${supplierName} (${data.supplierEmail})`
+        `E-post ble sendt til ${supplierName} (${formData.supplierEmail})`
       );
 
       onOpenChange(false);
-      form.reset();
+      setFormData({ supplierEmail: '', language: 'no' });
     } catch (error: any) {
       console.error('Error sending email:', error);
       showError(
         "Feil ved sending",
         error.message || "Kunne ikke sende e-post til leverandør"
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDialogClose = (isOpen: boolean) => {
     onOpenChange(isOpen);
     if (!isOpen) {
-      form.reset();
+      setFormData({ supplierEmail: defaultEmail, language: 'no' });
+      setErrors({});
     }
   };
 
@@ -85,81 +95,70 @@ const SendSupplierEmailDialog: React.FC<SendSupplierEmailDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={form.control}
-              name="supplierEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>E-postadresse til leverandør</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="leverandor@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={onSubmit} className="space-y-4 py-4">
+          <FormField
+            label="E-postadresse til leverandør"
+            required
+            error={errors.supplierEmail}
+          >
+            <Input
+              type="email"
+              placeholder="leverandor@example.com"
+              value={formData.supplierEmail}
+              onChange={(e) => setFormData({ ...formData, supplierEmail: e.target.value })}
             />
+          </FormField>
 
-            <FormField
-              control={form.control}
-              name="language"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Språk for e-post</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Velg språk" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="no">🇳🇴 Norsk</SelectItem>
-                      <SelectItem value="en">🇬🇧 English</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            label="Språk for e-post"
+            error={errors.language}
+          >
+            <Select 
+              value={formData.language} 
+              onValueChange={(value: 'no' | 'en') => setFormData({ ...formData, language: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Velg språk" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="no">🇳🇴 Norsk</SelectItem>
+                <SelectItem value="en">🇬🇧 English</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
 
-            <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-              <p className="font-medium mb-2">E-posten vil inneholde:</p>
-              <ul className="space-y-1 list-disc list-inside">
-                <li>Komplett produktinformasjon</li>
-                <li>Feilbeskrivelse og detaljer</li>
-                <li>Kundeinformasjon</li>
-                <li>Utført arbeid og kostnader</li>
-                <li>Kostnadsoversikt</li>
-              </ul>
-            </div>
+          <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+            <p className="font-medium mb-2">E-posten vil inneholde:</p>
+            <ul className="space-y-1 list-disc list-inside">
+              <li>Komplett produktinformasjon</li>
+              <li>Feilbeskrivelse og detaljer</li>
+              <li>Kundeinformasjon</li>
+              <li>Utført arbeid og kostnader</li>
+              <li>Kostnadsoversikt</li>
+            </ul>
+          </div>
 
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => handleDialogClose(false)}
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => handleDialogClose(false)}
+            >
+              Avbryt
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+            >
+              <ButtonLoading
+                isLoading={isSubmitting}
+                loadingText="Sender..."
               >
-                Avbryt
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={form.formState.isSubmitting}
-              >
-                <ButtonLoading
-                  isLoading={form.formState.isSubmitting}
-                  loadingText="Sender..."
-                >
-                  Send e-post
-                </ButtonLoading>
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                Send e-post
+              </ButtonLoading>
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
