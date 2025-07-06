@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Upload, Plus, LogOut, Info, Calculator, Trash2, CheckCircle } from "lucide-react";
+import { ArrowLeft, Upload, Plus, LogOut, Info, Calculator, Trash2, CheckCircle, Camera } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import InvoiceScanner from "@/components/InvoiceScanner";
 
 const ClaimsFormAdvanced = () => {
   const navigate = useNavigate();
@@ -87,6 +88,7 @@ const ClaimsFormAdvanced = () => {
   
   const [files, setFiles] = useState<File[]>([]);
   const [currentTab, setCurrentTab] = useState("customer");
+  const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [parts, setParts] = useState<Array<{
     id: string;
     partNumber: string;
@@ -153,6 +155,53 @@ const ClaimsFormAdvanced = () => {
         autoSuggestRefunds(value);
       }
     }
+  };
+
+  // Handle OCR data extraction
+  const handleOCRDataExtracted = (ocrData: any) => {
+    // Map OCR data to form fields
+    const updates: any = {};
+    
+    if (ocrData.customerName) updates.customerName = ocrData.customerName;
+    if (ocrData.customerOrgNumber) updates.customerNumber = ocrData.customerOrgNumber;
+    if (ocrData.productName) updates.productName = ocrData.productName;
+    if (ocrData.productModel) updates.productModel = ocrData.productModel;
+    if (ocrData.evaticJobNumber) updates.evaticJobNumber = ocrData.evaticJobNumber;
+    if (ocrData.invoiceNumber) updates.msJobNumber = ocrData.invoiceNumber;
+    
+    // Map costs
+    if (ocrData.laborCost > 0) {
+      const workHours = Math.round((ocrData.laborCost / formData.hourlyRate) * 100) / 100;
+      updates.workHours = workHours;
+    }
+    if (ocrData.partsCost > 0) updates.partsCost = ocrData.partsCost;
+    if (ocrData.totalAmount > 0) {
+      // Calculate travel cost as difference if not already set
+      const workCost = ocrData.laborCost || 0;
+      const partsCost = ocrData.partsCost || 0;
+      const remaining = ocrData.totalAmount - workCost - partsCost;
+      if (remaining > 0) updates.travelCost = remaining;
+    }
+
+    // Update invoice date if available
+    if (ocrData.invoiceDate) {
+      try {
+        const date = new Date(ocrData.invoiceDate);
+        if (!isNaN(date.getTime())) {
+          updates.purchaseDate = date.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.warn('Could not parse invoice date:', ocrData.invoiceDate);
+      }
+    }
+
+    // Apply all updates
+    setFormData(prev => ({ ...prev, ...updates }));
+
+    toast({
+      title: "OCR Data importert",
+      description: `${Object.keys(updates).length} felter ble automatisk fyllt ut fra fakturaen`,
+    });
   };
 
   // Auto-suggest refunds based on supplier policies
@@ -478,6 +527,20 @@ const ClaimsFormAdvanced = () => {
                 <CardHeader>
                   <CardTitle>Kundeinformasjon</CardTitle>
                   <CardDescription>Informasjon om kunden som reklamerer</CardDescription>
+                  <div className="mt-4">
+                    <Button 
+                      type="button"
+                      variant="secondary" 
+                      onClick={() => setOcrDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Camera className="h-4 w-4" />
+                      Skann Visma-faktura
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Spar 5-10 minutter ved å skanne fakturaen for automatisk utfylling
+                    </p>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1424,6 +1487,13 @@ const ClaimsFormAdvanced = () => {
           </Tabs>
         </form>
       </main>
+
+      {/* OCR Invoice Scanner Dialog */}
+      <InvoiceScanner
+        open={ocrDialogOpen}
+        onOpenChange={setOcrDialogOpen}
+        onDataExtracted={handleOCRDataExtracted}
+      />
     </div>
   );
 };

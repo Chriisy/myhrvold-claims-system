@@ -152,6 +152,20 @@ export interface FormFieldProps {
   children: React.ReactNode;
 }
 
+export interface ScannedInvoiceData {
+  invoiceNumber: string;
+  customerName: string;
+  customerOrgNumber: string;
+  productName: string;
+  productModel: string;
+  laborCost: number;
+  partsCost: number;
+  totalAmount: number;
+  evaticJobNumber?: string;
+  invoiceDate: string;
+  confidence: number;
+}
+
 export interface SelectOption {
   value: string;
   label: string;

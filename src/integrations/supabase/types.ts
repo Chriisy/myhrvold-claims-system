@@ -77,6 +77,8 @@ export type Database = {
           issue_type: Database["public"]["Enums"]["issue_type"]
           ms_job_number: string | null
           net_cost: number | null
+          ocr_confidence_score: number | null
+          ocr_processed_at: string | null
           other_cost_refunded: boolean | null
           parts_cost: number | null
           parts_cost_refunded: boolean | null
@@ -90,6 +92,7 @@ export type Database = {
           refunded_travel_cost: number | null
           refunded_vehicle_cost: number | null
           refunded_work_cost: number | null
+          scanned_invoice_url: string | null
           serial_number: string | null
           status: Database["public"]["Enums"]["claim_status"]
           supplier: string
@@ -143,6 +146,8 @@ export type Database = {
           issue_type: Database["public"]["Enums"]["issue_type"]
           ms_job_number?: string | null
           net_cost?: number | null
+          ocr_confidence_score?: number | null
+          ocr_processed_at?: string | null
           other_cost_refunded?: boolean | null
           parts_cost?: number | null
           parts_cost_refunded?: boolean | null
@@ -156,6 +161,7 @@ export type Database = {
           refunded_travel_cost?: number | null
           refunded_vehicle_cost?: number | null
           refunded_work_cost?: number | null
+          scanned_invoice_url?: string | null
           serial_number?: string | null
           status?: Database["public"]["Enums"]["claim_status"]
           supplier: string
@@ -209,6 +215,8 @@ export type Database = {
           issue_type?: Database["public"]["Enums"]["issue_type"]
           ms_job_number?: string | null
           net_cost?: number | null
+          ocr_confidence_score?: number | null
+          ocr_processed_at?: string | null
           other_cost_refunded?: boolean | null
           parts_cost?: number | null
           parts_cost_refunded?: boolean | null
@@ -222,6 +230,7 @@ export type Database = {
           refunded_travel_cost?: number | null
           refunded_vehicle_cost?: number | null
           refunded_work_cost?: number | null
+          scanned_invoice_url?: string | null
           serial_number?: string | null
           status?: Database["public"]["Enums"]["claim_status"]
           supplier?: string
@@ -327,6 +336,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ocr_analytics: {
+        Row: {
+          claim_id: string | null
+          confidence_score: number | null
+          created_at: string
+          fields_extracted: Json | null
+          id: string
+          processing_time_ms: number | null
+          success: boolean
+          user_corrections: Json | null
+          user_id: string
+        }
+        Insert: {
+          claim_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          fields_extracted?: Json | null
+          id?: string
+          processing_time_ms?: number | null
+          success?: boolean
+          user_corrections?: Json | null
+          user_id: string
+        }
+        Update: {
+          claim_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          fields_extracted?: Json | null
+          id?: string
+          processing_time_ms?: number | null
+          success?: boolean
+          user_corrections?: Json | null
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
