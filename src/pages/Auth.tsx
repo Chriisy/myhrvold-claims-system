@@ -16,6 +16,7 @@ const Auth = () => {
   const [department, setDepartment] = useState("");
   const [role, setRole] = useState("technician");
   const [loading, setLoading] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -132,6 +133,41 @@ const Auth = () => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({
+        title: "E-post påkrevd",
+        description: "Vennligst skriv inn e-postadressen din.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Reset-lenke sendt",
+        description: "Sjekk e-posten din for passord reset-lenke.",
+      });
+      setIsResetMode(false);
+    } catch (error: any) {
+      toast({
+        title: "Feil ved sending",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -142,15 +178,49 @@ const Auth = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>{isSignUp ? "Opprett bruker" : "Logg inn"}</CardTitle>
+            <CardTitle>
+              {isResetMode ? "Reset passord" : isSignUp ? "Opprett bruker" : "Logg inn"}
+            </CardTitle>
             <CardDescription>
-              {isSignUp
+              {isResetMode
+                ? "Skriv inn e-postadressen din for å få reset-lenke"
+                : isSignUp
                 ? "Opprett en ny brukerkonto for å få tilgang til systemet"
                 : "Logg inn med din e-post og passord"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+            {isResetMode ? (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div>
+                  <Label htmlFor="resetEmail">E-post *</Label>
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="din@email.no"
+                    required
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Sender..." : "Send reset-lenke"}
+                </Button>
+                
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setIsResetMode(false)}
+                    className="text-sm"
+                  >
+                    Tilbake til innlogging
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
               {isSignUp && (
                 <>
                   <div>
@@ -228,7 +298,7 @@ const Auth = () => {
                   : "Logg inn"}
               </Button>
 
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <Button
                   type="button"
                   variant="ghost"
@@ -239,8 +309,22 @@ const Auth = () => {
                     ? "Har du allerede en konto? Logg inn"
                     : "Trenger du en konto? Opprett bruker"}
                 </Button>
+                
+                {!isSignUp && (
+                  <div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setIsResetMode(true)}
+                      className="text-sm text-muted-foreground"
+                    >
+                      Glemt passord?
+                    </Button>
+                  </div>
+                )}
               </div>
             </form>
+            )}
           </CardContent>
         </Card>
       </div>
