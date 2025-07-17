@@ -4,34 +4,25 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp, BarChart3, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-// TEMP: Comment out React Query hooks to test basic loading
-// import { useDashboardStats, useRecentClaims } from "@/hooks/useDashboardData";
+import { useDashboardStats, useRecentClaims } from "@/hooks/useDashboardData";
 import UserNav from "@/components/UserNav";
 
 const Dashboard = () => {
   const { profile } = useAuth();
   
-  // TEMP: Hardcoded data for testing - replace with React Query later
-  const stats = {
-    totalClaims: 0,
-    pendingApproval: 0,
-    underProcessing: 0,
-    sentToSupplier: 0,
-    resolved: 0,
-    rejected: 0,
-    totalCosts: 0,
-    expectedRefunds: 0,
-    actualRefunds: 0,
-    averageResolutionTime: 0,
-    overdueClaimsCount: 0,
-    urgencyStats: { critical: 0, high: 0, normal: 0, low: 0 }
-  };
-  const recentClaims: any[] = [];
-  const statsLoading = false;
-  const claimsLoading = false;
-  const statsError = null;
-  const claimsError = null;
-  const refetchStats = () => console.log('Refresh clicked');
+  // Re-enable React Query hooks
+  const { 
+    data: stats, 
+    isLoading: statsLoading, 
+    error: statsError,
+    refetch: refetchStats 
+  } = useDashboardStats();
+  
+  const { 
+    data: recentClaims = [], 
+    isLoading: claimsLoading,
+    error: claimsError 
+  } = useRecentClaims(5);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nb-NO', {
