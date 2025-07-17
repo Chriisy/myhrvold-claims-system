@@ -95,6 +95,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setProfile(null);
       }
       
+      // ALWAYS set loading to false after handling auth change
       if (mounted) {
         setLoading(false);
       }
