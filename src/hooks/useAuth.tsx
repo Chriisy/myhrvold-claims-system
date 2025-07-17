@@ -104,20 +104,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
 
-    // Check for existing session
-    const initializeAuth = async () => {
+    // Get initial session immediately
+    const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting initial session:', error);
-          if (mounted) {
-            setLoading(false);
-          }
-          return;
         }
 
-        await handleAuthChange('INITIAL_SESSION', session);
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            const profileData = await fetchProfile(session.user.id);
+            if (mounted) {
+              setProfile(profileData);
+            }
+          } else {
+            setProfile(null);
+          }
+          
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mounted) {
@@ -126,7 +136,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
-    initializeAuth();
+    getInitialSession();
 
     return () => {
       mounted = false;
