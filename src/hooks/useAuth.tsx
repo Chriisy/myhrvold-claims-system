@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     let mounted = true;
 
-    const handleAuthChange = async (event: string, session: Session | null) => {
+    const handleAuthChange = (event: string, session: Session | null) => {
       console.log('Auth state change:', event, session?.user?.id);
       
       if (!mounted) return;
@@ -80,22 +80,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        try {
-          const profileData = await fetchProfile(session.user.id);
-          if (mounted) {
-            setProfile(profileData);
+        // Defer profile fetching to avoid blocking the loading state
+        setTimeout(async () => {
+          try {
+            const profileData = await fetchProfile(session.user.id);
+            if (mounted) {
+              setProfile(profileData);
+            }
+          } catch (error) {
+            console.error('Error loading profile:', error);
+            if (mounted) {
+              setProfile(null);
+            }
           }
-        } catch (error) {
-          console.error('Error loading profile:', error);
-          if (mounted) {
-            setProfile(null);
-          }
-        }
+        }, 0);
       } else {
         setProfile(null);
       }
       
-      // ALWAYS set loading to false after handling auth change
+      // ALWAYS set loading to false immediately after auth state change
       if (mounted) {
         setLoading(false);
       }
