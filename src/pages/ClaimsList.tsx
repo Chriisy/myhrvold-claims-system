@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,44 +6,35 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, ArrowLeft, Eye, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useClaimsPaginated } from "@/hooks/useClaimsPaginated";
 import UserNav from "@/components/UserNav";
 
 const ClaimsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [claims, setClaims] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const { profile } = useAuth();
 
-  useEffect(() => {
-    if (profile) {
-      fetchClaims();
-    }
-  }, [profile]);
+  // Use the new paginated hook
+  const filters = useMemo(() => ({
+    status: statusFilter,
+    searchTerm: searchTerm.trim()
+  }), [statusFilter, searchTerm]);
 
-  const fetchClaims = async () => {
-    try {
-      let claimsQuery = supabase
-        .from('claims')
-        .select('*');
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage
+  } = useClaimsPaginated(filters);
 
-      // Role-based filtering
-      if (profile?.role === 'technician') {
-        claimsQuery = claimsQuery.eq('department', profile.department);
-      }
-
-      const { data, error } = await claimsQuery.order('created_date', { ascending: false });
-
-      if (error) throw error;
-      setClaims(data || []);
-    } catch (error) {
-      console.error('Error fetching claims:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Flatten paginated data
+  const allClaims = useMemo(() => {
+    return data?.pages.flatMap(page => page.claims) || [];
+  }, [data]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -91,13 +82,28 @@ const ClaimsList = () => {
     }
   };
 
-  const filteredClaims = claims.filter(claim => {
-    const matchesSearch = claim.claim_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         claim.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         claim.product_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || claim.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Feil ved lasting</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              {error?.message || "Kunne ikke laste reklamasjoner"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -168,17 +174,17 @@ const ClaimsList = () => {
         {/* Claims List */}
         <Card>
           <CardHeader>
-            <CardTitle>Reklamasjoner ({filteredClaims.length})</CardTitle>
+            <CardTitle>Reklamasjoner ({allClaims.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {isLoading && allClaims.length === 0 ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
                 <span className="ml-2">Laster reklamasjoner...</span>
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredClaims.map((claim) => (
+                {allClaims.map((claim) => (
                   <div key={claim.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
@@ -212,12 +218,32 @@ const ClaimsList = () => {
                   </div>
                 ))}
                 
-                {filteredClaims.length === 0 && !loading && (
+                {/* Load More Button */}
+                {hasNextPage && (
+                  <div className="text-center py-4">
+                    <Button 
+                      onClick={handleLoadMore}
+                      disabled={isFetchingNextPage}
+                      variant="outline"
+                    >
+                      {isFetchingNextPage ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Laster flere...
+                        </>
+                      ) : (
+                        "Last flere reklamasjoner"
+                      )}
+                    </Button>
+                  </div>
+                )}
+                
+                {allClaims.length === 0 && !isLoading && (
                   <div className="text-center py-8 text-muted-foreground">
                     <p>
-                      {claims.length === 0 
-                        ? "Ingen reklamasjoner registrert ennå." 
-                        : "Ingen reklamasjoner funnet med de valgte filtrene."
+                      {searchTerm || statusFilter !== "all"
+                        ? "Ingen reklamasjoner funnet med de valgte filtrene."
+                        : "Ingen reklamasjoner registrert ennå."
                       }
                     </p>
                   </div>
