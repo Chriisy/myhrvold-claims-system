@@ -9,6 +9,9 @@ import { IssueDescription } from "@/components/claim-details/IssueDescription";
 import { ClaimFiles } from "@/components/claim-details/ClaimFiles";
 import { ClaimTimeline } from "@/components/claim-details/ClaimTimeline";
 import { QuickActions } from "@/components/claim-details/QuickActions";
+import { EconomicInfo } from "@/components/claim-details/EconomicInfo";
+import { OrganizationInfo } from "@/components/claim-details/OrganizationInfo";
+import { EditClaimDialog } from "@/components/claim-details/EditClaimDialog";
 import { PageLoading } from "@/components/ui/loading";
 import SendSupplierEmailDialog from "@/components/SendSupplierEmailDialog";
 
@@ -47,17 +50,62 @@ const ClaimDetails = () => {
 
   const claim = transformClaimForUI(claimData);
 
+  // Prepare economic data
+  const economicData = {
+    workHours: claimData.work_hours || 0,
+    hourlyRate: claimData.hourly_rate || 0,
+    partsCost: claimData.parts_cost || 0,
+    travelCost: claimData.travel_cost || 0,
+    consumablesCost: claimData.consumables_cost || 0,
+    externalServicesCost: claimData.external_services_cost || 0,
+    totalCost: claimData.total_cost || 0,
+    expectedRefund: claimData.expected_refund || 0,
+    actualRefund: claimData.actual_refund,
+    refundStatus: claimData.refund_status,
+    netCost: claimData.net_cost,
+    refundedWorkCost: claimData.refunded_work_cost,
+    refundedPartsCost: claimData.refunded_parts_cost,
+    refundedTravelCost: claimData.refunded_travel_cost,
+    refundedVehicleCost: claimData.refunded_vehicle_cost,
+    refundedOtherCost: claimData.refunded_other_cost,
+    totalRefunded: claimData.total_refunded
+  };
+
+  // Prepare organization data
+  const organizationData = {
+    department: claimData.department,
+    technicianName: claimData.technician_name,
+    msJobNumber: claimData.ms_job_number,
+    evaticJobNumber: claimData.evatic_job_number,
+    accountCode: claimData.account_code,
+    accountString: claimData.account_string,
+    creditNoteNumber: claimData.credit_note_number,
+    assignedAdmin: claimData.assigned_admin,
+    approvedBy: claimData.approved_by,
+    approvedDate: claimData.approved_date,
+    createdDate: claimData.created_date,
+    updatedDate: claimData.updated_date
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <ClaimHeader claim={claim} />
 
       <main className="container mx-auto px-4 py-6 max-w-6xl">
+        {/* Action Bar */}
+        <div className="mb-6 flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Reklamasjonsdetaljer</h2>
+          <EditClaimDialog claimId={claimData.id} />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <CustomerInfo customer={claim.customer} />
             <ProductInfo product={claim.product} />
             <IssueDescription issue={claim.issue} />
+            <EconomicInfo data={economicData} />
+            <OrganizationInfo data={organizationData} />
             <ClaimFiles files={claim.files} />
           </div>
 
