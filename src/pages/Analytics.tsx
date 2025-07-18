@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 
 interface ProductError {
@@ -214,26 +215,76 @@ const Analytics = () => {
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', '#8884d8', '#82ca9d', '#ffc658'];
 
+  const LoadingSkeleton = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-[300px] w-full" />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <div className="space-y-2 text-right">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const TrendsLoadingSkeleton = () => (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-[400px] w-full" />
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
               <Link to="/">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Tilbake til dashboard
+                  <span className="hidden sm:inline">Tilbake til dashboard</span>
+                  <span className="sm:hidden">Tilbake</span>
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-primary">Analytics & Rapporter</h1>
-                <p className="text-muted-foreground">Detaljert analyse av reklamasjoner og kostnader</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-primary">Analytics & Rapporter</h1>
+                <p className="text-sm text-muted-foreground hidden sm:block">Detaljert analyse av reklamasjoner og kostnader</p>
               </div>
             </div>
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Velg tidsperiode" />
               </SelectTrigger>
               <SelectContent>
@@ -248,207 +299,55 @@ const Analytics = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="products">Produktfeil</TabsTrigger>
-            <TabsTrigger value="suppliers">Leverandører</TabsTrigger>
-            <TabsTrigger value="trends">Trender</TabsTrigger>
-            {profile?.role === 'admin' && <TabsTrigger value="departments">Avdelinger</TabsTrigger>}
+          <TabsList className={`grid w-full ${profile?.role === 'admin' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
+            <TabsTrigger value="products" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Produktfeil</span>
+              <span className="sm:hidden">Produkter</span>
+            </TabsTrigger>
+            <TabsTrigger value="suppliers" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Leverandører</span>
+              <span className="sm:hidden">Leverandør</span>
+            </TabsTrigger>
+            <TabsTrigger value="trends" className="text-xs sm:text-sm">Trender</TabsTrigger>
+            {profile?.role === 'admin' && (
+              <TabsTrigger value="departments" className="text-xs sm:text-sm">
+                <span className="hidden sm:inline">Avdelinger</span>
+                <span className="sm:hidden">Avdeling</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Product Errors Tab */}
           <TabsContent value="products" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Top 10 produkter med flest feil
-                  </CardTitle>
-                  <CardDescription>Rangert etter antall reklamasjoner</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={{
-                    error_count: { label: "Antall feil", color: "hsl(var(--primary))" }
-                  }}>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={productErrors}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="product_name" 
-                          tick={{ fontSize: 12 }}
-                          angle={-45}
-                          textAnchor="end"
-                        />
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="error_count" fill="hsl(var(--primary))" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Kostnader per produkt
-                  </CardTitle>
-                  <CardDescription>Gjennomsnittlig kostnad per reklamasjon</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {productErrors.slice(0, 5).map((product, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{product.product_name}</p>
-                          <p className="text-sm text-muted-foreground">{product.product_model}</p>
-                          <p className="text-sm text-muted-foreground">{product.error_count} feil</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">{formatCurrency(product.avg_cost)}</p>
-                          <p className="text-sm text-muted-foreground">gj.snitt</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Suppliers Tab */}
-          <TabsContent value="suppliers" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Leverandører med flest claims
-                  </CardTitle>
-                  <CardDescription>Rangert etter antall reklamasjoner</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={{
-                    claim_count: { label: "Antall claims", color: "hsl(var(--secondary))" }
-                  }}>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={supplierStats.slice(0, 8)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="supplier" tick={{ fontSize: 12 }} />
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="claim_count" fill="hsl(var(--secondary))" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Leverandør statistikk</CardTitle>
-                  <CardDescription>Detaljert oversikt over leverandørprestasjoner</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {supplierStats.slice(0, 5).map((supplier, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{supplier.supplier}</p>
-                          <p className="text-sm text-muted-foreground">{supplier.claim_count} claims</p>
-                          <p className="text-sm text-muted-foreground">
-                            {supplier.resolution_rate.toFixed(1)}% løst
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">{formatCurrency(supplier.total_cost)}</p>
-                          <p className="text-sm text-muted-foreground">total kostnad</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Trends Tab */}
-          <TabsContent value="trends" className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Trend analyse
-                  </CardTitle>
-                  <CardDescription>Utvikling av reklamasjoner og kostnader over tid</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={{
-                    claims: { label: "Antall claims", color: "hsl(var(--primary))" },
-                    costs: { label: "Kostnader (NOK)", color: "hsl(var(--secondary))" }
-                  }}>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <LineChart data={trends}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis yAxisId="left" />
-                        <YAxis yAxisId="right" orientation="right" />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Line 
-                          yAxisId="left"
-                          type="monotone" 
-                          dataKey="claims" 
-                          stroke="hsl(var(--primary))" 
-                          strokeWidth={2}
-                        />
-                        <Line 
-                          yAxisId="right"
-                          type="monotone" 
-                          dataKey="costs" 
-                          stroke="hsl(var(--secondary))" 
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Departments Tab (Admin only) */}
-          {profile?.role === 'admin' && (
-            <TabsContent value="departments" className="space-y-6">
+            {loading ? (
+              <LoadingSkeleton />
+            ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Claims per avdeling</CardTitle>
-                    <CardDescription>Fordeling av reklamasjoner per avdeling</CardDescription>
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Top 10 produkter med flest feil
+                    </CardTitle>
+                    <CardDescription>Rangert etter antall reklamasjoner</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ChartContainer config={{
-                      value: { label: "Antall claims", color: "hsl(var(--primary))" }
+                      error_count: { label: "Antall feil", color: "hsl(var(--primary))" }
                     }}>
                       <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                          <Pie
-                            data={departmentStats.map(d => ({ name: d.department, value: d.claim_count }))}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            outerRadius={80}
-                            fill="hsl(var(--primary))"
-                            dataKey="value"
-                          >
-                            {departmentStats.map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
+                        <BarChart data={productErrors}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="product_name" 
+                            tick={{ fontSize: 12 }}
+                            angle={-45}
+                            textAnchor="end"
+                          />
+                          <YAxis />
                           <ChartTooltip content={<ChartTooltipContent />} />
-                        </PieChart>
+                          <Bar dataKey="error_count" fill="hsl(var(--primary))" />
+                        </BarChart>
                       </ResponsiveContainer>
                     </ChartContainer>
                   </CardContent>
@@ -456,24 +355,24 @@ const Analytics = () => {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Kostnader per avdeling</CardTitle>
-                    <CardDescription>Total kostnad per avdeling</CardDescription>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      Kostnader per produkt
+                    </CardTitle>
+                    <CardDescription>Gjennomsnittlig kostnad per reklamasjon</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {departmentStats
-                        .sort((a, b) => b.total_cost - a.total_cost)
-                        .map((dept, index) => (
+                      {productErrors.slice(0, 5).map((product, index) => (
                         <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
-                            <p className="font-medium capitalize">{dept.department}</p>
-                            <p className="text-sm text-muted-foreground">{dept.claim_count} claims</p>
+                            <p className="font-medium">{product.product_name}</p>
+                            <p className="text-sm text-muted-foreground">{product.product_model}</p>
+                            <p className="text-sm text-muted-foreground">{product.error_count} feil</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">{formatCurrency(dept.total_cost)}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatCurrency(dept.total_cost / dept.claim_count)} gj.snitt
-                            </p>
+                            <p className="font-semibold">{formatCurrency(product.avg_cost)}</p>
+                            <p className="text-sm text-muted-foreground">gj.snitt</p>
                           </div>
                         </div>
                       ))}
@@ -481,6 +380,185 @@ const Analytics = () => {
                   </CardContent>
                 </Card>
               </div>
+            )}
+          </TabsContent>
+
+          {/* Suppliers Tab */}
+          <TabsContent value="suppliers" className="space-y-6">
+            {loading ? (
+              <LoadingSkeleton />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      Leverandører med flest claims
+                    </CardTitle>
+                    <CardDescription>Rangert etter antall reklamasjoner</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={{
+                      claim_count: { label: "Antall claims", color: "hsl(var(--secondary))" }
+                    }}>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={supplierStats.slice(0, 8)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="supplier" tick={{ fontSize: 12 }} />
+                          <YAxis />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="claim_count" fill="hsl(var(--secondary))" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Leverandør statistikk</CardTitle>
+                    <CardDescription>Detaljert oversikt over leverandørprestasjoner</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {supplierStats.slice(0, 5).map((supplier, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{supplier.supplier}</p>
+                            <p className="text-sm text-muted-foreground">{supplier.claim_count} claims</p>
+                            <p className="text-sm text-muted-foreground">
+                              {supplier.resolution_rate.toFixed(1)}% løst
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{formatCurrency(supplier.total_cost)}</p>
+                            <p className="text-sm text-muted-foreground">total kostnad</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Trends Tab */}
+          <TabsContent value="trends" className="space-y-6">
+            {loading ? (
+              <TrendsLoadingSkeleton />
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Trend analyse
+                    </CardTitle>
+                    <CardDescription>Utvikling av reklamasjoner og kostnader over tid</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={{
+                      claims: { label: "Antall claims", color: "hsl(var(--primary))" },
+                      costs: { label: "Kostnader (NOK)", color: "hsl(var(--secondary))" }
+                    }}>
+                      <ResponsiveContainer width="100%" height={400}>
+                        <LineChart data={trends}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="month" />
+                          <YAxis yAxisId="left" />
+                          <YAxis yAxisId="right" orientation="right" />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Line 
+                            yAxisId="left"
+                            type="monotone" 
+                            dataKey="claims" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={2}
+                          />
+                          <Line 
+                            yAxisId="right"
+                            type="monotone" 
+                            dataKey="costs" 
+                            stroke="hsl(var(--secondary))" 
+                            strokeWidth={2}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Departments Tab (Admin only) */}
+          {profile?.role === 'admin' && (
+            <TabsContent value="departments" className="space-y-6">
+              {loading ? (
+                <LoadingSkeleton />
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Claims per avdeling</CardTitle>
+                      <CardDescription>Fordeling av reklamasjoner per avdeling</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ChartContainer config={{
+                        value: { label: "Antall claims", color: "hsl(var(--primary))" }
+                      }}>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={departmentStats.map(d => ({ name: d.department, value: d.claim_count }))}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              outerRadius={80}
+                              fill="hsl(var(--primary))"
+                              dataKey="value"
+                            >
+                              {departmentStats.map((_, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Kostnader per avdeling</CardTitle>
+                      <CardDescription>Total kostnad per avdeling</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {departmentStats
+                          .sort((a, b) => b.total_cost - a.total_cost)
+                          .map((dept, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <p className="font-medium capitalize">{dept.department}</p>
+                              <p className="text-sm text-muted-foreground">{dept.claim_count} claims</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">{formatCurrency(dept.total_cost)}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatCurrency(dept.total_cost / dept.claim_count)} gj.snitt
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </TabsContent>
           )}
         </Tabs>

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp, BarChart3, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -99,27 +100,29 @@ const Dashboard = () => {
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-primary">Myhrvoldgruppen</h1>
-                <p className="text-muted-foreground">Reklamasjonsbehandling</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-primary">Myhrvoldgruppen</h1>
+                <p className="text-sm text-muted-foreground">Reklamasjonsbehandling</p>
               </div>
               {(statsLoading || claimsLoading) && (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               )}
             </div>
-            <div className="flex items-center gap-4">
-              <Link to="/analytics">
-                <Button variant="outline">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <Link to="/analytics" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto">
                   <BarChart3 className="mr-2 h-4 w-4" />
-                  Analytics
+                  <span className="hidden sm:inline">Analytics</span>
+                  <span className="sm:hidden">Rapporter</span>
                 </Button>
               </Link>
-              <Link to="/claims/new">
-                <Button className="bg-primary hover:bg-primary/90">
+              <Link to="/claims/new" className="w-full sm:w-auto">
+                <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
-                  Ny reklamasjon
+                  <span className="hidden sm:inline">Ny reklamasjon</span>
+                  <span className="sm:hidden">Ny sak</span>
                 </Button>
               </Link>
               <UserNav />
@@ -256,9 +259,23 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             {claimsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2">Laster reklamasjoner...</span>
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-5 w-20" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-4 w-36" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                ))}
               </div>
             ) : claimsError ? (
               <div className="text-center py-8 text-muted-foreground">
