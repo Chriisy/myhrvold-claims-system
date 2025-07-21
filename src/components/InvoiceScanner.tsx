@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Camera, Upload, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useEnhancedToast } from '@/hooks/useEnhancedToast';
-import { supabase } from '@/integrations/supabase/client';
+import { createWorker } from 'tesseract.js';
 
 interface ScannedInvoiceData {
   invoiceNumber: string;
@@ -41,12 +41,67 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  const parseVismaInvoice = (text: string): ScannedInvoiceData => {
+    const vismaPatterns = {
+      invoiceNumber: /Fakturanummer[:\s]*(\d+)/i,
+      customerName: /(?:Kunde|Customer)[:\s]*([^\n\r]{2,50})/i,
+      customerOrgNumber: /(?:Org\.?\s*nr\.?|Orgnr)[:\s]*(\d{9})/i,
+      productName: /(?:Produktnavn|Product)[:\s]*([^\n\r]{2,50})/i,
+      productModel: /(?:Modell|Model)[:\s]*([^\n\r]{2,30})/i,
+      laborCost: /(?:Arbeid|Labor)[:\s]*kr[:\s]*(\d+(?:\.\d{2})?)/i,
+      partsCost: /(?:Deler|Parts)[:\s]*kr[:\s]*(\d+(?:\.\d{2})?)/i,
+      totalAmount: /(?:Total|Sum)[:\s]*kr[:\s]*(\d+(?:\.\d{2})?)/i,
+      evaticJobNumber: /(?:Evatic|Job)[:\s]*(\d+)/i,
+      invoiceDate: /(?:Dato|Date)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
+    };
+
+    const extractValue = (pattern: RegExp, defaultValue: any = '') => {
+      const match = text.match(pattern);
+      return match ? match[1].trim() : defaultValue;
+    };
+
+    const parseAmount = (amountStr: string): number => {
+      if (!amountStr) return 0;
+      const cleaned = amountStr.replace(/[^\d,\.]/g, '');
+      return parseFloat(cleaned.replace(',', '.')) || 0;
+    };
+
+    const data: ScannedInvoiceData = {
+      invoiceNumber: extractValue(vismaPatterns.invoiceNumber),
+      customerName: extractValue(vismaPatterns.customerName),
+      customerOrgNumber: extractValue(vismaPatterns.customerOrgNumber),
+      productName: extractValue(vismaPatterns.productName),
+      productModel: extractValue(vismaPatterns.productModel),
+      laborCost: parseAmount(extractValue(vismaPatterns.laborCost, '0')),
+      partsCost: parseAmount(extractValue(vismaPatterns.partsCost, '0')),
+      totalAmount: parseAmount(extractValue(vismaPatterns.totalAmount, '0')),
+      evaticJobNumber: extractValue(vismaPatterns.evaticJobNumber),
+      invoiceDate: extractValue(vismaPatterns.invoiceDate),
+      confidence: 0
+    };
+
+    // Calculate confidence score
+    let confidence = 0;
+    let totalFields = 0;
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (key === 'confidence') return;
+      totalFields++;
+      if (value && value !== '') {
+        confidence++;
+      }
+    });
+
+    data.confidence = totalFields > 0 ? confidence / totalFields : 0;
+    return data;
+  };
+
   const handleFileUpload = async (file: File) => {
     if (!file) return;
 
     // Validate file type
-    if (!file.type.match(/^image\/(jpeg|jpg|png|pdf)$/)) {
-      showError('Ugyldig filtype', 'Kun JPG, PNG og PDF er støttet');
+    if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
+      showError('Ugyldig filtype', 'Kun JPG og PNG er støttet med Tesseract.js');
       return;
     }
 
@@ -67,37 +122,25 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
       };
       reader.readAsDataURL(file);
 
-      // Convert to base64 for OCR
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64String = (reader.result as string).split(',')[1];
-          resolve(base64String);
-        };
-        reader.readAsDataURL(file);
+      // Process with Tesseract.js
+      const worker = await createWorker('nor', 1, {
+        logger: m => console.log(m) // Logging for debugging
       });
 
-      // Process with OCR
-      const { data, error } = await supabase.functions.invoke('process-invoice', {
-        body: {
-          imageBase64: base64,
-          userId: (await supabase.auth.getUser()).data.user?.id,
-          claimId: null
-        }
-      });
+      const { data: { text } } = await worker.recognize(file);
+      await worker.terminate();
 
-      if (error) throw error;
+      console.log('OCR Text:', text);
 
-      if (data.success) {
-        setExtractedData(data.data);
-        validateExtractedData(data.data);
-        showSuccess(
-          'Faktura skannet!',
-          `${Math.round(data.data.confidence * 100)}% sikkerhet på gjenkjenning`
-        );
-      } else {
-        throw new Error(data.error || 'OCR processing failed');
-      }
+      // Parse the extracted text
+      const parsedData = parseVismaInvoice(text);
+      
+      setExtractedData(parsedData);
+      validateExtractedData(parsedData);
+      showSuccess(
+        'Faktura skannet!',
+        `${Math.round(parsedData.confidence * 100)}% sikkerhet på gjenkjenning`
+      );
 
     } catch (error: any) {
       console.error('OCR Error:', error);
@@ -200,7 +243,7 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
                   Dra og slipp faktura her, eller bruk knappene over
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Støtter JPG, PNG og PDF • Maks 10MB
+                  Støtter JPG og PNG • Maks 10MB
                 </p>
               </div>
 
@@ -347,7 +390,7 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/jpg,image/png,application/pdf"
+          accept="image/jpeg,image/jpg,image/png"
           onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
           className="hidden"
         />
