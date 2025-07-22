@@ -42,17 +42,42 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const parseVismaInvoice = (text: string): ScannedInvoiceData => {
+    console.log('Parsing text:', text);
+    
+    // Improved patterns based on T.MYHRVOLD invoice format
     const vismaPatterns = {
-      invoiceNumber: /Fakturanummer[:\s]*(\d+)/i,
-      customerName: /(?:Kunde|Customer)[:\s]*([^\n\r]{2,50})/i,
-      customerOrgNumber: /(?:Org\.?\s*nr\.?|Orgnr)[:\s]*(\d{9})/i,
-      productName: /(?:Produktnavn|Product)[:\s]*([^\n\r]{2,50})/i,
-      productModel: /(?:Modell|Model)[:\s]*([^\n\r]{2,30})/i,
-      laborCost: /(?:Arbeid|Labor)[:\s]*kr[:\s]*(\d+(?:\.\d{2})?)/i,
-      partsCost: /(?:Deler|Parts)[:\s]*kr[:\s]*(\d+(?:\.\d{2})?)/i,
-      totalAmount: /(?:Total|Sum)[:\s]*kr[:\s]*(\d+(?:\.\d{2})?)/i,
-      evaticJobNumber: /(?:Evatic|Job)[:\s]*(\d+)/i,
-      invoiceDate: /(?:Dato|Date)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
+      // Look for "Faktura" followed by numbers on same or next line
+      invoiceNumber: /(?:Faktura|FAKTURA)[\s\S]*?(\d{7,8})/i,
+      
+      // Extract customer from "Ordreadresse:" section or lines after "Kunde:"
+      customerName: /(?:Ordreadresse:|Kunde[:\s]*)[\s\n]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]{2,50})/i,
+      
+      // Norwegian org number format
+      customerOrgNumber: /(?:Org\.?\s*nr\.?|Orgnr)[:\s]*([NO]?\d{9}[A-Z]*)/i,
+      
+      // Look for service descriptions in product lines
+      productName: /(?:Time\s+service|Bil\s+[-‑]\s+Sone|Grønn\s+bryter|Touch\s+screen|Time\s+kjøring)/i,
+      
+      // Model from product descriptions
+      productModel: /(?:Produktnummer|Modell)[:\s]*([A-Z0-9\-]+)/i,
+      
+      // Sum patterns - look for total amounts
+      totalAmount: /(?:Sum\s+avgiftsfritt|Ordresum|Total)[:\s]*(\d+[\s,]*\d*)[,\.]?(\d{0,2})/i,
+      
+      // Labor costs - Time service lines
+      laborCost: /Time\s+service[^\d]*(\d+[\s,]*\d*)[,\.]?(\d{0,2})/i,
+      
+      // Parts costs - look for "Sone", "bryter", "screen" etc
+      partsCost: /(?:Bil\s+[-‑]\s+Sone|bryter|screen|Parkering)[^\d]*(\d+[\s,]*\d*)[,\.]?(\d{0,2})/i,
+      
+      // Job numbers from various fields
+      evaticJobNumber: /(?:Prosjekt\s+nummer[:\s]*|Service\s+nr[:\s]*|Oppdrag[:\s]*)(\d{5,6})/i,
+      
+      // Date patterns
+      invoiceDate: /(?:Fakturadato|Ordredato)[:\s]*(\d{1,2}[\.\-\/]\d{1,2}[\.\-\/]\d{2,4})/i,
+      
+      // KID number
+      kidNumber: /KID[:\s]*(\d{7,10})/i
     };
 
     const extractValue = (pattern: RegExp, defaultValue: any = '') => {
@@ -60,25 +85,48 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
       return match ? match[1].trim() : defaultValue;
     };
 
-    const parseAmount = (amountStr: string): number => {
+    const parseAmount = (amountStr: string, decimalPart?: string): number => {
       if (!amountStr) return 0;
-      const cleaned = amountStr.replace(/[^\d,\.]/g, '');
-      return parseFloat(cleaned.replace(',', '.')) || 0;
+      // Handle Norwegian number format with spaces as thousand separators
+      let cleaned = amountStr.replace(/\s+/g, '').replace(/[^\d,\.]/g, '');
+      
+      // If we have a decimal part captured separately, combine it
+      if (decimalPart && decimalPart.length > 0) {
+        cleaned = cleaned + '.' + decimalPart;
+      }
+      
+      // Replace comma with dot for decimal separator
+      cleaned = cleaned.replace(',', '.');
+      
+      const result = parseFloat(cleaned) || 0;
+      console.log(`Parsing amount: "${amountStr}" + "${decimalPart || ''}" -> ${result}`);
+      return result;
+    };
+
+    // Enhanced extraction with better error handling
+    const extractAmountWithDecimals = (pattern: RegExp) => {
+      const match = text.match(pattern);
+      if (match) {
+        return parseAmount(match[1], match[2]);
+      }
+      return 0;
     };
 
     const data: ScannedInvoiceData = {
       invoiceNumber: extractValue(vismaPatterns.invoiceNumber),
       customerName: extractValue(vismaPatterns.customerName),
       customerOrgNumber: extractValue(vismaPatterns.customerOrgNumber),
-      productName: extractValue(vismaPatterns.productName),
+      productName: extractValue(vismaPatterns.productName) || 'Service/Reparasjon',
       productModel: extractValue(vismaPatterns.productModel),
-      laborCost: parseAmount(extractValue(vismaPatterns.laborCost, '0')),
-      partsCost: parseAmount(extractValue(vismaPatterns.partsCost, '0')),
-      totalAmount: parseAmount(extractValue(vismaPatterns.totalAmount, '0')),
+      laborCost: extractAmountWithDecimals(vismaPatterns.laborCost),
+      partsCost: extractAmountWithDecimals(vismaPatterns.partsCost),
+      totalAmount: extractAmountWithDecimals(vismaPatterns.totalAmount),
       evaticJobNumber: extractValue(vismaPatterns.evaticJobNumber),
       invoiceDate: extractValue(vismaPatterns.invoiceDate),
       confidence: 0
     };
+
+    console.log('Extracted data:', data);
 
     // Calculate confidence score
     let confidence = 0;
@@ -122,13 +170,22 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
       };
       reader.readAsDataURL(file);
 
-      // Process with Tesseract.js
-      const worker = await createWorker('nor', 1, {
+      // Process with Tesseract.js - improved configuration for Norwegian invoices
+      const worker = await createWorker(['nor', 'eng'], 1, {
         logger: m => console.log(m) // Logging for debugging
       });
 
-      const { data: { text } } = await worker.recognize(file);
+      // Set OCR parameters for better accuracy with invoices
+      await worker.setParameters({
+        'tessedit_char_whitelist': '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅabcdefghijklmnopqrstuvwxyzæøå .,-:/',
+        'preserve_interword_spaces': '1'
+      });
+
+      const { data: { text, confidence } } = await worker.recognize(file);
       await worker.terminate();
+
+      console.log('OCR Confidence:', confidence);
+      console.log('OCR Text length:', text.length);
 
       console.log('OCR Text:', text);
 
