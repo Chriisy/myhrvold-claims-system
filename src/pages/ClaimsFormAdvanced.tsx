@@ -609,7 +609,7 @@ const ClaimsFormAdvanced = () => {
       <main className="container mx-auto px-4 py-6 max-w-6xl">
         <form onSubmit={handleSubmit}>
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="customer" className="flex items-center gap-2">
                 {isTabComplete("customer") && <CheckCircle className="h-4 w-4" />}
                 Kunde & Produkt
@@ -618,13 +618,10 @@ const ClaimsFormAdvanced = () => {
                 {isTabComplete("problem") && <CheckCircle className="h-4 w-4" />}
                 Problem & Løsning
               </TabsTrigger>
-              <TabsTrigger value="economics" className="flex items-center gap-2">
-                <Calculator className="h-4 w-4" />
-                Økonomi
-              </TabsTrigger>
               <TabsTrigger value="organization" className="flex items-center gap-2">
                 {isTabComplete("organization") && <CheckCircle className="h-4 w-4" />}
-                Organisasjon
+                <Calculator className="h-4 w-4" />
+                Økonomi & Organisasjon
               </TabsTrigger>
               <TabsTrigger value="summary">
                 Sammendrag
@@ -1042,13 +1039,15 @@ const ClaimsFormAdvanced = () => {
               </Card>
             </TabsContent>
 
-            {/* Tab 3: Economics */}
-            <TabsContent value="economics" className="space-y-6">
+
+            {/* Tab 3: Organization & Economics Combined */}
+            <TabsContent value="organization" className="space-y-6">
+              {/* Economics Section */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calculator className="h-5 w-5" />
-                    Kostnadsoversikt
+                    Økonomisk informasjon
                   </CardTitle>
                   <CardDescription>Detaljert kostnadsoversikt med automatisk beregning</CardDescription>
                 </CardHeader>
@@ -1140,89 +1139,6 @@ const ClaimsFormAdvanced = () => {
                     </div>
                   </div>
 
-                  {/* Material Costs with Individual Parts */}
-                  <div>
-                    <h4 className="font-semibold mb-3">Materialkostnader</h4>
-                    
-                    {/* Individual Parts Breakdown */}
-                    {parts.length > 0 && (
-                      <div className="mb-4">
-                        <Label className="text-sm font-medium text-muted-foreground mb-2 block">
-                          Reservedeler (fra Problem & Løsning) - Read-only
-                        </Label>
-                        <div className="border rounded-lg p-4 bg-muted/50 space-y-2">
-                          {parts.map((part, index) => (
-                            <div key={part.id} className="flex justify-between items-center py-2 px-2 bg-background rounded border">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3">
-                                  <span className="text-sm text-muted-foreground">#{index + 1}</span>
-                                  <span className="font-medium text-primary">{part.partNumber}</span>
-                                  <span className="text-muted-foreground">|</span>
-                                  <span className="text-sm">{part.description}</span>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <span className="font-semibold">{part.price.toFixed(2)} kr</span>
-                                {part.refundRequested && (
-                                  <div className="text-xs text-green-600">✅ Merket for refusjon</div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                          <div className="border-t pt-3 mt-3 bg-primary/5 rounded p-2">
-                            <div className="flex justify-between items-center font-bold">
-                              <span>Total reservedeler:</span>
-                              <span className="text-primary text-lg">{formData.partsCost.toFixed(2)} kr</span>
-                            </div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              {parts.length} del{parts.length !== 1 ? 'er' : ''} registrert
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          💡 For å endre deler, gå til "Problem & Løsning" fanen
-                        </div>
-                      </div>
-                    )}
-
-                    {parts.length === 0 && (
-                      <div className="mb-4">
-                        <Label>Reservedeler (auto-beregnet)</Label>
-                        <Input 
-                          value={`${formData.partsCost.toFixed(2)} kr`}
-                          readOnly
-                          className="bg-muted font-semibold"
-                        />
-                        <p className="text-sm text-muted-foreground mt-1">
-                          💡 Ingen reservedeler lagt til i "Problem & Løsning" fanen
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="consumablesCost">Forbruksmateriell (kr)</Label>
-                        <Input 
-                          id="consumablesCost" 
-                          type="number"
-                          value={formData.consumablesCost}
-                          onChange={(e) => handleInputChange('consumablesCost', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="externalServicesCost">Eksterne tjenester (kr)</Label>
-                        <Input 
-                          id="externalServicesCost" 
-                          type="number"
-                          value={formData.externalServicesCost}
-                          onChange={(e) => handleInputChange('externalServicesCost', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Total Cost Display */}
                   <div className="border-t pt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1239,59 +1155,18 @@ const ClaimsFormAdvanced = () => {
                 </CardContent>
               </Card>
 
-              {/* Advanced Refund Breakdown */}
+              {/* Refund Breakdown */}
               <Card>
                 <CardHeader>
                   <CardTitle>Refusjon fra leverandør</CardTitle>
                   <CardDescription>Detaljert refusjonsoversikt og kreditnota informasjon</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Refund Details with Individual Parts Tracking */}
+                  {/* Refund Details */}
                   <div>
                     <h4 className="font-semibold mb-3">Refunderte kostnader</h4>
                     
-                    {/* Individual Parts Refund Tracking */}
-                    {parts.length > 0 && (
-                      <div className="mb-6">
-                        <Label className="text-sm font-medium text-muted-foreground">Reservedeler refusjon (individuell tracking)</Label>
-                        <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
-                          {parts.map((part) => (
-                            <div key={part.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-b-0">
-                              <div className="flex items-center space-x-3 flex-1">
-                                <Checkbox 
-                                  checked={part.refundRequested}
-                                  onCheckedChange={(checked) => updatePart(part.id, 'refundRequested', checked)}
-                                />
-                                <div className="flex-1">
-                                  <span className="font-medium">{part.partNumber}:</span>
-                                  <span className="ml-2">{part.description}</span>
-                                </div>
-                                <span className="font-semibold">{part.price.toFixed(2)} kr</span>
-                                <span className={`text-sm px-2 py-1 rounded ${
-                                  part.refundRequested 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-red-100 text-red-700'
-                                }`}>
-                                  {part.refundRequested ? '✅ Refundert' : '❌ Ikke refundert'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                          <div className="border-t pt-3 mt-3 space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">Refunderte deler:</span>
-                              <span className="font-bold text-green-600">{calculateRefundedPartsTotal().toFixed(2)} kr</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">Ikke refunderte deler:</span>
-                              <span className="font-bold text-red-600">{(formData.partsCost - calculateRefundedPartsTotal()).toFixed(2)} kr</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Other Refund Categories */}
+                    {/* Refund Categories */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center space-x-2">
                         <Checkbox 
@@ -1311,77 +1186,24 @@ const ClaimsFormAdvanced = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Checkbox 
-                          id="travelCostRefunded"
-                          checked={formData.travelCostRefunded}
-                          onCheckedChange={(checked) => handleInputChange('travelCostRefunded', checked)}
+                          id="partsCostRefunded"
+                          checked={formData.partsCostRefunded}
+                          onCheckedChange={(checked) => handleInputChange('partsCostRefunded', checked)}
                         />
-                        <Label htmlFor="travelCostRefunded">Refundert reisetid</Label>
+                        <Label htmlFor="partsCostRefunded">Refunderte deler</Label>
                         <Input 
                           type="number"
-                          value={formData.refundedTravelCost}
-                          onChange={(e) => handleInputChange('refundedTravelCost', parseFloat(e.target.value) || 0)}
+                          value={formData.refundedPartsCost}
+                          onChange={(e) => handleInputChange('refundedPartsCost', parseFloat(e.target.value) || 0)}
                           placeholder="0"
                           className="flex-1"
                         />
                         <span className="text-sm text-muted-foreground">kr</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="vehicleCostRefunded"
-                          checked={formData.vehicleCostRefunded}
-                          onCheckedChange={(checked) => handleInputChange('vehicleCostRefunded', checked)}
-                        />
-                        <Label htmlFor="vehicleCostRefunded">Refundert kjøretøy</Label>
-                        <Input 
-                          type="number"
-                          value={formData.refundedVehicleCost}
-                          onChange={(e) => handleInputChange('refundedVehicleCost', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                          className="flex-1"
-                        />
-                        <span className="text-sm text-muted-foreground">kr</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="otherCostRefunded"
-                          checked={formData.otherCostRefunded}
-                          onCheckedChange={(checked) => handleInputChange('otherCostRefunded', checked)}
-                        />
-                        <Label htmlFor="otherCostRefunded">Refundert annet</Label>
-                        <Input 
-                          type="number"
-                          value={formData.refundedOtherCost}
-                          onChange={(e) => handleInputChange('refundedOtherCost', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                          className="flex-1"
-                        />
-                        <span className="text-sm text-muted-foreground">kr</span>
-                      </div>
-                    </div>
-
-                    {/* Parts refund summary (read-only, auto-calculated) */}
-                    {parts.length > 0 && (
-                      <div className="mt-4 p-3 bg-muted/30 rounded border">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            checked={formData.partsCostRefunded}
-                            disabled
-                          />
-                          <Label className="text-muted-foreground">Refunderte deler (auto-beregnet)</Label>
-                          <Input 
-                            value={formData.refundedPartsCost.toFixed(2)}
-                            readOnly
-                            className="flex-1 bg-muted font-semibold"
-                          />
-                          <span className="text-sm text-muted-foreground">kr</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Credit Note Info */}
+                  {/* Credit Note Information */}
                   <div>
                     <h4 className="font-semibold mb-3">Kreditnota informasjon</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1391,11 +1213,11 @@ const ClaimsFormAdvanced = () => {
                           id="creditNoteNumber" 
                           value={formData.creditNoteNumber}
                           onChange={(e) => handleInputChange('creditNoteNumber', e.target.value)}
-                          placeholder="KN-2024-001"
+                          placeholder="CN-2024-001"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="refundDateReceived">Dato mottatt</Label>
+                        <Label htmlFor="refundDateReceived">Refusjon mottatt dato</Label>
                         <Input 
                           id="refundDateReceived" 
                           type="date"
@@ -1406,15 +1228,15 @@ const ClaimsFormAdvanced = () => {
                     </div>
                   </div>
 
-                  {/* Financial Summary */}
+                  {/* Refund Summary */}
                   <div className="border-t pt-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label className="text-lg font-bold">TOTAL REFUSJON</Label>
+                        <Label className="text-lg font-bold text-green-700">TOTAL REFUSJON</Label>
                         <Input 
                           value={`${calculateTotalRefund().toFixed(2)} kr`}
                           readOnly
-                          className="bg-green-100 font-bold text-lg border-2 border-green-300"
+                          className="bg-green-50 font-bold text-lg border-2 border-green-200 text-green-700"
                         />
                       </div>
                       <div>
@@ -1422,32 +1244,36 @@ const ClaimsFormAdvanced = () => {
                         <Input 
                           value={`${calculateNetCost().toFixed(2)} kr`}
                           readOnly
-                          className={`font-bold text-lg border-2 ${calculateNetCost() < 0 ? 'bg-red-100 border-red-300' : 'bg-gray-100 border-gray-300'}`}
+                          className={`font-bold text-lg border-2 ${
+                            calculateNetCost() < 0 
+                              ? 'bg-red-50 border-red-200 text-red-700' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700'
+                          }`}
                         />
                       </div>
-                      <div className="flex items-center">
-                        {calculateNetCost() < 0 && (
-                          <span className="text-red-600 font-semibold text-sm">⚠️ Tap på saken</span>
-                        )}
-                        {calculateNetCost() === 0 && (
-                          <span className="text-green-600 font-semibold text-sm">✅ Break-even</span>
-                        )}
-                        {calculateNetCost() > 0 && (
-                          <span className="text-orange-600 font-semibold text-sm">💰 Kostnad ikke dekket</span>
-                        )}
+                      <div>
+                        <Label className="text-lg font-bold">STATUS</Label>
+                        <div className={`p-3 rounded text-center font-bold ${
+                          calculateNetCost() === 0 
+                            ? 'bg-green-100 text-green-700' 
+                            : calculateNetCost() < 0 
+                              ? 'bg-orange-100 text-orange-700' 
+                              : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {calculateNetCost() === 0 ? 'Fullstendig refundert' : 
+                           calculateNetCost() < 0 ? 'Overrefundert' : 'Delvis refundert'}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            {/* Tab 4: Organization */}
-            <TabsContent value="organization" className="space-y-6">
+              {/* Organization Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Organisatorisk informasjon</CardTitle>
-                  <CardDescription>Tekniker og avdelingsinformasjon</CardDescription>
+                  <CardTitle>Organisasjonsinformasjon</CardTitle>
+                  <CardDescription>Tekniker og ansvarlig avdeling</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
