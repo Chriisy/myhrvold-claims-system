@@ -46,6 +46,7 @@ const App = () => (
               <Route path="/claims" element={<ProtectedRoute><ClaimsList /></ProtectedRoute>} />
               <Route path="/claims/new" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
               <Route path="/claims/:id" element={<ProtectedRoute><ErrorBoundary><ClaimDetails /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/claims/:id/edit" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
               <Route path="/suppliers" element={<ProtectedRoute><SupplierManagement /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

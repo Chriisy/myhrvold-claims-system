@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Upload, Plus, LogOut, Info, Calculator, Trash2, CheckCircle, Camera } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,8 @@ const ClaimsFormAdvanced = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, profile, signOut } = useAuth();
+  const { id: claimId } = useParams();
+  const isEditing = !!claimId;
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [supplierProfiles, setSupplierProfiles] = useState<any[]>([]);
@@ -109,6 +111,82 @@ const ClaimsFormAdvanced = () => {
       }));
     }
   }, [profile]);
+
+  // Load existing claim for editing
+  useEffect(() => {
+    if (isEditing && claimId) {
+      const loadClaim = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('claims')
+            .select('*')
+            .eq('id', claimId)
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            // Map database fields to form data
+            setFormData({
+              customerName: data.customer_name || "",
+              customerNumber: data.customer_number || "",
+              customerContact: data.customer_contact || "",
+              customerEmail: data.customer_email || "",
+              customerPhone: data.customer_phone || "",
+              customerAddress: data.customer_address || "",
+              productName: data.product_name || "",
+              productModel: data.product_model || "",
+              serialNumber: data.serial_number || "",
+              purchaseDate: data.purchase_date || "",
+              warrantyPeriod: data.warranty_period || "",
+              supplier: data.supplier || "",
+              issueType: data.issue_type || "",
+              issueDescription: data.issue_description || "",
+              detailedDescription: data.detailed_description || "",
+              urgencyLevel: data.urgency_level || "normal",
+              technicianName: data.technician_name || "",
+              department: data.department || "",
+              evaticJobNumber: data.evatic_job_number || "",
+              msJobNumber: data.ms_job_number || "",
+              workHours: data.work_hours || 0,
+              hourlyRate: data.hourly_rate || 0,
+              travelHours: data.travel_hours || 0,
+              travelDistanceKm: data.travel_distance_km || 0,
+              vehicleCostPerKm: data.vehicle_cost_per_km || 7.5,
+              partsCost: data.parts_cost || 0,
+              consumablesCost: data.consumables_cost || 0,
+              externalServicesCost: data.external_services_cost || 0,
+              travelCost: data.travel_cost || 0,
+              refundedWorkCost: data.refunded_work_cost || 0,
+              refundedTravelCost: data.refunded_travel_cost || 0,
+              refundedVehicleCost: data.refunded_vehicle_cost || 0,
+              refundedPartsCost: data.refunded_parts_cost || 0,
+              refundedOtherCost: data.refunded_other_cost || 0,
+              creditNoteNumber: data.credit_note_number || "",
+              refundDateReceived: data.refund_date_received || "",
+              workCostRefunded: data.work_cost_refunded || false,
+              travelCostRefunded: data.travel_cost_refunded || false,
+              vehicleCostRefunded: data.vehicle_cost_refunded || false,
+              partsCostRefunded: data.parts_cost_refunded || false,
+              otherCostRefunded: data.other_cost_refunded || false,
+              internalNotes: data.internal_notes || "",
+              customerNotes: data.customer_notes || ""
+            });
+          }
+        } catch (error) {
+          console.error('Error loading claim:', error);
+          toast({
+            title: "Feil ved lasting",
+            description: "Kunne ikke laste reklamasjon",
+            variant: "destructive",
+          });
+          navigate('/claims');
+        }
+      };
+      
+      loadClaim();
+    }
+  }, [isEditing, claimId, toast, navigate]);
 
   const fetchSuppliers = async () => {
     try {
@@ -385,8 +463,7 @@ const ClaimsFormAdvanced = () => {
     
     setLoading(true);
     try {
-      const claimData = {
-        claim_number: '',
+      const baseClaimData = {
         customer_name: formData.customerName,
         customer_number: formData.customerNumber,
         customer_contact: formData.customerContact,
@@ -430,30 +507,61 @@ const ClaimsFormAdvanced = () => {
         other_cost_refunded: formData.otherCostRefunded,
         internal_notes: formData.internalNotes,
         customer_notes: formData.customerNotes,
-        created_by: user.id,
       };
 
-      const { data: claimResult, error: claimError } = await supabase
-        .from('claims')
-        .insert(claimData)
-        .select()
-        .single();
+      if (isEditing) {
+        // Update existing claim
+        const { error: updateError } = await supabase
+          .from('claims')
+          .update(baseClaimData)
+          .eq('id', claimId);
 
-      if (claimError) throw claimError;
+        if (updateError) throw updateError;
 
-      await supabase.from('claim_timeline').insert([{
-        claim_id: claimResult.id,
-        status: 'new',
-        changed_by: user.id,
-        notes: 'Reklamasjon opprettet'
-      }]);
+        // Add timeline entry for update
+        await supabase.from('claim_timeline').insert([{
+          claim_id: claimId,
+          status: 'updated' as any,
+          changed_by: user.id,
+          notes: 'Reklamasjon oppdatert'
+        }]);
 
-      toast({
-        title: "Reklamasjon opprettet",
-        description: `Reklamasjon ${claimResult.claim_number} er opprettet.`,
-      });
+        toast({
+          title: "Reklamasjon oppdatert",
+          description: "Endringene ble lagret.",
+        });
 
-      navigate(`/claims/${claimResult.id}`);
+        navigate(`/claims/${claimId}`);
+      } else {
+        // Create new claim
+        const claimData = {
+          ...baseClaimData,
+          claim_number: '',
+          created_by: user.id,
+        };
+        
+        const { data: claimResult, error: claimError } = await supabase
+          .from('claims')
+          .insert(claimData)
+          .select()
+          .single();
+
+        if (claimError) throw claimError;
+
+        await supabase.from('claim_timeline').insert([{
+          claim_id: claimResult.id,
+          status: 'new',
+          changed_by: user.id,
+          notes: 'Reklamasjon opprettet'
+        }]);
+
+        toast({
+          title: "Reklamasjon opprettet",
+          description: `Reklamasjon ${claimResult.claim_number} er opprettet.`,
+        });
+
+        navigate(`/claims/${claimResult.id}`);
+      }
     } catch (error: any) {
       toast({
         title: "Feil ved opprettelse",
@@ -479,7 +587,9 @@ const ClaimsFormAdvanced = () => {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-primary">Ny reklamasjon</h1>
+                <h1 className="text-2xl font-bold text-primary">
+                  {isEditing ? 'Rediger reklamasjon' : 'Ny reklamasjon'}
+                </h1>
                 <p className="text-muted-foreground">Registrer en ny reklamasjon med avansert økonomi</p>
               </div>
             </div>
@@ -1475,7 +1585,10 @@ const ClaimsFormAdvanced = () => {
               <div className="flex gap-4 pt-6">
                 <Button type="submit" className="flex-1" disabled={loading}>
                   <Plus className="mr-2 h-4 w-4" />
-                  {loading ? "Oppretter..." : "Opprett reklamasjon"}
+                  {loading 
+                    ? (isEditing ? "Lagrer..." : "Oppretter...") 
+                    : (isEditing ? "Lagre endringer" : "Opprett reklamasjon")
+                  }
                 </Button>
                 <Link to="/" className="flex-1">
                   <Button type="button" variant="outline" className="w-full">
