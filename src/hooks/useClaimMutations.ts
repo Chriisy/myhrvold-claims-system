@@ -38,3 +38,31 @@ export const useUpdateClaimStatus = () => {
     }
   });
 };
+
+export const useDeleteClaim = () => {
+  const queryClient = useQueryClient();
+  const { showSuccess, showError } = useEnhancedToast();
+
+  return useMutation({
+    mutationFn: (claimId: string) => claimService.deleteClaim(claimId),
+    
+    onSuccess: (_, claimId) => {
+      // Invalidate and refetch claims data
+      queryClient.invalidateQueries({ queryKey: ['claims'] });
+      queryClient.removeQueries({ queryKey: ['claim', claimId] });
+      
+      showSuccess(
+        "Reklamasjon slettet",
+        "Reklamasjonen ble permanent slettet"
+      );
+    },
+    
+    onError: (error) => {
+      console.error('Error deleting claim:', error);
+      showError(
+        "Feil ved sletting",
+        error instanceof Error ? error.message : "Kunne ikke slette reklamasjon"
+      );
+    }
+  });
+};

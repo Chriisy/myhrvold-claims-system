@@ -1,16 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Mail } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { CheckCircle2, Mail, Trash2 } from "lucide-react";
 import { ButtonLoading } from "@/components/ui/loading";
-import { useUpdateClaimStatus } from "@/hooks/useClaimMutations";
+import { useUpdateClaimStatus, useDeleteClaim } from "@/hooks/useClaimMutations";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface QuickActionsProps {
   claimId: string;
+  createdBy: string;
   onSendToSupplier: () => void;
 }
 
-export const QuickActions = ({ claimId, onSendToSupplier }: QuickActionsProps) => {
+export const QuickActions = ({ claimId, createdBy, onSendToSupplier }: QuickActionsProps) => {
   const updateStatusMutation = useUpdateClaimStatus();
+  const deleteClaimMutation = useDeleteClaim();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
 
   const handleMarkAsResolved = () => {
     updateStatusMutation.mutate({
@@ -19,6 +26,17 @@ export const QuickActions = ({ claimId, onSendToSupplier }: QuickActionsProps) =
       notes: 'Reklamasjon markert som løst'
     });
   };
+
+  const handleDeleteClaim = () => {
+    deleteClaimMutation.mutate(claimId, {
+      onSuccess: () => {
+        navigate('/claims');
+      }
+    });
+  };
+
+  // Check if user can delete this claim (admin or creator)
+  const canDelete = profile?.role === 'admin' || profile?.id === createdBy;
 
   return (
     <Card>
@@ -51,6 +69,46 @@ export const QuickActions = ({ claimId, onSendToSupplier }: QuickActionsProps) =
         <Button className="w-full" variant="outline">
           Kontakt kunde
         </Button>
+        
+        {canDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                className="w-full" 
+                variant="destructive"
+                size="sm"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Slett reklamasjon
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Denne handlingen kan ikke angres. Reklamasjonen vil bli permanent slettet 
+                  sammen med all tilhørende data.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDeleteClaim}
+                  disabled={deleteClaimMutation.isPending}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleteClaimMutation.isPending ? (
+                    <ButtonLoading isLoading={true} loadingText="Sletter...">
+                      Sletter...
+                    </ButtonLoading>
+                  ) : (
+                    'Slett permanent'
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </CardContent>
     </Card>
   );

@@ -114,6 +114,7 @@ const ClaimDetails = () => {
             <ClaimTimeline timeline={claim.timeline} />
             <QuickActions 
               claimId={claimData.id} 
+              createdBy={claimData.created_by}
               onSendToSupplier={() => setEmailDialogOpen(true)} 
             />
           </div>

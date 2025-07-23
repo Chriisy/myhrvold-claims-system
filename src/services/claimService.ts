@@ -115,5 +115,17 @@ export const claimService = {
         // Don't throw here, status update succeeded
       }
     }
+  },
+
+  async deleteClaim(claimId: string): Promise<void> {
+    const { error } = await supabase
+      .from('claims')
+      .delete()
+      .eq('id', claimId);
+
+    if (error) {
+      console.error('Error deleting claim:', error);
+      throw new Error(`Failed to delete claim: ${error.message}`);
+    }
   }
 };
