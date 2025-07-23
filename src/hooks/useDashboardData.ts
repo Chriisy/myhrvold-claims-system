@@ -130,3 +130,191 @@ const calculateAvgCost = (claims: any[]): number => {
   const totalCost = claims.reduce((sum, c) => sum + (c.total_cost || 0), 0);
   return Math.round(totalCost / claims.length);
 };
+
+// Cost analytics queries
+export const useCostAnalytics = (timeRange: string = '6m') => {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['cost-analytics', profile?.department, profile?.role, timeRange],
+    queryFn: async () => {
+      // Calculate date range
+      const now = new Date();
+      const months = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : 12;
+      const startDate = new Date(now.getFullYear(), now.getMonth() - months, 1);
+
+      // Build query based on user role
+      const filters: any = {};
+      
+      if (profile?.role === 'technician') {
+        filters.department = profile.department;
+      }
+
+      const claims = await claimService.getClaims({
+        ...filters,
+        created_date_gte: startDate.toISOString()
+      });
+
+      // Calculate total costs
+      const totalCosts = {
+        totalClaimCost: claims.reduce((sum, c) => sum + (c.total_cost || 0), 0),
+        totalRefunded: claims.reduce((sum, c) => sum + (c.total_refunded || 0), 0),
+        expectedRefunds: claims.reduce((sum, c) => sum + (c.expected_refund || 0), 0),
+        actualRefunds: claims.reduce((sum, c) => sum + (c.actual_refund || 0), 0),
+        netCost: claims.reduce((sum, c) => sum + (c.net_cost || 0), 0)
+      };
+
+      // Cost by supplier
+      const supplierCosts = calculateSupplierCosts(claims);
+      
+      // Cost by product
+      const productCosts = calculateProductCosts(claims);
+      
+      // Refund analysis
+      const refundAnalysis = calculateRefundAnalysis(claims);
+
+      // Monthly cost trends
+      const costTrends = calculateCostTrends(claims);
+
+      return {
+        totalCosts,
+        supplierCosts,
+        productCosts,
+        refundAnalysis,
+        costTrends
+      };
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!profile,
+  });
+};
+
+const calculateSupplierCosts = (claims: any[]) => {
+  const supplierMap = new Map();
+  
+  claims.forEach(claim => {
+    if (!supplierMap.has(claim.supplier)) {
+      supplierMap.set(claim.supplier, {
+        supplier: claim.supplier,
+        totalCost: 0,
+        totalRefunded: 0,
+        claimCount: 0,
+        avgCost: 0
+      });
+    }
+    
+    const supplier = supplierMap.get(claim.supplier);
+    supplier.totalCost += claim.total_cost || 0;
+    supplier.totalRefunded += claim.total_refunded || 0;
+    supplier.claimCount += 1;
+  });
+
+  return Array.from(supplierMap.values())
+    .map(s => ({
+      ...s,
+      avgCost: s.totalCost / s.claimCount,
+      netCost: s.totalCost - s.totalRefunded
+    }))
+    .sort((a, b) => b.totalCost - a.totalCost);
+};
+
+const calculateProductCosts = (claims: any[]) => {
+  const productMap = new Map();
+  
+  claims.forEach(claim => {
+    const key = `${claim.product_name}-${claim.product_model || 'N/A'}`;
+    if (!productMap.has(key)) {
+      productMap.set(key, {
+        productName: claim.product_name,
+        productModel: claim.product_model || 'N/A',
+        totalCost: 0,
+        totalRefunded: 0,
+        claimCount: 0
+      });
+    }
+    
+    const product = productMap.get(key);
+    product.totalCost += claim.total_cost || 0;
+    product.totalRefunded += claim.total_refunded || 0;
+    product.claimCount += 1;
+  });
+
+  return Array.from(productMap.values())
+    .map(p => ({
+      ...p,
+      avgCost: p.totalCost / p.claimCount,
+      netCost: p.totalCost - p.totalRefunded
+    }))
+    .sort((a, b) => b.totalCost - a.totalCost);
+};
+
+const calculateRefundAnalysis = (claims: any[]) => {
+  const refundStats = {
+    totalExpected: claims.reduce((sum, c) => sum + (c.expected_refund || 0), 0),
+    totalReceived: claims.reduce((sum, c) => sum + (c.actual_refund || 0), 0),
+    pendingRefunds: claims.filter(c => c.refund_status === 'pending').length,
+    completedRefunds: claims.filter(c => c.refund_status === 'received').length,
+    refundRate: 0
+  };
+
+  if (refundStats.totalExpected > 0) {
+    refundStats.refundRate = (refundStats.totalReceived / refundStats.totalExpected) * 100;
+  }
+
+  // Refunds by supplier
+  const supplierRefunds = new Map();
+  claims.forEach(claim => {
+    if (!supplierRefunds.has(claim.supplier)) {
+      supplierRefunds.set(claim.supplier, {
+        supplier: claim.supplier,
+        expectedRefunds: 0,
+        actualRefunds: 0,
+        refundRate: 0
+      });
+    }
+    
+    const supplier = supplierRefunds.get(claim.supplier);
+    supplier.expectedRefunds += claim.expected_refund || 0;
+    supplier.actualRefunds += claim.actual_refund || 0;
+  });
+
+  const refundsBySupplier = Array.from(supplierRefunds.values())
+    .map(s => ({
+      ...s,
+      refundRate: s.expectedRefunds > 0 ? (s.actualRefunds / s.expectedRefunds) * 100 : 0
+    }))
+    .sort((a, b) => b.expectedRefunds - a.expectedRefunds);
+
+  return {
+    ...refundStats,
+    refundsBySupplier
+  };
+};
+
+const calculateCostTrends = (claims: any[]) => {
+  const monthMap = new Map();
+  
+  claims.forEach(claim => {
+    const date = new Date(claim.created_date);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (!monthMap.has(monthKey)) {
+      monthMap.set(monthKey, {
+        month: monthKey,
+        totalCosts: 0,
+        totalRefunds: 0,
+        netCosts: 0,
+        claimCount: 0
+      });
+    }
+    
+    const month = monthMap.get(monthKey);
+    month.totalCosts += claim.total_cost || 0;
+    month.totalRefunds += claim.total_refunded || 0;
+    month.netCosts += claim.net_cost || 0;
+    month.claimCount += 1;
+  });
+
+  return Array.from(monthMap.values())
+    .sort((a, b) => a.month.localeCompare(b.month));
+};

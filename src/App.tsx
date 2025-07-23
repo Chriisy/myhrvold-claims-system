@@ -8,7 +8,7 @@ import { PreferencesProvider } from "./contexts/PreferencesContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
-import Analytics from "./pages/Analytics";
+import Analytics from "./pages/AnalyticsEnhanced";
 import ClaimsFormAdvanced from "./pages/ClaimsFormAdvanced";
 import ClaimsList from "./pages/ClaimsList";
 import ClaimDetails from "./pages/ClaimDetails";
