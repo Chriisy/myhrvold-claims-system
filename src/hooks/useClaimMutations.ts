@@ -47,8 +47,12 @@ export const useDeleteClaim = () => {
     mutationFn: (claimId: string) => claimService.deleteClaim(claimId),
     
     onSuccess: (_, claimId) => {
-      // Invalidate and refetch claims data
+      // Invalidate all claims-related queries
       queryClient.invalidateQueries({ queryKey: ['claims'] });
+      queryClient.invalidateQueries({ queryKey: ['claims-paginated'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-claims'] });
+      queryClient.invalidateQueries({ queryKey: ['cost-analytics'] });
       queryClient.removeQueries({ queryKey: ['claim', claimId] });
       
       showSuccess(
