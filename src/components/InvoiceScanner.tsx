@@ -9,16 +9,51 @@ import { useEnhancedToast } from '@/hooks/useEnhancedToast';
 import { createWorker } from 'tesseract.js';
 
 interface ScannedInvoiceData {
+  // Invoice details
   invoiceNumber: string;
+  invoiceDate: string;
+  
+  // Customer information
   customerName: string;
-  customerOrgNumber: string;
+  customerNumber: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  address: string;
+  
+  // Product information
   productName: string;
+  productNumber: string;
   productModel: string;
+  serialNumber: string;
+  msNumber: string;
+  shortDescription: string;
+  detailedDescription: string;
+  
+  // Work costs
+  technicianHours: number;
+  hourlyRate: number;
+  workCost: number;
+  overtime50Hours: number;
+  overtime50Cost: number;
+  overtime100Hours: number;
+  overtime100Cost: number;
+  travelTimeHours: number;
+  travelTimeCost: number;
+  vehicleKm: number;
+  krPerKm: number;
+  vehicleCost: number;
+  
+  // Technician details
+  technician: string;
+  department: string;
+  
+  // Legacy fields for compatibility
+  customerOrgNumber: string;
   laborCost: number;
   partsCost: number;
   totalAmount: number;
   evaticJobNumber?: string;
-  invoiceDate: string;
   confidence: number;
 }
 
@@ -150,16 +185,51 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
     };
 
     const data: ScannedInvoiceData = {
+      // Invoice details
       invoiceNumber: extractValue(vismaPatterns.invoiceNumber),
+      invoiceDate: extractValue(vismaPatterns.invoiceDate),
+      
+      // Customer information
       customerName: extractCustomer(),
-      customerOrgNumber: extractValue(vismaPatterns.customerOrgNumber),
+      customerNumber: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+      address: '',
+      
+      // Product information
       productName: extractValue(vismaPatterns.productName) || 'Service/Reparasjon',
+      productNumber: '',
       productModel: extractValue(vismaPatterns.productModel),
+      serialNumber: '',
+      msNumber: '',
+      shortDescription: '',
+      detailedDescription: '',
+      
+      // Work costs
+      technicianHours: 0,
+      hourlyRate: 0,
+      workCost: extractAmount(vismaPatterns.laborCost),
+      overtime50Hours: 0,
+      overtime50Cost: 0,
+      overtime100Hours: 0,
+      overtime100Cost: 0,
+      travelTimeHours: 0,
+      travelTimeCost: 0,
+      vehicleKm: 0,
+      krPerKm: 7.5,
+      vehicleCost: 0,
+      
+      // Technician details
+      technician: '',
+      department: '',
+      
+      // Legacy fields for compatibility
+      customerOrgNumber: extractValue(vismaPatterns.customerOrgNumber),
       laborCost: extractAmount(vismaPatterns.laborCost),
       partsCost: extractAmount(vismaPatterns.partsCost),
       totalAmount: extractAmount(vismaPatterns.totalAmount),
       evaticJobNumber: extractValue(vismaPatterns.evaticJobNumber),
-      invoiceDate: extractValue(vismaPatterns.invoiceDate),
       confidence: 0
     };
 
