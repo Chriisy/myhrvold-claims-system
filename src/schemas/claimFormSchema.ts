@@ -55,6 +55,20 @@ export const businessFieldsSchema = z.object({
   msJobNumber: z.string().optional(),
 });
 
+// Custom Line Item Schema
+export const customLineItemSchema = z.object({
+  id: z.string(),
+  description: z.string()
+    .min(1, "Beskrivelse er påkrevd")
+    .max(200, "Beskrivelse kan ikke være lengre enn 200 tegn"),
+  quantity: z.number()
+    .min(0, "Antall kan ikke være negativt")
+    .max(1000, "Antall kan ikke overstige 1000"),
+  unitPrice: z.number()
+    .min(0, "Enhetspris kan ikke være negativ")
+    .max(100000, "Enhetspris kan ikke overstige 100,000 NOK"),
+});
+
 // Cost Breakdown Schema
 export const costBreakdownSchema = z.object({
   workHours: z.number()
@@ -65,6 +79,15 @@ export const costBreakdownSchema = z.object({
     .min(0, "Timelønn kan ikke være negativ")
     .max(5000, "Timelønn kan ikke overstige 5000 NOK")
     .default(1250),
+  overtime50Hours: z.number()
+    .min(0, "Overtid 50% timer kan ikke være negative")
+    .max(50, "Overtid 50% timer kan ikke overstige 50")
+    .default(0),
+  overtime100Hours: z.number()
+    .min(0, "Overtid 100% timer kan ikke være negative")
+    .max(50, "Overtid 100% timer kan ikke overstige 50")
+    .default(0),
+  customLineItems: z.array(customLineItemSchema).default([]),
   travelHours: z.number()
     .min(0, "Reisetimer kan ikke være negative")
     .max(24, "Reisetimer kan ikke overstige 24")
@@ -214,6 +237,9 @@ export const getDefaultClaimFormValues = (): ClaimFormData => ({
   // Cost breakdown
   workHours: 0,
   hourlyRate: 1250,
+  overtime50Hours: 0,
+  overtime100Hours: 0,
+  customLineItems: [],
   travelHours: 0,
   travelDistanceKm: 0,
   vehicleCostPerKm: 7.5,
