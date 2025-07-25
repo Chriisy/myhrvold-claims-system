@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useClaim } from '@/hooks/useClaim';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Edit, Save, X } from "lucide-react";
+import { Calculator, Edit, Save, X, ArrowLeft, Home } from "lucide-react";
 import { useState } from 'react';
 import { useUpdateClaimStatus } from '@/hooks/useClaimMutations';
 import { useEnhancedToast } from '@/hooks/useEnhancedToast';
@@ -106,6 +106,21 @@ export const ClaimEconomics = () => {
 
   return (
     <div className="space-y-6">
+      {/* Navigation */}
+      <div className="flex items-center gap-4 mb-6">
+        <Link to="/dashboard">
+          <Button variant="ghost" size="sm">
+            <Home className="h-4 w-4 mr-2" />
+            Dashboard
+          </Button>
+        </Link>
+        <Link to="/claims">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Tilbake til reklamasjoner
+          </Button>
+        </Link>
+      </div>
       {/* Regnskapsinformasjon */}
       <Card>
         <CardHeader>
