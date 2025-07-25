@@ -120,7 +120,40 @@ const ClaimsFormAdvanced = () => {
         department: profile.department,
       }));
     }
-  }, [profile]);
+    
+    // Load saved form data from localStorage
+    if (!isEditing) {
+      const savedData = localStorage.getItem('claimFormAutoSave');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setFormData(prev => ({ ...prev, ...parsedData }));
+          toast({
+            title: "Lagret data gjenopprettet",
+            description: "Tidligere lagret skjemadata er lastet inn",
+          });
+        } catch (error) {
+          console.error('Error parsing saved form data:', error);
+        }
+      }
+    }
+  }, [profile, isEditing, toast]);
+
+  // Auto-save form data every 5 minutes
+  useEffect(() => {
+    if (!isEditing) {
+      const autoSaveInterval = setInterval(() => {
+        localStorage.setItem('claimFormAutoSave', JSON.stringify(formData));
+        toast({
+          title: "Automatisk lagring",
+          description: "Skjemadata er lagret automatisk",
+          duration: 2000,
+        });
+      }, 5 * 60 * 1000); // 5 minutes
+
+      return () => clearInterval(autoSaveInterval);
+    }
+  }, [formData, isEditing, toast]);
 
   // Load existing claim for editing
   useEffect(() => {
@@ -608,6 +641,8 @@ const ClaimsFormAdvanced = () => {
           description: `Reklamasjon ${claimResult.claim_number} er opprettet.`,
         });
 
+        // Clear auto-saved data on successful submission
+        localStorage.removeItem('claimFormAutoSave');
         navigate(`/claims/${claimResult.id}`);
       }
     } catch (error: any) {
