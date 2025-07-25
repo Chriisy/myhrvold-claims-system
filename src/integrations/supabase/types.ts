@@ -62,6 +62,7 @@ export type Database = {
           created_by: string
           created_date: string
           credit_note_number: string | null
+          custom_line_items: Json | null
           customer_address: string | null
           customer_contact: string | null
           customer_email: string | null
@@ -85,6 +86,8 @@ export type Database = {
           ocr_confidence_score: number | null
           ocr_processed_at: string | null
           other_cost_refunded: boolean | null
+          overtime_100_hours: number | null
+          overtime_50_hours: number | null
           parts_cost: number | null
           parts_cost_refunded: boolean | null
           product_model: string | null
@@ -131,6 +134,7 @@ export type Database = {
           created_by: string
           created_date?: string
           credit_note_number?: string | null
+          custom_line_items?: Json | null
           customer_address?: string | null
           customer_contact?: string | null
           customer_email?: string | null
@@ -154,6 +158,8 @@ export type Database = {
           ocr_confidence_score?: number | null
           ocr_processed_at?: string | null
           other_cost_refunded?: boolean | null
+          overtime_100_hours?: number | null
+          overtime_50_hours?: number | null
           parts_cost?: number | null
           parts_cost_refunded?: boolean | null
           product_model?: string | null
@@ -200,6 +206,7 @@ export type Database = {
           created_by?: string
           created_date?: string
           credit_note_number?: string | null
+          custom_line_items?: Json | null
           customer_address?: string | null
           customer_contact?: string | null
           customer_email?: string | null
@@ -223,6 +230,8 @@ export type Database = {
           ocr_confidence_score?: number | null
           ocr_processed_at?: string | null
           other_cost_refunded?: boolean | null
+          overtime_100_hours?: number | null
+          overtime_50_hours?: number | null
           parts_cost?: number | null
           parts_cost_refunded?: boolean | null
           product_model?: string | null

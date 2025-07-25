@@ -59,6 +59,8 @@ const ClaimsFormAdvanced = () => {
     // Advanced cost breakdown
     workHours: 0,
     hourlyRate: 1250,
+    overtime50Hours: 0,
+    overtime100Hours: 0,
     travelHours: 0,
     travelDistanceKm: 0,
     vehicleCostPerKm: 7.5,
@@ -98,6 +100,13 @@ const ClaimsFormAdvanced = () => {
     price: number;
     refundRequested: boolean;
     refundApproved: boolean;
+  }>>([]);
+
+  const [customLineItems, setCustomLineItems] = useState<Array<{
+    id: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
   }>>([]);
 
   useEffect(() => {
@@ -150,6 +159,8 @@ const ClaimsFormAdvanced = () => {
               msJobNumber: data.ms_job_number || "",
               workHours: data.work_hours || 0,
               hourlyRate: data.hourly_rate || 0,
+              overtime50Hours: data.overtime_50_hours || 0,
+              overtime100Hours: data.overtime_100_hours || 0,
               travelHours: data.travel_hours || 0,
               travelDistanceKm: data.travel_distance_km || 0,
               vehicleCostPerKm: data.vehicle_cost_per_km || 7.5,
@@ -318,17 +329,25 @@ const ClaimsFormAdvanced = () => {
   };
 
   const calculateWorkCost = () => formData.workHours * formData.hourlyRate;
+  const calculateOvertime50Cost = () => formData.overtime50Hours * formData.hourlyRate * 1.5;
+  const calculateOvertime100Cost = () => formData.overtime100Hours * formData.hourlyRate * 2;
   const calculateTravelTimeCost = () => formData.travelHours * formData.hourlyRate;
   const calculateVehicleCost = () => formData.travelDistanceKm * formData.vehicleCostPerKm;
+  const calculateCustomLineItemsTotal = () => {
+    return customLineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+  };
   
   const calculateTotalCost = () => {
     return calculateWorkCost() + 
+           calculateOvertime50Cost() +
+           calculateOvertime100Cost() +
            calculateTravelTimeCost() + 
            calculateVehicleCost() + 
            formData.partsCost + 
            formData.consumablesCost + 
            formData.externalServicesCost + 
-           formData.travelCost;
+           formData.travelCost +
+           calculateCustomLineItemsTotal();
   };
 
   const calculateTotalRefund = () => {
@@ -340,6 +359,29 @@ const ClaimsFormAdvanced = () => {
   };
 
   const calculateNetCost = () => calculateTotalCost() - calculateTotalRefund();
+
+  // Custom line items management functions
+  const addCustomLineItem = () => {
+    const newItem = {
+      id: Date.now().toString(),
+      description: "",
+      quantity: 1,
+      unitPrice: 0
+    };
+    setCustomLineItems([...customLineItems, newItem]);
+  };
+
+  const removeCustomLineItem = (id: string) => {
+    setCustomLineItems(customLineItems.filter(item => item.id !== id));
+  };
+
+  const updateCustomLineItem = (id: string, field: string, value: string | number) => {
+    setCustomLineItems(prevItems => 
+      prevItems.map(item => 
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
+  };
 
   // Parts management functions
   const addPart = () => {
@@ -486,6 +528,9 @@ const ClaimsFormAdvanced = () => {
         ms_job_number: formData.msJobNumber,
         work_hours: formData.workHours,
         hourly_rate: formData.hourlyRate,
+        overtime_50_hours: formData.overtime50Hours,
+        overtime_100_hours: formData.overtime100Hours,
+        custom_line_items: JSON.stringify(customLineItems),
         travel_hours: formData.travelHours,
         travel_distance_km: formData.travelDistanceKm,
         vehicle_cost_per_km: formData.vehicleCostPerKm,
@@ -1086,6 +1131,46 @@ const ClaimsFormAdvanced = () => {
                         />
                       </div>
                       <div>
+                        <Label htmlFor="overtime50Hours">Overtid 50% timer</Label>
+                        <Input 
+                          id="overtime50Hours" 
+                          type="number" 
+                          step="0.25"
+                          value={formData.overtime50Hours}
+                          onChange={(e) => handleInputChange('overtime50Hours', parseFloat(e.target.value) || 0)}
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                      <div>
+                        <Label>Overtid 50% kostnad</Label>
+                        <Input 
+                          value={`${calculateOvertime50Cost().toFixed(2)} kr`}
+                          readOnly
+                          className="bg-muted font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="overtime100Hours">Overtid 100% timer</Label>
+                        <Input 
+                          id="overtime100Hours" 
+                          type="number" 
+                          step="0.25"
+                          value={formData.overtime100Hours}
+                          onChange={(e) => handleInputChange('overtime100Hours', parseFloat(e.target.value) || 0)}
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div>
+                        <Label>Overtid 100% kostnad</Label>
+                        <Input 
+                          value={`${calculateOvertime100Cost().toFixed(2)} kr`}
+                          readOnly
+                          className="bg-muted font-semibold"
+                        />
+                      </div>
+                      <div>
                         <Label htmlFor="travelHours">Reisetid timer</Label>
                         <Input 
                           id="travelHours" 
@@ -1139,7 +1224,81 @@ const ClaimsFormAdvanced = () => {
                     </div>
                   </div>
 
-                  {/* Total Cost Display */}
+                  {/* Custom Line Items */}
+                  <div>
+                    <h4 className="font-semibold mb-3">Tilpassede poster</h4>
+                    
+                    {customLineItems.map((item) => (
+                      <div key={item.id} className="border rounded-lg p-4 mb-3">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div className="md:col-span-2">
+                            <Label>Beskrivelse</Label>
+                            <Input 
+                              value={item.description}
+                              onChange={(e) => updateCustomLineItem(item.id, 'description', e.target.value)}
+                              placeholder="Beskrivelse av post"
+                            />
+                          </div>
+                          <div>
+                            <Label>Antall</Label>
+                            <Input 
+                              type="number"
+                              step="0.1"
+                              value={item.quantity}
+                              onChange={(e) => updateCustomLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                              placeholder="1"
+                            />
+                          </div>
+                          <div>
+                            <Label>Enhetspris (kr)</Label>
+                            <div className="flex gap-2">
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={item.unitPrice}
+                                onChange={(e) => updateCustomLineItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                placeholder="0.00"
+                              />
+                              <Button 
+                                type="button" 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => removeCustomLineItem(item.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-2 flex justify-end">
+                          <span className="text-sm font-semibold">
+                            Total: {(item.quantity * item.unitPrice).toFixed(2)} kr
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={addCustomLineItem}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Legg til tilpasset post
+                    </Button>
+
+                    {customLineItems.length > 0 && (
+                      <div className="border-t pt-4 mt-4">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold">Total tilpassede poster:</span>
+                          <span className="text-xl font-bold text-primary">
+                            {calculateCustomLineItemsTotal().toFixed(2)} kr
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <div className="border-t pt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
