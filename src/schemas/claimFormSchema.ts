@@ -23,6 +23,7 @@ export const productInfoSchema = z.object({
   productName: z.string()
     .min(1, "Produktnavn er påkrevd")
     .max(100, "Produktnavn kan ikke være lengre enn 100 tegn"),
+  productNumber: z.string().optional(),
   productModel: z.string().optional(),
   serialNumber: z.string().optional(),
   purchaseDate: z.string().optional(),
@@ -216,6 +217,7 @@ export const getDefaultClaimFormValues = (): ClaimFormData => ({
   
   // Product info
   productName: "",
+  productNumber: "",
   productModel: "",
   serialNumber: "",
   purchaseDate: "",

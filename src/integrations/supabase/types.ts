@@ -92,6 +92,7 @@ export type Database = {
           parts_cost_refunded: boolean | null
           product_model: string | null
           product_name: string
+          product_number: string | null
           purchase_date: string | null
           refund_date_received: string | null
           refund_status: Database["public"]["Enums"]["refund_status"] | null
@@ -164,6 +165,7 @@ export type Database = {
           parts_cost_refunded?: boolean | null
           product_model?: string | null
           product_name: string
+          product_number?: string | null
           purchase_date?: string | null
           refund_date_received?: string | null
           refund_status?: Database["public"]["Enums"]["refund_status"] | null
@@ -236,6 +238,7 @@ export type Database = {
           parts_cost_refunded?: boolean | null
           product_model?: string | null
           product_name?: string
+          product_number?: string | null
           purchase_date?: string | null
           refund_date_received?: string | null
           refund_status?: Database["public"]["Enums"]["refund_status"] | null

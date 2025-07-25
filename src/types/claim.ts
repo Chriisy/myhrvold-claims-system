@@ -8,6 +8,7 @@ export interface ClaimCustomer {
 
 export interface ClaimProduct {
   name: string;
+  productNumber?: string;
   serialNumber: string;
   purchaseDate: string;
   warranty: string;

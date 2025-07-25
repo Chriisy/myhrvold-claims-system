@@ -15,7 +15,12 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
       <CardContent className="space-y-3">
         <div>
           <p className="font-medium">{product.name}</p>
-          <p className="text-sm text-muted-foreground">Serienummer: {product.serialNumber}</p>
+          {product.productNumber && (
+            <p className="text-sm text-muted-foreground">Produktnr: {product.productNumber}</p>
+          )}
+          {product.serialNumber && (
+            <p className="text-sm text-muted-foreground">Serienummer: {product.serialNumber}</p>
+          )}
         </div>
         <Separator />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">

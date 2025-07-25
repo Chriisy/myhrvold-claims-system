@@ -38,6 +38,7 @@ const ClaimsFormAdvanced = () => {
     
     // Product information
     productName: "",
+    productNumber: "",
     productModel: "",
     serialNumber: "",
     purchaseDate: "",
@@ -144,6 +145,7 @@ const ClaimsFormAdvanced = () => {
               customerPhone: data.customer_phone || "",
               customerAddress: data.customer_address || "",
               productName: data.product_name || "",
+              productNumber: data.product_number || "",
               productModel: data.product_model || "",
               serialNumber: data.serial_number || "",
               purchaseDate: data.purchase_date || "",
@@ -513,6 +515,7 @@ const ClaimsFormAdvanced = () => {
         customer_phone: formData.customerPhone,
         customer_address: formData.customerAddress,
         product_name: formData.productName,
+        product_number: formData.productNumber,
         product_model: formData.productModel,
         serial_number: formData.serialNumber,
         purchase_date: formData.purchaseDate || null,
@@ -779,6 +782,17 @@ const ClaimsFormAdvanced = () => {
                       />
                     </div>
                     <div>
+                      <Label htmlFor="productNumber">Produktnr</Label>
+                      <Input 
+                        id="productNumber" 
+                        value={formData.productNumber}
+                        onChange={(e) => handleInputChange('productNumber', e.target.value)}
+                        placeholder="Produktnummer" 
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
                       <Label htmlFor="productModel">Produktmodell</Label>
                       <Input 
                         id="productModel" 
@@ -787,8 +801,6 @@ const ClaimsFormAdvanced = () => {
                         placeholder="Model X200" 
                       />
                     </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="serialNumber">Serienummer</Label>
                       <Input 
