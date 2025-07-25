@@ -101,6 +101,8 @@ export const ClaimEconomics = () => {
   const workCost = Number(claimData.work_hours || 0) * Number(claimData.hourly_rate || 0);
   const overtime50Cost = Number(claimData.overtime_50_hours || 0) * Number(claimData.hourly_rate || 0) * 1.5;
   const overtime100Cost = Number(claimData.overtime_100_hours || 0) * Number(claimData.hourly_rate || 0) * 2;
+  const travelTimeCost = Number(claimData.travel_hours || 0) * Number(claimData.hourly_rate || 0);
+  const vehicleCost = Number(claimData.travel_distance_km || 0) * Number(claimData.vehicle_cost_per_km || 7.5);
   const customLineItemsArray = Array.isArray(claimData.custom_line_items) ? claimData.custom_line_items : [];
   const customLineItemsTotal = customLineItemsArray.reduce((sum: number, item: any) => 
     sum + (Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0);
@@ -110,8 +112,8 @@ export const ClaimEconomics = () => {
   const consumablesCost = Number(claimData.consumables_cost || 0);
   const externalServicesCost = Number(claimData.external_services_cost || 0);
   
-  const totalCost = workCost + overtime50Cost + overtime100Cost + partsCost + 
-                   travelCost + consumablesCost + externalServicesCost + customLineItemsTotal;
+  const totalCost = workCost + overtime50Cost + overtime100Cost + travelTimeCost + vehicleCost + 
+                   partsCost + travelCost + consumablesCost + externalServicesCost + customLineItemsTotal;
   const totalRefunded = Number(claimData.refunded_work_cost || 0) + Number(claimData.refunded_parts_cost || 0) + 
                        Number(claimData.refunded_travel_cost || 0) + Number(claimData.refunded_vehicle_cost || 0) + 
                        Number(claimData.refunded_other_cost || 0);
@@ -227,14 +229,28 @@ export const ClaimEconomics = () => {
                   <span className="font-medium">{formatCurrency(overtime100Cost)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Deler:</span>
-                <span className="font-medium">{formatCurrency(partsCost)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Reise:</span>
-                <span className="font-medium">{formatCurrency(travelCost)}</span>
-              </div>
+               <div className="flex justify-between text-sm">
+                 <span className="text-muted-foreground">Deler:</span>
+                 <span className="font-medium">{formatCurrency(partsCost)}</span>
+               </div>
+               {travelTimeCost > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Reisetid ({Number(claimData.travel_hours || 0)}t):</span>
+                   <span className="font-medium">{formatCurrency(travelTimeCost)}</span>
+                 </div>
+               )}
+               {vehicleCost > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Kjøretøy ({Number(claimData.travel_distance_km || 0)} km):</span>
+                   <span className="font-medium">{formatCurrency(vehicleCost)}</span>
+                 </div>
+               )}
+               {travelCost > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Andre reiseutgifter:</span>
+                   <span className="font-medium">{formatCurrency(travelCost)}</span>
+                 </div>
+               )}
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
