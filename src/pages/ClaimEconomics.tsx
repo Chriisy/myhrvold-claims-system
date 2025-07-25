@@ -96,12 +96,25 @@ export const ClaimEconomics = () => {
     }).format(amount);
   };
 
-  const workCost = (claim.work_hours || 0) * (claim.hourly_rate || 0);
-  const totalCost = workCost + (claim.parts_cost || 0) + (claim.travel_cost || 0) + 
-                   (claim.consumables_cost || 0) + (claim.external_services_cost || 0);
-  const totalRefunded = (claim.refunded_work_cost || 0) + (claim.refunded_parts_cost || 0) + 
-                       (claim.refunded_travel_cost || 0) + (claim.refunded_vehicle_cost || 0) + 
-                       (claim.refunded_other_cost || 0);
+  const claimData = claim as any; // Temporary fix for type mismatch
+  
+  const workCost = Number(claimData.work_hours || 0) * Number(claimData.hourly_rate || 0);
+  const overtime50Cost = Number(claimData.overtime_50_hours || 0) * Number(claimData.hourly_rate || 0) * 1.5;
+  const overtime100Cost = Number(claimData.overtime_100_hours || 0) * Number(claimData.hourly_rate || 0) * 2;
+  const customLineItemsArray = Array.isArray(claimData.custom_line_items) ? claimData.custom_line_items : [];
+  const customLineItemsTotal = customLineItemsArray.reduce((sum: number, item: any) => 
+    sum + (Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0);
+  
+  const partsCost = Number(claimData.parts_cost || 0);
+  const travelCost = Number(claimData.travel_cost || 0);  
+  const consumablesCost = Number(claimData.consumables_cost || 0);
+  const externalServicesCost = Number(claimData.external_services_cost || 0);
+  
+  const totalCost = workCost + overtime50Cost + overtime100Cost + partsCost + 
+                   travelCost + consumablesCost + externalServicesCost + customLineItemsTotal;
+  const totalRefunded = Number(claimData.refunded_work_cost || 0) + Number(claimData.refunded_parts_cost || 0) + 
+                       Number(claimData.refunded_travel_cost || 0) + Number(claimData.refunded_vehicle_cost || 0) + 
+                       Number(claimData.refunded_other_cost || 0);
   const netCost = totalCost - totalRefunded;
 
   return (
@@ -199,27 +212,45 @@ export const ClaimEconomics = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Arbeid ({claim.work_hours}t):</span>
+                <span className="text-muted-foreground">Arbeid ({Number(claimData.work_hours || 0)}t):</span>
                 <span className="font-medium">{formatCurrency(workCost)}</span>
               </div>
+              {overtime50Cost > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Overtid 50% ({Number(claimData.overtime_50_hours || 0)}t):</span>
+                  <span className="font-medium">{formatCurrency(overtime50Cost)}</span>
+                </div>
+              )}
+              {overtime100Cost > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Overtid 100% ({Number(claimData.overtime_100_hours || 0)}t):</span>
+                  <span className="font-medium">{formatCurrency(overtime100Cost)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Deler:</span>
-                <span className="font-medium">{formatCurrency(claim.parts_cost)}</span>
+                <span className="font-medium">{formatCurrency(partsCost)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Reise:</span>
-                <span className="font-medium">{formatCurrency(claim.travel_cost)}</span>
+                <span className="font-medium">{formatCurrency(travelCost)}</span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Forbruksmateriell:</span>
-                <span className="font-medium">{formatCurrency(claim.consumables_cost)}</span>
+                <span className="font-medium">{formatCurrency(consumablesCost)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Ekstern service:</span>
-                <span className="font-medium">{formatCurrency(claim.external_services_cost)}</span>
+                <span className="font-medium">{formatCurrency(externalServicesCost)}</span>
               </div>
+              {customLineItemsTotal > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tilpassede poster:</span>
+                  <span className="font-medium">{formatCurrency(customLineItemsTotal)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm font-semibold border-t pt-2">
                 <span>Total kostnad:</span>
                 <span>{formatCurrency(totalCost)}</span>
@@ -238,27 +269,27 @@ export const ClaimEconomics = () => {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Forventet refusjon:</span>
-              <span className="font-medium">{formatCurrency(claim.expected_refund)}</span>
+              <span className="font-medium">{formatCurrency(Number(claimData.expected_refund || 0))}</span>
             </div>
             
-            {claim.actual_refund !== undefined && (
+            {claimData.actual_refund !== undefined && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Faktisk refusjon:</span>
-                <span className="font-medium">{formatCurrency(claim.actual_refund)}</span>
+                <span className="font-medium">{formatCurrency(Number(claimData.actual_refund || 0))}</span>
               </div>
             )}
 
-            {claim.refund_status && (
+            {claimData.refund_status && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Status:</span>
                 <Badge variant={
-                  claim.refund_status === 'received' ? 'default' : 
-                  claim.refund_status === 'pending' ? 'secondary' : 
+                  claimData.refund_status === 'received' ? 'default' : 
+                  claimData.refund_status === 'pending' ? 'secondary' : 
                   'destructive'
                 }>
-                  {claim.refund_status === 'received' ? 'Mottatt' : 
-                   claim.refund_status === 'pending' ? 'Venter' : 
-                   claim.refund_status === 'rejected' ? 'Avvist' : claim.refund_status}
+                  {claimData.refund_status === 'received' ? 'Mottatt' : 
+                   claimData.refund_status === 'pending' ? 'Venter' : 
+                   claimData.refund_status === 'rejected' ? 'Avvist' : claimData.refund_status}
                 </Badge>
               </div>
             )}
@@ -276,34 +307,34 @@ export const ClaimEconomics = () => {
             <div className="border-t pt-4">
               <h4 className="font-medium mb-3">Refunderte poster</h4>
               <div className="space-y-2 text-sm">
-                {claim.refunded_work_cost && (
+                {Number(claimData.refunded_work_cost || 0) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Arbeid refundert:</span>
-                    <span>{formatCurrency(claim.refunded_work_cost)}</span>
+                    <span>{formatCurrency(Number(claimData.refunded_work_cost || 0))}</span>
                   </div>
                 )}
-                {claim.refunded_parts_cost && (
+                {Number(claimData.refunded_parts_cost || 0) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Deler refundert:</span>
-                    <span>{formatCurrency(claim.refunded_parts_cost)}</span>
+                    <span>{formatCurrency(Number(claimData.refunded_parts_cost || 0))}</span>
                   </div>
                 )}
-                {claim.refunded_travel_cost && (
+                {Number(claimData.refunded_travel_cost || 0) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Reise refundert:</span>
-                    <span>{formatCurrency(claim.refunded_travel_cost)}</span>
+                    <span>{formatCurrency(Number(claimData.refunded_travel_cost || 0))}</span>
                   </div>
                 )}
-                {claim.refunded_vehicle_cost && (
+                {Number(claimData.refunded_vehicle_cost || 0) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Kjøretøy refundert:</span>
-                    <span>{formatCurrency(claim.refunded_vehicle_cost)}</span>
+                    <span>{formatCurrency(Number(claimData.refunded_vehicle_cost || 0))}</span>
                   </div>
                 )}
-                {claim.refunded_other_cost && (
+                {Number(claimData.refunded_other_cost || 0) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Annet refundert:</span>
-                    <span>{formatCurrency(claim.refunded_other_cost)}</span>
+                    <span>{formatCurrency(Number(claimData.refunded_other_cost || 0))}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-medium border-t pt-2">
@@ -337,7 +368,7 @@ export const ClaimEconomics = () => {
                     <td className="p-2 font-medium">{account.code}</td>
                     <td className="p-2">{account.description}</td>
                     <td className="p-2 text-muted-foreground">
-                      {account.code};{claim.product_name || 'Produktnavn'};{claim.customer_name || 'Kundenavn'}
+                      {account.code};{claimData.product_name || 'Produktnavn'};{claimData.customer_name || 'Kundenavn'}
                     </td>
                   </tr>
                 ))}
