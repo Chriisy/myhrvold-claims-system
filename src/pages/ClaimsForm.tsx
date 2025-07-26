@@ -192,6 +192,8 @@ const ClaimsForm = () => {
         issue_type: formData.issueType as 'warranty' | 'claim' | 'service_callback' | 'extended_warranty',
         issue_description: formData.issueDescription,
         detailed_description: formData.detailedDescription || null,
+        solution_description: formData.solutionDescription || null,
+        solution_text: formData.solutionText || null,
         urgency_level: formData.urgencyLevel as 'low' | 'normal' | 'high' | 'critical',
         technician_name: formData.technicianName,
         department: formData.department as 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet',

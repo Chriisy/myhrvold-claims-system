@@ -103,6 +103,8 @@ export type Database = {
           refunded_work_cost: number | null
           scanned_invoice_url: string | null
           serial_number: string | null
+          solution_description: string | null
+          solution_text: string | null
           status: Database["public"]["Enums"]["claim_status"]
           supplier: string
           supplier_email_sent_date: string | null
@@ -176,6 +178,8 @@ export type Database = {
           refunded_work_cost?: number | null
           scanned_invoice_url?: string | null
           serial_number?: string | null
+          solution_description?: string | null
+          solution_text?: string | null
           status?: Database["public"]["Enums"]["claim_status"]
           supplier: string
           supplier_email_sent_date?: string | null
@@ -249,6 +253,8 @@ export type Database = {
           refunded_work_cost?: number | null
           scanned_invoice_url?: string | null
           serial_number?: string | null
+          solution_description?: string | null
+          solution_text?: string | null
           status?: Database["public"]["Enums"]["claim_status"]
           supplier?: string
           supplier_email_sent_date?: string | null
