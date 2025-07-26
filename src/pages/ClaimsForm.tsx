@@ -43,6 +43,8 @@ const ClaimsForm = () => {
     issueType: "",
     issueDescription: "",
     detailedDescription: "",
+    solutionDescription: "",
+    solutionText: "",
     urgencyLevel: "normal",
     
     // Business fields
@@ -469,6 +471,25 @@ const ClaimsForm = () => {
                   value={formData.detailedDescription}
                   onChange={(e) => handleInputChange('detailedDescription', e.target.value)}
                   placeholder="Beskriv problemet i detalj..."
+                  className="min-h-[120px]"
+                />
+              </div>
+              <div>
+                <Label htmlFor="solutionDescription">Løsning på problemet</Label>
+                <Input 
+                  id="solutionDescription" 
+                  value={formData.solutionDescription}
+                  onChange={(e) => handleInputChange('solutionDescription', e.target.value)}
+                  placeholder="Kort beskrivelse av løsningen"
+                />
+              </div>
+              <div>
+                <Label htmlFor="solutionText">Fri tekst - beskrivelse av løsning</Label>
+                <Textarea 
+                  id="solutionText" 
+                  value={formData.solutionText}
+                  onChange={(e) => handleInputChange('solutionText', e.target.value)}
+                  placeholder="Detaljert beskrivelse av hvordan problemet ble løst..."
                   className="min-h-[120px]"
                 />
               </div>
