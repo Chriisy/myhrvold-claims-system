@@ -36,6 +36,19 @@ export interface ClaimListItem {
   urgency_level: UrgencyLevel;
   created_date: string;
   technician_name: string;
+  // Economic fields for cost calculation
+  work_hours?: number;
+  hourly_rate?: number;
+  overtime_50_hours?: number;
+  overtime_100_hours?: number;
+  travel_hours?: number;
+  travel_distance_km?: number;
+  vehicle_cost_per_km?: number;
+  parts_cost?: number;
+  travel_cost?: number;
+  consumables_cost?: number;
+  external_services_cost?: number;
+  total_cost?: number;
 }
 
 export interface ClaimFormData {

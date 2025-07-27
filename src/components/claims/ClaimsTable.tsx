@@ -81,6 +81,34 @@ export const ClaimsTable: React.FC<ClaimsTableProps> = ({
       sortable: true,
     },
     {
+      key: 'total_cost',
+      header: 'Kostnad',
+      sortable: false,
+      width: '100px',
+      render: (claim) => {
+        const totalCost = (claim.work_hours || 0) * (claim.hourly_rate || 0) + 
+                         (claim.overtime_50_hours || 0) * (claim.hourly_rate || 0) * 1.5 +
+                         (claim.overtime_100_hours || 0) * (claim.hourly_rate || 0) * 2 +
+                         (claim.travel_hours || 0) * (claim.hourly_rate || 0) +
+                         (claim.travel_distance_km || 0) * (claim.vehicle_cost_per_km || 7.5) +
+                         (claim.parts_cost || 0) + 
+                         (claim.travel_cost || 0) + 
+                         (claim.consumables_cost || 0) + 
+                         (claim.external_services_cost || 0);
+        
+        return (
+          <span className="font-medium">
+            {new Intl.NumberFormat('no-NO', {
+              style: 'currency',
+              currency: 'NOK',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(totalCost)}
+          </span>
+        );
+      }
+    },
+    {
       key: 'created_date',
       header: 'Opprettet',
       sortable: true,

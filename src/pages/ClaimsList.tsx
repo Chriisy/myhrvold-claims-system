@@ -204,8 +204,28 @@ const ClaimsList = () => {
                           <p><span className="font-medium">Kunde:</span> {claim.customer_name}</p>
                           <p><span className="font-medium">Produkt:</span> {claim.product_name}</p>
                           <p><span className="font-medium">Tekniker:</span> {claim.technician_name}</p>
-                          <p><span className="font-medium">Opprettet:</span> {new Date(claim.created_date).toLocaleDateString('nb-NO')}</p>
-                          <p><span className="font-medium">Leverandør:</span> {claim.supplier}</p>
+                           <p><span className="font-medium">Opprettet:</span> {new Date(claim.created_date).toLocaleDateString('nb-NO')}</p>
+                           <p><span className="font-medium">Leverandør:</span> {claim.supplier}</p>
+                           <p><span className="font-medium">Kostnad:</span> {
+                             (() => {
+                               const totalCost = (claim.work_hours || 0) * (claim.hourly_rate || 0) + 
+                                               (claim.overtime_50_hours || 0) * (claim.hourly_rate || 0) * 1.5 +
+                                               (claim.overtime_100_hours || 0) * (claim.hourly_rate || 0) * 2 +
+                                               (claim.travel_hours || 0) * (claim.hourly_rate || 0) +
+                                               (claim.travel_distance_km || 0) * (claim.vehicle_cost_per_km || 7.5) +
+                                               (claim.parts_cost || 0) + 
+                                               (claim.travel_cost || 0) + 
+                                               (claim.consumables_cost || 0) + 
+                                               (claim.external_services_cost || 0);
+                               
+                               return new Intl.NumberFormat('no-NO', {
+                                 style: 'currency',
+                                 currency: 'NOK',
+                                 minimumFractionDigits: 0,
+                                 maximumFractionDigits: 0
+                               }).format(totalCost);
+                             })()
+                           }</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
