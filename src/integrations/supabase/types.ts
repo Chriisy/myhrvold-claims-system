@@ -277,6 +277,48 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          created_at: string
+          error_context: Json | null
+          error_message: string
+          error_stack: string | null
+          id: string
+          resolved: boolean | null
+          severity: string | null
+          updated_at: string
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_context?: Json | null
+          error_message: string
+          error_stack?: string | null
+          id?: string
+          resolved?: boolean | null
+          severity?: string | null
+          updated_at?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_context?: Json | null
+          error_message?: string
+          error_stack?: string | null
+          id?: string
+          resolved?: boolean | null
+          severity?: string | null
+          updated_at?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           created_at: string

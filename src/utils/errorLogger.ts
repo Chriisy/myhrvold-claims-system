@@ -137,10 +137,34 @@ class ErrorLogger {
   }
 
   private async sendErrorToDatabase(errorLog: ErrorLog): Promise<void> {
-    // For now, log to console and localStorage
-    // TODO: Create error_logs table for production logging
-    console.error('Error logged:', errorLog);
-    
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Send to Supabase error_logs table
+      const { error } = await supabase.from('error_logs').insert({
+        user_id: user?.id || null,
+        error_message: errorLog.error_message,
+        error_stack: errorLog.error_stack,
+        error_context: errorLog.context as any, // Cast to bypass JSON type check
+        url: errorLog.context.url,
+        user_agent: errorLog.context.userAgent,
+        severity: errorLog.severity,
+      });
+
+      if (error) {
+        console.error('Failed to log error to database:', error);
+        // Fallback to localStorage
+        this.saveToLocalStorage(errorLog);
+      }
+    } catch (err) {
+      console.error('Error logging to database:', err);
+      // Fallback to localStorage
+      this.saveToLocalStorage(errorLog);
+    }
+  }
+
+  private saveToLocalStorage(errorLog: ErrorLog): void {
     // Store in localStorage for later analysis
     const existingLogs = JSON.parse(localStorage.getItem('myhrvold_error_logs') || '[]');
     existingLogs.push(errorLog);
