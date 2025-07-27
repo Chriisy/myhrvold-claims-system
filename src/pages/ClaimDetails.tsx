@@ -3,16 +3,19 @@ import { useParams } from "react-router-dom";
 import { useClaim } from "@/hooks/useClaim";
 import { transformClaimForUI } from "@/utils/claim-transforms";
 import { ClaimHeader } from "@/components/claim-details/ClaimHeader";
-import { CustomerInfo } from "@/components/claim-details/CustomerInfo";
-import { ProductInfo } from "@/components/claim-details/ProductInfo";
-import { IssueDescription } from "@/components/claim-details/IssueDescription";
-import { ClaimFiles } from "@/components/claim-details/ClaimFiles";
-import { ClaimTimeline } from "@/components/claim-details/ClaimTimeline";
-import { QuickActions } from "@/components/claim-details/QuickActions";
-import { EconomicInfo } from "@/components/claim-details/EconomicInfo";
-import { OrganizationInfo } from "@/components/claim-details/OrganizationInfo";
+import { 
+  MemoizedCustomerInfo,
+  MemoizedProductInfo,
+  MemoizedIssueDescription,
+  MemoizedClaimFiles,
+  MemoizedClaimTimeline,
+  MemoizedQuickActions,
+  MemoizedEconomicInfo,
+  MemoizedOrganizationInfo
+} from "@/components/optimized/MemoizedClaimDetails";
 import { EditClaimDialog } from "@/components/claim-details/EditClaimDialog";
 import { PageLoading } from "@/components/ui/loading";
+import { NetworkErrorBoundary } from "@/components/ui/NetworkErrorBoundary";
 import SendSupplierEmailDialog from "@/components/SendSupplierEmailDialog";
 
 const ClaimDetails = () => {
@@ -88,47 +91,49 @@ const ClaimDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <ClaimHeader claim={claim} />
+    <NetworkErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <ClaimHeader claim={claim} />
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
-        {/* Action Bar */}
-        <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Reklamasjonsdetaljer</h2>
-          <EditClaimDialog claimId={claimData.id} />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            <CustomerInfo customer={claim.customer} />
-            <ProductInfo product={claim.product} />
-            <IssueDescription issue={claim.issue} />
-            <EconomicInfo data={economicData} />
-            <OrganizationInfo data={organizationData} />
-            <ClaimFiles files={claim.files} />
+        <main className="container mx-auto px-4 py-6 max-w-6xl">
+          {/* Action Bar */}
+          <div className="mb-6 flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Reklamasjonsdetaljer</h2>
+            <EditClaimDialog claimId={claimData.id} />
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <ClaimTimeline timeline={claim.timeline} />
-            <QuickActions 
-              claimId={claimData.id} 
-              createdBy={claimData.created_by}
-              onSendToSupplier={() => setEmailDialogOpen(true)} 
-            />
-          </div>
-        </div>
-      </main>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              <MemoizedCustomerInfo customer={claim.customer} />
+              <MemoizedProductInfo product={claim.product} />
+              <MemoizedIssueDescription issue={claim.issue} />
+              <MemoizedEconomicInfo data={economicData} />
+              <MemoizedOrganizationInfo data={organizationData} />
+              <MemoizedClaimFiles files={claim.files} />
+            </div>
 
-      <SendSupplierEmailDialog
-        open={emailDialogOpen}
-        onOpenChange={setEmailDialogOpen}
-        claimId={claim.id}
-        supplierName={claim.product.supplier}
-        defaultEmail=""
-      />
-    </div>
+            {/* Sidebar */}
+            <div className="space-y-6">
+              <MemoizedClaimTimeline timeline={claim.timeline} />
+              <MemoizedQuickActions 
+                claimId={claimData.id} 
+                createdBy={claimData.created_by}
+                onSendToSupplier={() => setEmailDialogOpen(true)} 
+              />
+            </div>
+          </div>
+        </main>
+
+        <SendSupplierEmailDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          claimId={claim.id}
+          supplierName={claim.product.supplier}
+          defaultEmail=""
+        />
+      </div>
+    </NetworkErrorBoundary>
   );
 };
 

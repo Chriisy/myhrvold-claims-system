@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Search, Plus, Edit, Trash2, Building2, Mail, Phone, User, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useOptimizedAuth";
 import { useToast } from "@/hooks/use-toast";
 
 interface Supplier {

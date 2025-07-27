@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp, BarChart3, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useOptimizedAuth";
 import { useDashboardStats, useRecentClaims } from "@/hooks/useDashboardData";
 import UserNav from "@/components/UserNav";
 

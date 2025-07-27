@@ -4,7 +4,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CheckCircle2, Mail, Trash2 } from "lucide-react";
 import { ButtonLoading } from "@/components/ui/loading";
 import { useUpdateClaimStatus, useDeleteClaim } from "@/hooks/useClaimMutations";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useOptimizedAuth";
 import { useNavigate } from "react-router-dom";
 
 interface QuickActionsProps {

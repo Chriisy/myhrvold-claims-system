@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useOptimizedAuth";
 
 interface NavHeaderProps {
   title: string;
