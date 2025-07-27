@@ -14,6 +14,9 @@ interface EconomicData {
   hourlyRate: number;
   overtime50Hours?: number;
   overtime100Hours?: number;
+  travelHours?: number;
+  travelDistanceKm?: number;
+  vehicleCostPerKm?: number;
   customLineItems?: CustomLineItem[];
   partsCost: number;
   travelCost: number;
@@ -59,6 +62,8 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
   const workCost = (data.workHours || 0) * (data.hourlyRate || 0);
   const overtime50Cost = (data.overtime50Hours || 0) * (data.hourlyRate || 0) * 1.5;
   const overtime100Cost = (data.overtime100Hours || 0) * (data.hourlyRate || 0) * 2;
+  const travelTimeCost = (data.travelHours || 0) * (data.hourlyRate || 0);
+  const vehicleCost = (data.travelDistanceKm || 0) * (data.vehicleCostPerKm || 7.5);
   const customLineItemsTotal = (data.customLineItems || []).reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
 
   return (
@@ -78,30 +83,44 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
           </h4>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Arbeid ({data.workHours}t × {formatCurrency(data.hourlyRate)}):</span>
-                <span className="font-medium">{formatCurrency(workCost)}</span>
-              </div>
-              {data.overtime50Hours && data.overtime50Hours > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Overtid 50% ({data.overtime50Hours}t × {formatCurrency(data.hourlyRate)} × 1.5):</span>
-                  <span className="font-medium">{formatCurrency(overtime50Cost)}</span>
-                </div>
-              )}
-              {data.overtime100Hours && data.overtime100Hours > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Overtid 100% ({data.overtime100Hours}t × {formatCurrency(data.hourlyRate)} × 2):</span>
-                  <span className="font-medium">{formatCurrency(overtime100Cost)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Deler:</span>
-                <span className="font-medium">{formatCurrency(data.partsCost)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Reise:</span>
-                <span className="font-medium">{formatCurrency(data.travelCost)}</span>
-              </div>
+               <div className="flex justify-between text-sm">
+                 <span className="text-muted-foreground">Arbeid ({data.workHours}t):</span>
+                 <span className="font-medium">{formatCurrency(workCost)}</span>
+               </div>
+               {data.overtime50Hours && data.overtime50Hours > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Overtid 50% ({data.overtime50Hours}t):</span>
+                   <span className="font-medium">{formatCurrency(overtime50Cost)}</span>
+                 </div>
+               )}
+               {data.overtime100Hours && data.overtime100Hours > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Overtid 100% ({data.overtime100Hours}t):</span>
+                   <span className="font-medium">{formatCurrency(overtime100Cost)}</span>
+                 </div>
+               )}
+               <div className="flex justify-between text-sm">
+                 <span className="text-muted-foreground">Deler:</span>
+                 <span className="font-medium">{formatCurrency(data.partsCost)}</span>
+               </div>
+               {travelTimeCost > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Reisetid ({data.travelHours}t):</span>
+                   <span className="font-medium">{formatCurrency(travelTimeCost)}</span>
+                 </div>
+               )}
+               {vehicleCost > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Kjøretøy ({data.travelDistanceKm} km):</span>
+                   <span className="font-medium">{formatCurrency(vehicleCost)}</span>
+                 </div>
+               )}
+               {data.travelCost > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Andre reiseutgifter:</span>
+                   <span className="font-medium">{formatCurrency(data.travelCost)}</span>
+                 </div>
+               )}
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">

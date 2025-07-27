@@ -57,6 +57,11 @@ const ClaimDetails = () => {
   const economicData = {
     workHours: claimData.work_hours || 0,
     hourlyRate: claimData.hourly_rate || 0,
+    overtime50Hours: claimData.overtime_50_hours || 0,
+    overtime100Hours: claimData.overtime_100_hours || 0,
+    travelHours: claimData.travel_hours || 0,
+    travelDistanceKm: claimData.travel_distance_km || 0,
+    vehicleCostPerKm: claimData.vehicle_cost_per_km || 7.5,
     partsCost: claimData.parts_cost || 0,
     travelCost: claimData.travel_cost || 0,
     consumablesCost: claimData.consumables_cost || 0,
