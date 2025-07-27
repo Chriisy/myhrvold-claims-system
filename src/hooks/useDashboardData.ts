@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { claimService } from '@/services/claimService';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useOptimizedAuth';
 
 // Dashboard statistics query
 export const useDashboardStats = () => {
@@ -51,6 +51,12 @@ export const useDashboardStats = () => {
         // Performance metrics
         averageResolutionTime: calculateAverageResolutionTime(claims),
         overdueClaimsCount: calculateOverdueClaims(claims).length,
+        
+        // Refund rate calculation
+        refundRate: calculateRefundRate(claims),
+        
+        // Weekly trends
+        weeklyTrend: calculateWeeklyTrend(claims),
       };
 
       return stats;
@@ -129,6 +135,29 @@ const calculateAvgCost = (claims: any[]): number => {
   if (claims.length === 0) return 0;
   const totalCost = claims.reduce((sum, c) => sum + (c.total_cost || 0), 0);
   return Math.round(totalCost / claims.length);
+};
+
+const calculateRefundRate = (claims: any[]): number => {
+  const totalExpected = claims.reduce((sum, c) => sum + (c.expected_refund || 0), 0);
+  const totalReceived = claims.reduce((sum, c) => sum + (c.actual_refund || 0), 0);
+  
+  if (totalExpected === 0) return 0;
+  return (totalReceived / totalExpected) * 100;
+};
+
+const calculateWeeklyTrend = (claims: any[]) => {
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+  const twoWeeksAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
+  
+  const thisWeek = claims.filter(c => new Date(c.created_date) >= oneWeekAgo).length;
+  const lastWeek = claims.filter(c => {
+    const date = new Date(c.created_date);
+    return date >= twoWeeksAgo && date < oneWeekAgo;
+  }).length;
+  
+  if (lastWeek === 0) return thisWeek > 0 ? 100 : 0;
+  return ((thisWeek - lastWeek) / lastWeek) * 100;
 };
 
 // Cost analytics queries

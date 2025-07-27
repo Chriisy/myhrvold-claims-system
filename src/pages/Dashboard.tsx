@@ -194,44 +194,115 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Performance Metrics - New for Phase 2 */}
-        {stats?.averageResolutionTime && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Gj.snitt løsingstid</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.averageResolutionTime} dager</div>
-                <p className="text-xs text-muted-foreground">Fra opprettelse til løsning</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Forfalte saker</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-orange-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{stats.overdueClaimsCount}</div>
-                <p className="text-xs text-muted-foreground">Over 7 dager gamle</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Kritiske saker</CardTitle>
-                <AlertCircle className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {stats.urgencyStats?.critical || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">Høy prioritet: {stats.urgencyStats?.high || 0}</p>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Enhanced Performance Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Gj.snitt løsingstid</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.averageResolutionTime || 0} dager</div>
+              <p className="text-xs text-muted-foreground">Fra opprettelse til løsning</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Forfalte saker</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">{stats?.overdueClaimsCount || 0}</div>
+              <p className="text-xs text-muted-foreground">Over 7 dager gamle</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Kritiske saker</CardTitle>
+              <AlertCircle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {stats?.urgencyStats?.critical || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">Høy prioritet: {stats?.urgencyStats?.high || 0}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Refusjon rate</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {stats?.refundRate ? `${Math.round(stats.refundRate)}%` : '0%'}
+              </div>
+              <p className="text-xs text-muted-foreground">Mottatte vs forventede</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Department Performance (Admin Only) */}
+        {profile?.role === 'admin' && stats?.departmentStats && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Avdelings-oversikt</CardTitle>
+              <CardDescription>Ytelse per avdeling</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {stats.departmentStats.map((dept) => (
+                  <div key={dept.department} className="p-4 border rounded-lg">
+                    <h4 className="font-medium capitalize mb-2">{dept.department.replace('_', ' ')}</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Totalt:</span>
+                        <span className="font-medium">{dept.total}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Venter:</span>
+                        <span className="text-orange-600">{dept.pending}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Løst:</span>
+                        <span className="text-green-600">{dept.resolved}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Snitt kostnad:</span>
+                        <span className="font-medium">{formatCurrency(dept.avgCost)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Weekly Trend Card */}
+        {stats?.weeklyTrend !== undefined && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Ukentlig trend</CardTitle>
+              <CardDescription>Endring i antall reklamasjoner siste uke</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {stats.weeklyTrend > 0 ? '+' : ''}{Math.round(stats.weeklyTrend)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {stats.weeklyTrend > 0 ? 'Økning' : stats.weeklyTrend < 0 ? 'Reduksjon' : 'Ingen endring'} sammenlignet med forrige uke
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Old performance metrics section - remove this */}
+        {false && stats?.averageResolutionTime && (
+          <div></div>
         )}
 
         {/* Recent Claims */}
