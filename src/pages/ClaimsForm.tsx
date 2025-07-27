@@ -495,6 +495,65 @@ const ClaimsForm = () => {
                   className="min-h-[120px]"
                 />
               </div>
+              
+              {/* Organizational Information moved here */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                <div>
+                  <Label htmlFor="technicianName">Tekniker</Label>
+                  <Input 
+                    id="technicianName" 
+                    value={formData.technicianName}
+                    onChange={(e) => handleInputChange('technicianName', e.target.value)}
+                    readOnly={profile?.role === 'technician'}
+                    className={profile?.role === 'technician' ? "bg-muted" : ""}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="department">Avdeling</Label>
+                  <Select 
+                    value={formData.department} 
+                    onValueChange={(value) => handleInputChange('department', value)}
+                    disabled={profile?.role === 'technician'}
+                  >
+                    <SelectTrigger className={profile?.role === 'technician' ? "bg-muted" : ""}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="oslo">Oslo</SelectItem>
+                      <SelectItem value="bergen">Bergen</SelectItem>
+                      <SelectItem value="trondheim">Trondheim</SelectItem>
+                      <SelectItem value="stavanger">Stavanger</SelectItem>
+                      <SelectItem value="kristiansand">Kristiansand</SelectItem>
+                      <SelectItem value="nord_norge">Nord Norge</SelectItem>
+                      <SelectItem value="innlandet">Innlandet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Notes moved here */}
+              <div className="space-y-4 pt-4">
+                <div>
+                  <Label htmlFor="internalNotes">Interne notater</Label>
+                  <Textarea 
+                    id="internalNotes" 
+                    value={formData.internalNotes}
+                    onChange={(e) => handleInputChange('internalNotes', e.target.value)}
+                    placeholder="Interne notater som ikke er synlige for kunden..."
+                    className="min-h-[80px]"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="customerNotes">Kundenotater</Label>
+                  <Textarea 
+                    id="customerNotes" 
+                    value={formData.customerNotes}
+                    onChange={(e) => handleInputChange('customerNotes', e.target.value)}
+                    placeholder="Notater som kan deles med kunden..."
+                    className="min-h-[80px]"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -594,78 +653,6 @@ const ClaimsForm = () => {
             </CardContent>
           </Card>
 
-          {/* Organizational Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Organisatorisk informasjon</CardTitle>
-              <CardDescription>Tekniker og avdelingsinformasjon</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="technicianName">Tekniker</Label>
-                  <Input 
-                    id="technicianName" 
-                    value={formData.technicianName}
-                    onChange={(e) => handleInputChange('technicianName', e.target.value)}
-                    readOnly={profile?.role === 'technician'}
-                    className={profile?.role === 'technician' ? "bg-muted" : ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="department">Avdeling</Label>
-                  <Select 
-                    value={formData.department} 
-                    onValueChange={(value) => handleInputChange('department', value)}
-                    disabled={profile?.role === 'technician'}
-                  >
-                    <SelectTrigger className={profile?.role === 'technician' ? "bg-muted" : ""}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="oslo">Oslo</SelectItem>
-                      <SelectItem value="bergen">Bergen</SelectItem>
-                      <SelectItem value="trondheim">Trondheim</SelectItem>
-                      <SelectItem value="stavanger">Stavanger</SelectItem>
-                      <SelectItem value="kristiansand">Kristiansand</SelectItem>
-                      <SelectItem value="nord_norge">Nord Norge</SelectItem>
-                      <SelectItem value="innlandet">Innlandet</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Notater</CardTitle>
-              <CardDescription>Interne og kundenotater</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="internalNotes">Interne notater</Label>
-                <Textarea 
-                  id="internalNotes" 
-                  value={formData.internalNotes}
-                  onChange={(e) => handleInputChange('internalNotes', e.target.value)}
-                  placeholder="Interne notater som ikke er synlige for kunden..."
-                  className="min-h-[80px]"
-                />
-              </div>
-              <div>
-                <Label htmlFor="customerNotes">Kundenotater</Label>
-                <Textarea 
-                  id="customerNotes" 
-                  value={formData.customerNotes}
-                  onChange={(e) => handleInputChange('customerNotes', e.target.value)}
-                  placeholder="Notater som kan deles med kunden..."
-                  className="min-h-[80px]"
-                />
-              </div>
-            </CardContent>
-          </Card>
 
           {/* File Upload */}
           <Card>
