@@ -55,10 +55,10 @@ export const useDashboardStats = () => {
 
       return stats;
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
-    refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: 10 * 60 * 1000, // Auto-refresh every 10 minutes
     enabled: !!profile,
   });
 };
@@ -78,7 +78,7 @@ export const useRecentClaims = (limit: number = 10) => {
 
       return await claimService.getClaims(filters);
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
+    staleTime: 3 * 60 * 1000, // 3 minutes
     enabled: !!profile,
   });
 };
@@ -184,7 +184,7 @@ export const useCostAnalytics = (timeRange: string = '6m') => {
         costTrends
       };
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!profile,
   });
 };
