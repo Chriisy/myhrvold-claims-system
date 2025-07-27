@@ -17,24 +17,20 @@ const ClaimsList = () => {
 
   // Use the new paginated hook
   const filters = useMemo(() => ({
-    status: statusFilter,
-    searchTerm: searchTerm.trim()
+    status: statusFilter === 'all' ? undefined : statusFilter as any,
+    search: searchTerm.trim() || undefined
   }), [statusFilter, searchTerm]);
 
   const {
-    data,
+    data: claims,
     isLoading,
     isError,
     error,
+    pagination,
+    goToPage,
     hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage
+    hasPreviousPage
   } = useClaimsPaginated(filters);
-
-  // Flatten paginated data
-  const allClaims = useMemo(() => {
-    return data?.pages.flatMap(page => page.claims) || [];
-  }, [data]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -82,11 +78,17 @@ const ClaimsList = () => {
     }
   };
 
-  const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+  const handleNextPage = useCallback(() => {
+    if (hasNextPage) {
+      goToPage(pagination.page + 1);
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, goToPage, pagination.page]);
+
+  const handlePrevPage = useCallback(() => {
+    if (hasPreviousPage) {
+      goToPage(pagination.page - 1);
+    }
+  }, [hasPreviousPage, goToPage, pagination.page]);
 
   if (isError) {
     return (
@@ -174,17 +176,17 @@ const ClaimsList = () => {
         {/* Claims List */}
         <Card>
           <CardHeader>
-            <CardTitle>Reklamasjoner ({allClaims.length})</CardTitle>
+            <CardTitle>Reklamasjoner ({pagination.total})</CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading && allClaims.length === 0 ? (
+            {isLoading && claims.length === 0 ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
                 <span className="ml-2">Laster reklamasjoner...</span>
               </div>
             ) : (
               <div className="space-y-4">
-                {allClaims.map((claim) => (
+                {claims.map((claim) => (
                   <div key={claim.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
@@ -218,27 +220,35 @@ const ClaimsList = () => {
                   </div>
                 ))}
                 
-                {/* Load More Button */}
-                {hasNextPage && (
-                  <div className="text-center py-4">
-                    <Button 
-                      onClick={handleLoadMore}
-                      disabled={isFetchingNextPage}
-                      variant="outline"
-                    >
-                      {isFetchingNextPage ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Laster flere...
-                        </>
-                      ) : (
-                        "Last flere reklamasjoner"
-                      )}
-                    </Button>
+                {/* Pagination Controls */}
+                {pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between py-4">
+                    <div className="text-sm text-muted-foreground">
+                      Side {pagination.page} av {pagination.totalPages} 
+                      ({pagination.total} totalt)
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handlePrevPage}
+                        disabled={!hasPreviousPage}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Forrige
+                      </Button>
+                      <Button 
+                        onClick={handleNextPage}
+                        disabled={!hasNextPage}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Neste
+                      </Button>
+                    </div>
                   </div>
                 )}
                 
-                {allClaims.length === 0 && !isLoading && (
+                {claims.length === 0 && !isLoading && (
                   <div className="text-center py-8 text-muted-foreground">
                     <p>
                       {searchTerm || statusFilter !== "all"

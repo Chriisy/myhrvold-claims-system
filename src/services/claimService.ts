@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
+import { Tables, Database } from '@/integrations/supabase/types';
 
 export type ClaimRow = Tables<'claims'>;
 
@@ -51,8 +51,12 @@ export const claimService = {
   async getClaims(filters?: {
     status?: ClaimRow['status'];
     department?: ClaimRow['department'];
+    urgency?: ClaimRow['urgency_level'];
+    supplier?: string;
     limit?: number;
     offset?: number;
+    search?: string;
+    created_date_gte?: string;
   }): Promise<ClaimRow[]> {
     let query = supabase
       .from('claims')
@@ -65,6 +69,22 @@ export const claimService = {
 
     if (filters?.department) {
       query = query.eq('department', filters.department);
+    }
+
+    if (filters?.urgency) {
+      query = query.eq('urgency_level', filters.urgency);
+    }
+
+    if (filters?.supplier) {
+      query = query.ilike('supplier', `%${filters.supplier}%`);
+    }
+
+    if (filters?.search) {
+      query = query.or(`customer_name.ilike.%${filters.search}%,product_name.ilike.%${filters.search}%,claim_number.ilike.%${filters.search}%`);
+    }
+
+    if (filters?.created_date_gte) {
+      query = query.gte('created_date', filters.created_date_gte);
     }
 
     if (filters?.limit) {
