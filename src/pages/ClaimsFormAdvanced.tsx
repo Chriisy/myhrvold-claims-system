@@ -168,57 +168,76 @@ const ClaimsFormAdvanced = () => {
           
           if (error) throw error;
           
-          if (data) {
-            // Map database fields to form data
-            setFormData({
-              customerName: data.customer_name || "",
-              customerNumber: data.customer_number || "",
-              customerContact: data.customer_contact || "",
-              customerEmail: data.customer_email || "",
-              customerPhone: data.customer_phone || "",
-              customerAddress: data.customer_address || "",
-              productName: data.product_name || "",
-              productNumber: data.product_number || "",
-              productModel: data.product_model || "",
-              serialNumber: data.serial_number || "",
-              purchaseDate: data.purchase_date || "",
-              warrantyPeriod: data.warranty_period || "",
-              supplier: data.supplier || "",
-              issueType: data.issue_type || "",
-              issueDescription: data.issue_description || "",
-              detailedDescription: data.detailed_description || "",
-              urgencyLevel: data.urgency_level || "normal",
-              technicianName: data.technician_name || "",
-              department: data.department || "",
-              evaticJobNumber: data.evatic_job_number || "",
-              msJobNumber: data.ms_job_number || "",
-              workHours: data.work_hours || 0,
-              hourlyRate: data.hourly_rate || 0,
-              overtime50Hours: data.overtime_50_hours || 0,
-              overtime100Hours: data.overtime_100_hours || 0,
-              travelHours: data.travel_hours || 0,
-              travelDistanceKm: data.travel_distance_km || 0,
-              vehicleCostPerKm: data.vehicle_cost_per_km || 7.5,
-              partsCost: data.parts_cost || 0,
-              consumablesCost: data.consumables_cost || 0,
-              externalServicesCost: data.external_services_cost || 0,
-              travelCost: data.travel_cost || 0,
-              refundedWorkCost: data.refunded_work_cost || 0,
-              refundedTravelCost: data.refunded_travel_cost || 0,
-              refundedVehicleCost: data.refunded_vehicle_cost || 0,
-              refundedPartsCost: data.refunded_parts_cost || 0,
-              refundedOtherCost: data.refunded_other_cost || 0,
-              creditNoteNumber: data.credit_note_number || "",
-              refundDateReceived: data.refund_date_received || "",
-              workCostRefunded: data.work_cost_refunded || false,
-              travelCostRefunded: data.travel_cost_refunded || false,
-              vehicleCostRefunded: data.vehicle_cost_refunded || false,
-              partsCostRefunded: data.parts_cost_refunded || false,
-              otherCostRefunded: data.other_cost_refunded || false,
-              internalNotes: data.internal_notes || "",
-              customerNotes: data.customer_notes || ""
-            });
-          }
+           if (data) {
+             // Map database fields to form data
+             setFormData({
+               customerName: data.customer_name || "",
+               customerNumber: data.customer_number || "",
+               customerContact: data.customer_contact || "",
+               customerEmail: data.customer_email || "",
+               customerPhone: data.customer_phone || "",
+               customerAddress: data.customer_address || "",
+               productName: data.product_name || "",
+               productNumber: data.product_number || "",
+               productModel: data.product_model || "",
+               serialNumber: data.serial_number || "",
+               purchaseDate: data.purchase_date || "",
+               warrantyPeriod: data.warranty_period || "",
+               supplier: data.supplier || "",
+               issueType: data.issue_type || "",
+               issueDescription: data.issue_description || "",
+               detailedDescription: data.detailed_description || "",
+               urgencyLevel: data.urgency_level || "normal",
+               technicianName: data.technician_name || "",
+               department: data.department || "",
+               evaticJobNumber: data.evatic_job_number || "",
+               msJobNumber: data.ms_job_number || "",
+               workHours: data.work_hours || 0,
+               hourlyRate: data.hourly_rate || 0,
+               overtime50Hours: data.overtime_50_hours || 0,
+               overtime100Hours: data.overtime_100_hours || 0,
+               travelHours: data.travel_hours || 0,
+               travelDistanceKm: data.travel_distance_km || 0,
+               vehicleCostPerKm: data.vehicle_cost_per_km || 7.5,
+               partsCost: data.parts_cost || 0,
+               consumablesCost: data.consumables_cost || 0,
+               externalServicesCost: data.external_services_cost || 0,
+               travelCost: data.travel_cost || 0,
+               refundedWorkCost: data.refunded_work_cost || 0,
+               refundedTravelCost: data.refunded_travel_cost || 0,
+               refundedVehicleCost: data.refunded_vehicle_cost || 0,
+               refundedPartsCost: data.refunded_parts_cost || 0,
+               refundedOtherCost: data.refunded_other_cost || 0,
+               creditNoteNumber: data.credit_note_number || "",
+               refundDateReceived: data.refund_date_received || "",
+               workCostRefunded: data.work_cost_refunded || false,
+               travelCostRefunded: data.travel_cost_refunded || false,
+               vehicleCostRefunded: data.vehicle_cost_refunded || false,
+               partsCostRefunded: data.parts_cost_refunded || false,
+               otherCostRefunded: data.other_cost_refunded || false,
+               internalNotes: data.internal_notes || "",
+               customerNotes: data.customer_notes || ""
+             });
+
+             // Load custom line items
+             const customLineItems = data.custom_line_items;
+             if (customLineItems) {
+               try {
+                 let parsedItems = [];
+                 if (Array.isArray(customLineItems)) {
+                   parsedItems = customLineItems;
+                 } else if (typeof customLineItems === 'string') {
+                   parsedItems = JSON.parse(customLineItems);
+                 }
+                 setCustomLineItems(parsedItems);
+               } catch (error) {
+                 console.error('Error parsing custom line items:', error);
+                 setCustomLineItems([]);
+               }
+             } else {
+               setCustomLineItems([]);
+             }
+           }
         } catch (error) {
           console.error('Error loading claim:', error);
           toast({
