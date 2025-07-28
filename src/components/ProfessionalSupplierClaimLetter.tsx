@@ -258,18 +258,20 @@ ${t.companyName}`;
               return customLineItems.length > 0 && (
                 <div className="mt-4">
                   <span className="font-medium">Spare Parts Used:</span>
-                  <div className="mt-2">
-                     {customLineItems.map((item: any, index: number) => (
-                       <div key={index} className="mb-3 border-b pb-2 text-sm">
-                         <div className="font-medium mb-1">
-                           {item.partNumber ? `${item.partNumber} - ${item.description}` : (item.description || 'N/A')}
-                         </div>
-                         <div className="flex justify-between">
-                           <span>Antall: {item.quantity || 1} x {formatCurrency(item.unitPrice || 0)}</span>
-                           <span className="font-medium">{formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}</span>
-                         </div>
-                       </div>
-                     ))}
+                  <div className="mt-2 space-y-3">
+                    {customLineItems.map((item: any, index: number) => (
+                      <div key={index} className="bg-gray-50 p-3 rounded border">
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div><strong>Delenr:</strong> {item.partNumber || 'N/A'}</div>
+                          <div><strong>Beskrivelse:</strong> {item.description || 'N/A'}</div>
+                          <div><strong>Antall:</strong> {item.quantity || 1}</div>
+                          <div><strong>Pris:</strong> {formatCurrency(item.unitPrice || 0)}</div>
+                        </div>
+                        <div className="text-right font-medium mt-2 pt-2 border-t">
+                          <strong>Total: {formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}</strong>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
