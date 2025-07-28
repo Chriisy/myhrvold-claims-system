@@ -154,6 +154,7 @@ export interface TableProps<T> {
   onSort?: (key: keyof T, direction: 'asc' | 'desc') => void;
   sortKey?: keyof T;
   sortDirection?: 'asc' | 'desc';
+  onRowClick?: (item: T) => string;
 }
 
 // Form types

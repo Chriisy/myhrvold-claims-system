@@ -12,6 +12,7 @@ import { LoadingState } from '@/components/ui/loading';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { TableProps } from '@/types';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 export function DataTable<T extends Record<string, any>>({
   data,
@@ -20,8 +21,10 @@ export function DataTable<T extends Record<string, any>>({
   emptyMessage = "Ingen data funnet",
   onSort,
   sortKey,
-  sortDirection
+  sortDirection,
+  onRowClick
 }: TableProps<T>) {
+  const navigate = useNavigate();
   const handleSort = (key: keyof T) => {
     if (!onSort) return;
     
@@ -87,7 +90,16 @@ export function DataTable<T extends Record<string, any>>({
             </TableRow>
           ) : (
             data.map((item, index) => (
-              <TableRow key={index}>
+              <TableRow 
+                key={index}
+                className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
+                onClick={() => {
+                  if (onRowClick) {
+                    const path = onRowClick(item);
+                    navigate(path);
+                  }
+                }}
+              >
                 {columns.map((column) => (
                   <TableCell key={String(column.key)}>
                     {column.render 

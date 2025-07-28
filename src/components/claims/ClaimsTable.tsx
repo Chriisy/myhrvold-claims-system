@@ -1,8 +1,8 @@
 import React from 'react';
 import { DataTable } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Eye, Edit } from 'lucide-react';
+
+
 import { Link } from 'react-router-dom';
 import { ClaimListItem, TableColumn } from '@/types';
 import { useSortableTable } from '@/hooks/useTable';
@@ -114,25 +114,6 @@ export const ClaimsTable: React.FC<ClaimsTableProps> = ({
       sortable: true,
       width: '120px',
       render: (claim) => new Date(claim.created_date).toLocaleDateString('no-NO')
-    },
-    {
-      key: 'id',
-      header: 'Handlinger',
-      width: '120px',
-      render: (claim) => (
-        <div className="flex gap-2">
-          <Button asChild size="sm" variant="ghost">
-            <Link to={`/claims/${claim.id}`}>
-              <Eye className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild size="sm" variant="ghost">
-            <Link to={`/claims/${claim.id}/edit`}>
-              <Edit className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      )
     }
   ];
 
@@ -145,6 +126,7 @@ export const ClaimsTable: React.FC<ClaimsTableProps> = ({
       onSort={handleSort}
       sortKey={sortKey}
       sortDirection={sortDirection}
+      onRowClick={(claim) => `/claims/${claim.id}`}
     />
   );
 };
