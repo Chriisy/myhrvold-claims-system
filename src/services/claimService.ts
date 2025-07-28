@@ -15,10 +15,13 @@ export interface ClaimWithRelations extends ClaimRow {
 
 export const claimService = {
   async getClaim(claimId: string): Promise<ClaimWithRelations | null> {
+    // Check if claimId is a UUID or claim number
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(claimId);
+    
     const { data: claim, error } = await supabase
       .from('claims')
       .select('*')
-      .eq('id', claimId)
+      .eq(isUUID ? 'id' : 'claim_number', claimId)
       .maybeSingle();
 
     if (error) {
@@ -30,11 +33,11 @@ export const claimService = {
       return null;
     }
 
-    // Fetch timeline separately
+    // Fetch timeline separately using the actual UUID
     const { data: timeline, error: timelineError } = await supabase
       .from('claim_timeline')
       .select('*')
-      .eq('claim_id', claimId)
+      .eq('claim_id', claim.id)
       .order('changed_date', { ascending: false });
 
     if (timelineError) {
@@ -106,13 +109,31 @@ export const claimService = {
   },
 
   async updateClaimStatus(claimId: string, status: ClaimRow['status'], notes?: string): Promise<void> {
+    // Check if claimId is a UUID or claim number
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(claimId);
+    
+    // If not UUID, first get the claim to find the actual UUID
+    let actualClaimId = claimId;
+    if (!isUUID) {
+      const { data: claim, error: fetchError } = await supabase
+        .from('claims')
+        .select('id')
+        .eq('claim_number', claimId)
+        .maybeSingle();
+        
+      if (fetchError || !claim) {
+        throw new Error(`Failed to find claim with identifier: ${claimId}`);
+      }
+      actualClaimId = claim.id;
+    }
+
     const { error } = await supabase
       .from('claims')
       .update({ 
         status, 
         updated_date: new Date().toISOString() 
       })
-      .eq('id', claimId);
+      .eq('id', actualClaimId);
 
     if (error) {
       console.error('Error updating claim status:', error);
@@ -124,7 +145,7 @@ export const claimService = {
       const { error: timelineError } = await supabase
         .from('claim_timeline')
         .insert({
-          claim_id: claimId,
+          claim_id: actualClaimId,
           status,
           notes,
           changed_by: (await supabase.auth.getUser()).data.user?.id || '',
@@ -138,10 +159,28 @@ export const claimService = {
   },
 
   async deleteClaim(claimId: string): Promise<void> {
+    // Check if claimId is a UUID or claim number
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(claimId);
+    
+    // If not UUID, first get the claim to find the actual UUID
+    let actualClaimId = claimId;
+    if (!isUUID) {
+      const { data: claim, error: fetchError } = await supabase
+        .from('claims')
+        .select('id')
+        .eq('claim_number', claimId)
+        .maybeSingle();
+        
+      if (fetchError || !claim) {
+        throw new Error(`Failed to find claim with identifier: ${claimId}`);
+      }
+      actualClaimId = claim.id;
+    }
+
     const { error } = await supabase
       .from('claims')
       .delete()
-      .eq('id', claimId);
+      .eq('id', actualClaimId);
 
     if (error) {
       console.error('Error deleting claim:', error);
