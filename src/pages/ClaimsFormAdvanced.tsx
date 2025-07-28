@@ -1613,15 +1613,22 @@ const ClaimsFormAdvanced = () => {
                         <p><strong>Jobbreferanse:</strong> {formData.evaticJobNumber || formData.msJobNumber || 'Ikke angitt'}</p>
                       </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold mb-2">Problem</h3>
-                      <div className="space-y-1 text-sm">
-                        <p><strong>Type:</strong> {formData.issueType}</p>
-                        <p><strong>Hastighet:</strong> {formData.urgencyLevel}</p>
-                        <p><strong>Beskrivelse:</strong> {formData.issueDescription}</p>
-                        <p><strong>Reservedeler:</strong> {parts.length} stk</p>
-                      </div>
-                    </div>
+                     <div>
+                       <h3 className="font-semibold mb-2">Problem</h3>
+                       <div className="space-y-1 text-sm">
+                         <p><strong>Type:</strong> {formData.issueType}</p>
+                         <p><strong>Hastighet:</strong> {formData.urgencyLevel}</p>
+                         <p><strong>Beskrivelse:</strong> {formData.issueDescription}</p>
+                         <p><strong>Reservedeler:</strong> {customLineItems.length} stk</p>
+                         {customLineItems.length > 0 && (
+                           <div className="mt-2 text-xs text-muted-foreground">
+                             {customLineItems.map((item, index) => (
+                               <div key={index}>• {item.description} ({item.quantity} stk)</div>
+                             ))}
+                           </div>
+                         )}
+                       </div>
+                     </div>
                   </div>
 
                   <div className="border-t pt-4">
