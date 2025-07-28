@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -166,6 +167,32 @@ const getEmailTemplate = (claim: any, language: 'no' | 'en') => {
   }
 };
 
+const generatePDF = async (htmlContent: string, fileName: string): Promise<Uint8Array> => {
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+  
+  try {
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm',
+      },
+    });
+    
+    return new Uint8Array(pdfBuffer);
+  } finally {
+    await browser.close();
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -200,12 +227,28 @@ serve(async (req) => {
     // Generate email template
     const template = getEmailTemplate(claim, language);
 
-    // Send email
+    // Generate PDF attachment
+    const pdfFileName = `reklamasjon-${claim.claim_number}.pdf`;
+    console.log('Generating PDF...');
+    const pdfBuffer = await generatePDF(template.html, pdfFileName);
+    console.log('PDF generated successfully');
+
+    // Convert PDF buffer to base64 for email attachment
+    const pdfBase64 = btoa(String.fromCharCode(...pdfBuffer));
+
+    // Send email with PDF attachment
     const { data, error } = await resend.emails.send({
       from: 'Reklamasjon <noreply@yourdomain.com>',
       to: [supplierEmail],
       subject: template.subject,
       html: template.html,
+      attachments: [
+        {
+          filename: pdfFileName,
+          content: pdfBase64,
+          type: 'application/pdf',
+        },
+      ],
     });
 
     if (error) {
