@@ -234,7 +234,7 @@ const ClaimsFormAdvanced = () => {
                   // Ensure all items have partNumber field
                   const itemsWithPartNumber = parsedItems.map(item => ({
                     id: item.id || Date.now().toString(),
-                    partNumber: item.partNumber || item.description || "",
+                    partNumber: item.partNumber || "",  // Don't auto-fill from description
                     description: item.description || "",
                     quantity: item.quantity || 1,
                     unitPrice: item.unitPrice || 0
@@ -245,7 +245,7 @@ const ClaimsFormAdvanced = () => {
                   // Convert customLineItems to parts format for UI
                   const partsFromItems = parsedItems.map(item => ({
                     id: item.id || Date.now().toString(),
-                    partNumber: item.description || "",
+                    partNumber: item.partNumber || "",  // Don't auto-fill from description
                     description: item.description || "",
                     price: item.unitPrice || 0,
                     refundRequested: false,
@@ -523,7 +523,7 @@ const ClaimsFormAdvanced = () => {
     const lineItems = parts.map(part => ({
       id: part.id,
       partNumber: part.partNumber || "",
-      description: part.description || part.partNumber,
+      description: part.description || "",  // Keep description separate from partNumber
       quantity: 1,
       unitPrice: part.price || 0
     }));
