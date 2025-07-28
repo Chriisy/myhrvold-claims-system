@@ -258,31 +258,29 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   if (customLineItems.length > 0) {
     doc.setFont('helvetica', 'bold');
     doc.text('Spare Parts Used:', 20, yPosition);
-    yPosition += 7;
+    yPosition += 10;
     
-    customLineItems.forEach((item: any) => {
-      // Part number and description header
+    customLineItems.forEach((item: any, index: number) => {
+      // Clean layout with bullet point
       doc.setFont('helvetica', 'bold');
-      const partHeader = item.partNumber ? `${item.partNumber} - ${item.description || 'N/A'}` : (item.description || 'N/A');
-      doc.text(`• ${partHeader}`, 25, yPosition);
+      doc.text(`• ${item.partNumber || 'N/A'} - ${item.description || 'N/A'}`, 25, yPosition);
       yPosition += 5;
       
-      // Details row
+      // Details in organized columns
       doc.setFont('helvetica', 'normal');
       doc.text(`Delenr: ${item.partNumber || 'N/A'}`, 30, yPosition);
-      doc.text(`Beskrivelse: ${item.description || 'N/A'}`, 90, yPosition);
+      doc.text(`Beskrivelse: ${item.description || 'N/A'}`, 100, yPosition);
       yPosition += 5;
       
       doc.text(`Antall: ${item.quantity || 1}`, 30, yPosition);
-      doc.text(`Pris: ${formatCurrency(item.unitPrice || 0)}`, 90, yPosition);
-      yPosition += 5;
+      doc.text(`Pris: ${formatCurrency(item.unitPrice || 0)}`, 100, yPosition);
       
-      // Total for this item
+      // Right-aligned total
       doc.setFont('helvetica', 'bold');
-      doc.text(`Total: ${formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}`, 150, yPosition);
-      yPosition += 8;
+      doc.text(`Total: ${formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}`, 190, yPosition, { align: 'right' });
+      yPosition += 10;
     });
-    yPosition += 3;
+    yPosition += 5;
   }
 
   if (claim.parts_cost) {
