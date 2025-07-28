@@ -173,130 +173,106 @@ ${t.companyName}`;
         </Button>
       </div>
 
-      {/* Letter Content */}
-      <div className="bg-white border border-gray-200 print:border-0">
-        {/* Simple Header */}
-        <div className="bg-slate-700 text-white p-6 text-center">
-          <h1 className="text-2xl font-bold">{t.companyName}</h1>
-          <p className="text-sm mt-1">{t.subtitle}</p>
+      {/* Simple Document */}
+      <div className="bg-white border border-gray-200 print:border-0 p-12 space-y-8">
+        {/* Document Title */}
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">{t.subject} - {claim.claim_number}</h1>
         </div>
 
-        {/* Letter Body */}
-        <div className="p-8 space-y-6">
-          {/* Header Info */}
-          <div className="flex justify-between items-center border-b pb-4">
+        {/* Product Information */}
+        <div>
+          <h2 className="text-lg font-bold mb-4">{t.productInfo}</h2>
+          <div className="space-y-2">
             <div>
-              <p className="text-xs text-gray-500 uppercase">Dato</p>
-              <p className="font-medium">{currentDate}</p>
+              <span className="font-medium">{t.product}:</span> {claim.product_name}
             </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500 uppercase">{t.claimNumber}</p>
-              <p className="font-bold text-lg">{claim.claim_number}</p>
-            </div>
-          </div>
-
-          {/* Recipient */}
-          <div>
-            <p className="text-xs text-gray-500 uppercase mb-1">{t.greeting}</p>
-            <p className="font-semibold text-lg">{claim.supplier}</p>
-          </div>
-
-          {/* Subject */}
-          <div className="text-center py-4 border-y">
-            <h2 className="text-xl font-bold">{t.subject}</h2>
-          </div>
-
-          {/* Introduction */}
-          <p className="leading-relaxed">{t.intro}</p>
-
-          {/* Product Information */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.productInfo}</h3>
-            <div className="space-y-3">
-              <div className="flex">
-                <span className="text-xs text-gray-500 uppercase w-32">{t.product}</span>
-                <span className="font-medium">{claim.product_name}</span>
-              </div>
-              {claim.product_model && (
-                <div className="flex">
-                  <span className="text-xs text-gray-500 uppercase w-32">{t.model}</span>
-                  <span className="font-medium">{claim.product_model}</span>
-                </div>
-              )}
-              {claim.serial_number && (
-                <div className="flex">
-                  <span className="text-xs text-gray-500 uppercase w-32">{t.serialNumber}</span>
-                  <span className="font-medium">{claim.serial_number}</span>
-                </div>
-              )}
-              {claim.purchase_date && (
-                <div className="flex">
-                  <span className="text-xs text-gray-500 uppercase w-32">{t.purchaseDate}</span>
-                  <span className="font-medium">{formatDate(claim.purchase_date, language)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Issue Description */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.issueTitle}</h3>
-            <div className="space-y-4">
+            {claim.product_model && (
               <div>
-                <p className="text-xs text-gray-500 uppercase mb-2">{t.issue}</p>
-                <p className="leading-relaxed">{claim.issue_description}</p>
+                <span className="font-medium">{t.model}:</span> {claim.product_model}
               </div>
-              {claim.detailed_description && (
-                <div>
-                  <p className="text-xs text-gray-500 uppercase mb-2">{t.workDescription}</p>
-                  <p className="leading-relaxed">{claim.detailed_description}</p>
-                </div>
-              )}
+            )}
+            {claim.serial_number && (
               <div>
-                <p className="text-xs text-gray-500 uppercase mb-2">{t.technician}</p>
-                <p className="font-medium">{claim.technician_name}</p>
+                <span className="font-medium">{t.serialNumber}:</span> {claim.serial_number}
               </div>
-            </div>
-          </div>
-
-          {/* Cost Summary */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.refundRequest}</h3>
-            <div className="bg-gray-50 border rounded p-6 text-center">
-              <p className="text-xs text-gray-500 uppercase mb-2">{t.totalCost}</p>
-              <p className="text-2xl font-bold">{formatCurrency(claim.total_cost)}</p>
-            </div>
-          </div>
-
-          {/* Documentation */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.documentation}</h3>
-            <p className="leading-relaxed">{t.docText}</p>
-          </div>
-
-          {/* Resolution Request */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.resolution}</h3>
-            <p className="leading-relaxed font-medium">{t.resolutionText}</p>
-          </div>
-
-          {/* Closing */}
-          <div className="space-y-4 pt-6 border-t">
-            <p className="leading-relaxed">{t.closing}</p>
-            
-            <div className="pt-6">
-              <p className="font-medium">{t.regards}</p>
-              <div className="mt-4">
-                <p className="text-lg font-bold">{t.companyName}</p>
-                <p className="text-gray-600">{t.subtitle}</p>
+            )}
+            {claim.purchase_date && (
+              <div>
+                <span className="font-medium">{t.purchaseDate}:</span> {formatDate(claim.purchase_date, language)}
               </div>
+            )}
+            {claim.warranty_period && (
+              <div>
+                <span className="font-medium">{t.warranty}:</span> {claim.warranty_period} {t.year}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Issue Description */}
+        <div>
+          <h2 className="text-lg font-bold mb-4">Issue Description</h2>
+          <div className="space-y-2">
+            <div>
+              <span className="font-medium">{claim.issue_description}</span>
+            </div>
+            {claim.detailed_description && (
+              <div>
+                <span className="font-medium">Detailed Description:</span> {claim.detailed_description}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Customer Information */}
+        <div>
+          <h2 className="text-lg font-bold mb-4">Customer Information</h2>
+          <div className="space-y-2">
+            <div>
+              <span className="font-medium">Customer:</span> {claim.customer_name}
+            </div>
+            {claim.customer_address && (
+              <div>
+                <span className="font-medium">Address:</span> {claim.customer_address}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Work Performed */}
+        <div>
+          <h2 className="text-lg font-bold mb-4">Work Performed</h2>
+          <div className="space-y-2">
+            <div>
+              <span className="font-medium">{t.technician}:</span> {claim.technician_name}
+            </div>
+            {claim.parts_cost && (
+              <div>
+                <span className="font-medium">Parts Cost:</span> {formatCurrency(claim.parts_cost)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Cost Summary */}
+        <div>
+          <h2 className="text-lg font-bold mb-4">Cost Summary</h2>
+          <div className="space-y-2">
+            <div>
+              <span className="font-medium">{t.totalCost}:</span> {formatCurrency(claim.total_cost)}
+            </div>
+            <div>
+              <span className="font-medium">Expected Refund:</span> {formatCurrency(claim.expected_refund || 0)}
             </div>
           </div>
+        </div>
 
-          {/* Footer */}
-          <div className="pt-6 border-t text-center">
-            <p className="text-xs text-gray-500 italic">{t.footer}</p>
-          </div>
+        {/* Footer */}
+        <div className="pt-8 border-t text-xs text-gray-500 space-y-1">
+          <p>This PDF was generated automatically from our warranty claim system.</p>
+          <p>Claim Number: {claim.claim_number}</p>
+          <p>Generated: {currentDate}</p>
         </div>
       </div>
     </div>
