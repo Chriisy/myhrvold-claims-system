@@ -4,6 +4,7 @@ import { Calculator, TrendingUp, DollarSign } from "lucide-react";
 
 interface CustomLineItem {
   id: string;
+  partNumber?: string;
   description: string;
   quantity: number;
   unitPrice: number;
@@ -235,13 +236,31 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
         {data.customLineItems && data.customLineItems.length > 0 && (
           <div>
             <h4 className="font-medium mb-3">Tilpassede poster</h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {data.customLineItems.map((item, index) => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {item.description} ({item.quantity} × {formatCurrency(item.unitPrice)}):
-                  </span>
-                  <span className="font-medium">{formatCurrency(item.quantity * item.unitPrice)}</span>
+                <div key={item.id} className="border rounded-lg p-3 bg-muted/30">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                    <div>
+                      <span className="font-medium text-muted-foreground">Delenr:</span>
+                      <div>{item.partNumber || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Beskrivelse:</span>
+                      <div>{item.description || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Antall:</span>
+                      <div>{item.quantity}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Pris:</span>
+                      <div>{formatCurrency(item.unitPrice)}</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                    <span className="text-sm text-muted-foreground">Totalt for denne delen:</span>
+                    <span className="font-medium">{formatCurrency(item.quantity * item.unitPrice)}</span>
+                  </div>
                 </div>
               ))}
               <div className="flex justify-between font-medium border-t pt-2">
