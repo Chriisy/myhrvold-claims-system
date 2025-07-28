@@ -219,24 +219,37 @@ const ClaimsFormAdvanced = () => {
                customerNotes: data.customer_notes || ""
              });
 
-             // Load custom line items
-             const customLineItems = data.custom_line_items;
-             if (customLineItems) {
-               try {
-                 let parsedItems = [];
-                 if (Array.isArray(customLineItems)) {
-                   parsedItems = customLineItems;
-                 } else if (typeof customLineItems === 'string') {
-                   parsedItems = JSON.parse(customLineItems);
-                 }
-                 setCustomLineItems(parsedItems);
-               } catch (error) {
-                 console.error('Error parsing custom line items:', error);
-                 setCustomLineItems([]);
-               }
-             } else {
-               setCustomLineItems([]);
-             }
+              // Load custom line items and convert to parts
+              const customLineItems = data.custom_line_items;
+              if (customLineItems) {
+                try {
+                  let parsedItems = [];
+                  if (Array.isArray(customLineItems)) {
+                    parsedItems = customLineItems;
+                  } else if (typeof customLineItems === 'string') {
+                    parsedItems = JSON.parse(customLineItems);
+                  }
+                  setCustomLineItems(parsedItems);
+                  
+                  // Convert customLineItems to parts format for UI
+                  const partsFromItems = parsedItems.map(item => ({
+                    id: item.id || Date.now().toString(),
+                    partNumber: item.description || "",
+                    description: item.description || "",
+                    price: item.unitPrice || 0,
+                    refundRequested: false,
+                    refundApproved: false
+                  }));
+                  setParts(partsFromItems);
+                } catch (error) {
+                  console.error('Error parsing custom line items:', error);
+                  setCustomLineItems([]);
+                  setParts([]);
+                }
+              } else {
+                setCustomLineItems([]);
+                setParts([]);
+              }
            }
         } catch (error) {
           console.error('Error loading claim:', error);
@@ -493,6 +506,15 @@ const ClaimsFormAdvanced = () => {
     const refundedTotal = calculateRefundedPartsTotal();
     handleInputChange('refundedPartsCost', refundedTotal);
     handleInputChange('partsCostRefunded', refundedTotal > 0);
+    
+    // Sync parts with customLineItems for database storage
+    const lineItems = parts.map(part => ({
+      id: part.id,
+      description: part.description || part.partNumber,
+      quantity: 1,
+      unitPrice: part.price || 0
+    }));
+    setCustomLineItems(lineItems);
   }, [parts]);
 
   // Tab validation functions
