@@ -105,6 +105,7 @@ const ClaimsFormAdvanced = () => {
 
   const [customLineItems, setCustomLineItems] = useState<Array<{
     id: string;
+    partNumber: string;
     description: string;
     quantity: number;
     unitPrice: number;
@@ -229,7 +230,17 @@ const ClaimsFormAdvanced = () => {
                   } else if (typeof customLineItems === 'string') {
                     parsedItems = JSON.parse(customLineItems);
                   }
-                  setCustomLineItems(parsedItems);
+                  
+                  // Ensure all items have partNumber field
+                  const itemsWithPartNumber = parsedItems.map(item => ({
+                    id: item.id || Date.now().toString(),
+                    partNumber: item.partNumber || item.description || "",
+                    description: item.description || "",
+                    quantity: item.quantity || 1,
+                    unitPrice: item.unitPrice || 0
+                  }));
+                  
+                  setCustomLineItems(itemsWithPartNumber);
                   
                   // Convert customLineItems to parts format for UI
                   const partsFromItems = parsedItems.map(item => ({
@@ -431,6 +442,7 @@ const ClaimsFormAdvanced = () => {
   const addCustomLineItem = () => {
     const newItem = {
       id: Date.now().toString(),
+      partNumber: "",
       description: "",
       quantity: 1,
       unitPrice: 0
@@ -510,6 +522,7 @@ const ClaimsFormAdvanced = () => {
     // Sync parts with customLineItems for database storage
     const lineItems = parts.map(part => ({
       id: part.id,
+      partNumber: part.partNumber || "",
       description: part.description || part.partNumber,
       quantity: 1,
       unitPrice: part.price || 0
@@ -1323,16 +1336,24 @@ const ClaimsFormAdvanced = () => {
                     <h4 className="font-semibold mb-3">Tilpassede poster</h4>
                     
                     {customLineItems.map((item) => (
-                      <div key={item.id} className="border rounded-lg p-4 mb-3">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                          <div className="md:col-span-2">
-                            <Label>Beskrivelse</Label>
-                            <Input 
-                              value={item.description}
-                              onChange={(e) => updateCustomLineItem(item.id, 'description', e.target.value)}
-                              placeholder="Beskrivelse av post"
-                            />
-                          </div>
+                       <div key={item.id} className="border rounded-lg p-4 mb-3">
+                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                           <div>
+                             <Label>Delnummer</Label>
+                             <Input 
+                               value={item.partNumber}
+                               onChange={(e) => updateCustomLineItem(item.id, 'partNumber', e.target.value)}
+                               placeholder="Delnummer"
+                             />
+                           </div>
+                           <div className="md:col-span-2">
+                             <Label>Beskrivelse</Label>
+                             <Input 
+                               value={item.description}
+                               onChange={(e) => updateCustomLineItem(item.id, 'description', e.target.value)}
+                               placeholder="Beskrivelse av post"
+                             />
+                           </div>
                           <div>
                             <Label>Antall</Label>
                             <Input 
@@ -1623,7 +1644,7 @@ const ClaimsFormAdvanced = () => {
                          {customLineItems.length > 0 && (
                            <div className="mt-2 text-xs text-muted-foreground">
                              {customLineItems.map((item, index) => (
-                               <div key={index}>• {item.description} ({item.quantity} stk)</div>
+                               <div key={index}>• {item.partNumber} - {item.description} ({item.quantity} stk)</div>
                              ))}
                            </div>
                          )}
