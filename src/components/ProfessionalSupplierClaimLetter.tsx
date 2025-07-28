@@ -258,18 +258,21 @@ ${t.companyName}`;
               return customLineItems.length > 0 && (
                 <div className="mt-4">
                   <span className="font-medium">Spare Parts Used:</span>
-                  <ul className="ml-4 mt-2">
+                  <div className="mt-2">
                     {customLineItems.map((item: any, index: number) => (
-                      <li key={index} className="mb-1">
-                        • {item.description || item.partNumber || 'Unknown part'}
-                        {item.quantity && item.unitPrice && (
-                          <span className="ml-2 text-sm text-gray-600">
-                            Qty: {item.quantity} x {formatCurrency(item.unitPrice)} = {formatCurrency(item.quantity * item.unitPrice)}
-                          </span>
-                        )}
-                      </li>
+                      <div key={index} className="mb-2 text-sm">
+                        <div className="flex flex-wrap gap-4">
+                          <span><strong>Delenr:</strong> {item.partNumber || 'N/A'}</span>
+                          <span><strong>Beskrivelse:</strong> {item.description || 'N/A'}</span>
+                          <span><strong>Antall:</strong> {item.quantity || 1}</span>
+                          <span><strong>Pris:</strong> {formatCurrency(item.unitPrice || 0)}</span>
+                        </div>
+                        <div className="text-right font-medium">
+                          Total: {formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               );
             })()}
