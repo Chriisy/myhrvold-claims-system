@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ArrowLeft, Eye, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Search, Filter, ArrowLeft, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { useClaimsPaginated } from "@/hooks/useClaimsPaginated";
 import UserNav from "@/components/UserNav";
@@ -14,6 +14,7 @@ const ClaimsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const { profile } = useAuth();
+  const navigate = useNavigate();
 
   // Use the new paginated hook
   const filters = useMemo(() => ({
@@ -187,7 +188,11 @@ const ClaimsList = () => {
             ) : (
               <div className="space-y-4">
                 {claims.map((claim) => (
-                  <div key={claim.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                  <div 
+                    key={claim.id} 
+                    className="border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/claims/${claim.id}`)}
+                  >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -227,14 +232,6 @@ const ClaimsList = () => {
                              })()
                            }</p>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Link to={`/claims/${claim.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-2" />
-                            Se detaljer
-                          </Button>
-                        </Link>
                       </div>
                     </div>
                   </div>
