@@ -103,7 +103,19 @@ export const ClaimEconomics = () => {
   const overtime100Cost = Number(claimData.overtime_100_hours || 0) * Number(claimData.hourly_rate || 0) * 2;
   const travelTimeCost = Number(claimData.travel_hours || 0) * Number(claimData.hourly_rate || 0);
   const vehicleCost = Number(claimData.travel_distance_km || 0) * Number(claimData.vehicle_cost_per_km || 7.5);
-  const customLineItemsArray = Array.isArray(claimData.custom_line_items) ? claimData.custom_line_items : [];
+  const customLineItems = claimData.custom_line_items;
+  const customLineItemsArray = (() => {
+    if (!customLineItems) return [];
+    if (Array.isArray(customLineItems)) return customLineItems;
+    if (typeof customLineItems === 'string') {
+      try {
+        return JSON.parse(customLineItems);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  })();
   const customLineItemsTotal = customLineItemsArray.reduce((sum: number, item: any) => 
     sum + (Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0);
   
@@ -261,10 +273,24 @@ export const ClaimEconomics = () => {
                 <span className="text-muted-foreground">Ekstern service:</span>
                 <span className="font-medium">{formatCurrency(externalServicesCost)}</span>
               </div>
-              {customLineItemsTotal > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tilpassede poster:</span>
-                  <span className="font-medium">{formatCurrency(customLineItemsTotal)}</span>
+              {customLineItemsArray.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-muted-foreground border-b pb-1">Reservedeler brukt:</div>
+                  {customLineItemsArray.map((item: any, index: number) => (
+                    <div key={index} className="flex justify-between text-sm pl-2">
+                      <span className="text-muted-foreground">
+                        {item.description || item.partNumber || `Del ${index + 1}`}
+                        {item.quantity && ` (${item.quantity} stk)`}
+                      </span>
+                      <span className="font-medium">
+                        {formatCurrency(Number(item.quantity || 1) * Number(item.unitPrice || 0))}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between text-sm font-medium border-t pt-1">
+                    <span className="text-muted-foreground">Total reservedeler:</span>
+                    <span className="font-medium">{formatCurrency(customLineItemsTotal)}</span>
+                  </div>
                 </div>
               )}
               <div className="flex justify-between text-sm font-semibold border-t pt-2">
