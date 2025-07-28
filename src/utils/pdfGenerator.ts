@@ -32,6 +32,63 @@ interface ClaimData {
   created_date: string;
 }
 
+const translations = {
+  no: {
+    subtitle: "Profesjonell Service & Support",
+    claimTitle: "Garantiskrav",
+    status: "Under behandling",
+    productInfo: "Produktinformasjon",
+    product: "Produkt",
+    model: "Modell",
+    serialNumber: "Serienummer",
+    purchaseDate: "Kjøpsdato",
+    warrantyPeriod: "Garantiperiode",
+    issueDescription: "Feilbeskrivelse",
+    problem: "Problem",
+    detailedDescription: "Detaljert beskrivelse",
+    customerInfo: "Kundeinformasjon",
+    customer: "Kunde",
+    address: "Adresse",
+    workPerformed: "Utført arbeid",
+    technician: "Tekniker",
+    partsCost: "Deler kostnad",
+    costSummary: "Kostnadssammendrag",
+    totalCost: "Total kostnad",
+    expectedRefund: "Forventet refusjon",
+    footerText1: "Dette dokumentet er generert automatisk fra vårt garantisystem.",
+    footerText2: "Din partner for profesjonell service",
+    year: "år",
+    generatedText: "Generert"
+  },
+  en: {
+    subtitle: "Professional Service & Support",
+    claimTitle: "Warranty Claim",
+    status: "Under Review",
+    productInfo: "Product Information",
+    product: "Product",
+    model: "Model",
+    serialNumber: "Serial Number",
+    purchaseDate: "Purchase Date",
+    warrantyPeriod: "Warranty Period",
+    issueDescription: "Issue Description",
+    problem: "Problem",
+    detailedDescription: "Detailed Description",
+    customerInfo: "Customer Information",
+    customer: "Customer",
+    address: "Address",
+    workPerformed: "Work Performed",
+    technician: "Technician",
+    partsCost: "Parts Cost",
+    costSummary: "Cost Summary",
+    totalCost: "Total Cost",
+    expectedRefund: "Expected Refund",
+    footerText1: "This document was generated automatically from our warranty system.",
+    footerText2: "Your partner for professional service",
+    year: "year",
+    generatedText: "Generated"
+  }
+};
+
 const formatDate = (dateString: string | null | undefined, language: 'no' | 'en') => {
   if (!dateString) return language === 'no' ? 'Ikke oppgitt' : 'Not specified';
   return new Date(dateString).toLocaleDateString(language === 'no' ? 'nb-NO' : 'en-GB');
@@ -47,140 +104,226 @@ const formatCurrency = (amount: number | null | undefined) => {
 
 export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   const doc = new jsPDF();
-  let yPosition = 20;
+  const t = translations[language];
+  let yPosition = 0;
 
-  // Helper function to add text and move position
-  const addText = (text: string, x: number = 20, fontSize: number = 10, isBold: boolean = false) => {
-    doc.setFontSize(fontSize);
-    if (isBold) {
-      doc.setFont('helvetica', 'bold');
-    } else {
-      doc.setFont('helvetica', 'normal');
+  // Colors (Myhrvold Gruppen brand colors)
+  const primaryColor = [30, 58, 95]; // #1e3a5f
+  const secondaryColor = [44, 90, 160]; // #2c5aa0
+  const lightGray = [248, 249, 250]; // #f8f9fa
+  const textColor = [44, 62, 80]; // #2c3e50
+
+  // Header with gradient-like effect
+  const createHeader = () => {
+    // Main header background
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(0, 0, 210, 50, 'F');
+    
+    // Gradient effect simulation
+    doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+    doc.rect(0, 40, 210, 10, 'F');
+    
+    // Company name
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('MYHRVOLD GRUPPEN', 105, 20, { align: 'center' });
+    
+    // Subtitle
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(t.subtitle, 105, 30, { align: 'center' });
+    
+    // Claim number box
+    doc.setFillColor(255, 255, 255, 0.2);
+    doc.rect(15, 55, 180, 20, 'F');
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    doc.rect(15, 55, 180, 20);
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${t.claimTitle} - ${claim.claim_number}`, 20, 63);
+    
+    // Status badge
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(t.status, 20, 70);
+    
+    yPosition = 85;
+  };
+
+  // Helper function to create professional sections
+  const addSection = (title: string) => {
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 20;
     }
     
-    // Handle long text by splitting it
-    const splitText = doc.splitTextToSize(text, 170);
-    doc.text(splitText, x, yPosition);
-    yPosition += splitText.length * (fontSize * 0.5) + 5;
+    // Section background
+    doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+    doc.rect(15, yPosition - 5, 180, 15, 'F');
     
-    return yPosition;
+    // Left border accent
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(15, yPosition - 5, 4, 15, 'F');
+    
+    // Section title
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, 25, yPosition + 4);
+    
+    yPosition += 20;
   };
 
-  const addSection = (title: string) => {
-    yPosition += 5;
-    doc.setFillColor(240, 240, 240);
-    doc.rect(20, yPosition - 8, 170, 12, 'F');
-    addText(title, 22, 12, true);
-    yPosition += 2;
+  // Helper function to add info items in a grid-like layout
+  const addInfoItem = (label: string, value: string, isFullWidth: boolean = false) => {
+    if (yPosition > 270) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Background box
+    doc.setFillColor(255, 255, 255);
+    const boxWidth = isFullWidth ? 180 : 85;
+    doc.rect(15, yPosition - 3, boxWidth, 12, 'F');
+    doc.setDrawColor(233, 236, 239);
+    doc.setLineWidth(0.2);
+    doc.rect(15, yPosition - 3, boxWidth, 12);
+    
+    // Label
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(label.toUpperCase(), 18, yPosition + 1);
+    
+    // Value
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    const splitValue = doc.splitTextToSize(value, boxWidth - 6);
+    doc.text(splitValue, 18, yPosition + 6);
+    
+    if (!isFullWidth) {
+      yPosition += 15;
+    } else {
+      yPosition += Math.max(15, splitValue.length * 4 + 8);
+    }
   };
 
-  // Title
-  const title = language === 'no' 
-    ? `Reklamasjonssak - ${claim.claim_number}`
-    : `Warranty Claim - ${claim.claim_number}`;
-  
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text(title, 20, yPosition);
-  yPosition += 15;
-
-  // Product Information
-  addSection(language === 'no' ? 'Produktinformasjon' : 'Product Information');
-  addText(`${language === 'no' ? 'Produkt' : 'Product'}: ${claim.product_name}`);
-  if (claim.product_model) {
-    addText(`${language === 'no' ? 'Modell' : 'Model'}: ${claim.product_model}`);
-  }
-  if (claim.serial_number) {
-    addText(`${language === 'no' ? 'Serienummer' : 'Serial Number'}: ${claim.serial_number}`);
-  }
-  if (claim.purchase_date) {
-    addText(`${language === 'no' ? 'Kjøpsdato' : 'Purchase Date'}: ${formatDate(claim.purchase_date, language)}`);
-  }
-  if (claim.warranty_period) {
-    addText(`${language === 'no' ? 'Garantiperiode' : 'Warranty Period'}: ${claim.warranty_period}`);
-  }
-
-  // Issue Description
-  addSection(language === 'no' ? 'Feilbeskrivelse' : 'Issue Description');
-  addText(claim.issue_description);
-  if (claim.detailed_description) {
-    addText(`${language === 'no' ? 'Detaljert beskrivelse' : 'Detailed Description'}: ${claim.detailed_description}`);
-  }
-
-  // Customer Information
-  addSection(language === 'no' ? 'Kundeinformasjon' : 'Customer Information');
-  addText(`${language === 'no' ? 'Kunde' : 'Customer'}: ${claim.customer_name}`);
-  if (claim.customer_contact) {
-    addText(`${language === 'no' ? 'Kontaktperson' : 'Contact Person'}: ${claim.customer_contact}`);
-  }
-  if (claim.customer_email) {
-    addText(`${language === 'no' ? 'E-post' : 'Email'}: ${claim.customer_email}`);
-  }
-  if (claim.customer_phone) {
-    addText(`${language === 'no' ? 'Telefon' : 'Phone'}: ${claim.customer_phone}`);
-  }
-  if (claim.customer_address) {
-    addText(`${language === 'no' ? 'Adresse' : 'Address'}: ${claim.customer_address}`);
-  }
-
-  // Work Performed
-  addSection(language === 'no' ? 'Utført arbeid' : 'Work Performed');
-  addText(`${language === 'no' ? 'Tekniker' : 'Technician'}: ${claim.technician_name}`);
-  if (claim.work_hours) {
-    const workCost = (claim.work_hours || 0) * (claim.hourly_rate || 0);
-    addText(`${language === 'no' ? 'Arbeidstimer' : 'Work Hours'}: ${claim.work_hours} ${language === 'no' ? 'timer' : 'hours'} (${formatCurrency(workCost)})`);
-  }
-  if (claim.travel_hours) {
-    addText(`${language === 'no' ? 'Reisetid' : 'Travel Time'}: ${claim.travel_hours} ${language === 'no' ? 'timer' : 'hours'}`);
-  }
-  if (claim.travel_distance_km) {
-    const travelCost = (claim.travel_distance_km || 0) * (claim.vehicle_cost_per_km || 0);
-    addText(`${language === 'no' ? 'Reiseavstand' : 'Travel Distance'}: ${claim.travel_distance_km} km (${formatCurrency(travelCost)})`);
-  }
-  if (claim.parts_cost) {
-    addText(`${language === 'no' ? 'Delekostnad' : 'Parts Cost'}: ${formatCurrency(claim.parts_cost)}`);
-  }
-  if (claim.consumables_cost) {
-    addText(`${language === 'no' ? 'Forbruksmateriell' : 'Consumables'}: ${formatCurrency(claim.consumables_cost)}`);
-  }
-  if (claim.external_services_cost) {
-    addText(`${language === 'no' ? 'Eksterne tjenester' : 'External Services'}: ${formatCurrency(claim.external_services_cost)}`);
-  }
-
-  // Check if we need a new page
-  if (yPosition > 250) {
-    doc.addPage();
-    yPosition = 20;
-  }
-
-  // Cost Summary
-  addSection(language === 'no' ? 'Kostnadsoversikt' : 'Cost Summary');
-  addText(`${language === 'no' ? 'Total kostnad' : 'Total Cost'}: ${formatCurrency(claim.total_cost)}`);
-  addText(`${language === 'no' ? 'Forventet refusjon' : 'Expected Refund'}: ${formatCurrency(claim.expected_refund)}`);
-
-  // Supplier Notes
-  if (claim.supplier_notes) {
-    addSection(language === 'no' ? 'Leverandørnotater' : 'Supplier Notes');
-    addText(claim.supplier_notes);
-  }
+  // Cost summary section with special styling
+  const addCostSummary = () => {
+    if (yPosition > 230) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Special background for cost summary
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(15, yPosition - 5, 180, 40, 'F');
+    
+    // Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(t.costSummary, 25, yPosition + 4);
+    yPosition += 15;
+    
+    // Cost items
+    const addCostItem = (label: string, amount: number | undefined, isTotal: boolean = false) => {
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(isTotal ? 12 : 10);
+      doc.setFont('helvetica', isTotal ? 'bold' : 'normal');
+      
+      doc.text(label, 25, yPosition);
+      doc.text(formatCurrency(amount), 185, yPosition, { align: 'right' });
+      
+      if (!isTotal) {
+        doc.setDrawColor(255, 255, 255, 0.3);
+        doc.setLineWidth(0.2);
+        doc.line(25, yPosition + 2, 185, yPosition + 2);
+      }
+      
+      yPosition += isTotal ? 10 : 8;
+    };
+    
+    addCostItem(t.totalCost, claim.total_cost);
+    addCostItem(t.expectedRefund, claim.expected_refund, true);
+    
+    yPosition += 10;
+  };
 
   // Footer
-  yPosition += 10;
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  
-  const footerText = language === 'no'
-    ? `Denne PDF-en er generert automatisk fra vårt reklamasjonssystem.
-Reklamasjonsnummer: ${claim.claim_number}
-Generert: ${new Date().toLocaleDateString('nb-NO')}`
-    : `This PDF was generated automatically from our warranty claim system.
-Claim Number: ${claim.claim_number}
-Generated: ${new Date().toLocaleDateString('en-GB')}`;
+  const addFooter = () => {
+    const footerY = 280;
+    doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+    doc.rect(0, footerY, 210, 17, 'F');
+    
+    doc.setTextColor(108, 117, 125);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    
+    const currentDate = new Date().toLocaleDateString(language === 'no' ? 'nb-NO' : 'en-GB');
+    
+    doc.text(t.footerText1, 105, footerY + 5, { align: 'center' });
+    doc.text(`${claim.claim_number} | ${t.generatedText}: ${currentDate}`, 105, footerY + 9, { align: 'center' });
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text(`MYHRVOLD GRUPPEN - ${t.footerText2}`, 105, footerY + 13, { align: 'center' });
+  };
 
-  doc.text(footerText, 20, yPosition);
+  // Build the PDF
+  createHeader();
+  
+  // Product Information
+  addSection(t.productInfo);
+  addInfoItem(t.product, claim.product_name);
+  if (claim.product_model) {
+    addInfoItem(t.model, claim.product_model);
+  }
+  if (claim.serial_number) {
+    addInfoItem(t.serialNumber, claim.serial_number);
+  }
+  if (claim.purchase_date) {
+    addInfoItem(t.purchaseDate, formatDate(claim.purchase_date, language));
+  }
+  if (claim.warranty_period) {
+    addInfoItem(t.warrantyPeriod, `${claim.warranty_period} ${t.year}`);
+  }
+  
+  // Issue Description
+  addSection(t.issueDescription);
+  addInfoItem(t.problem, claim.issue_description, true);
+  if (claim.detailed_description) {
+    addInfoItem(t.detailedDescription, claim.detailed_description, true);
+  }
+  
+  // Customer Information
+  addSection(t.customerInfo);
+  addInfoItem(t.customer, claim.customer_name);
+  if (claim.customer_address) {
+    addInfoItem(t.address, claim.customer_address, true);
+  }
+  
+  // Work Performed
+  addSection(t.workPerformed);
+  addInfoItem(t.technician, claim.technician_name);
+  if (claim.parts_cost) {
+    addInfoItem(t.partsCost, formatCurrency(claim.parts_cost));
+  }
+  
+  // Cost Summary
+  addCostSummary();
+  
+  // Footer
+  addFooter();
 
   // Download the PDF
-  const fileName = `reklamasjon-${claim.claim_number}-${language}.pdf`;
+  const fileName = language === 'no' 
+    ? `garantikrav_${claim.claim_number}_NO.pdf`
+    : `warranty_claim_${claim.claim_number}_EN.pdf`;
+  
   doc.save(fileName);
 };
