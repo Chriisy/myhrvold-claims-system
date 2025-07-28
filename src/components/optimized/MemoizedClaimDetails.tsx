@@ -45,7 +45,8 @@ export const MemoizedClaimTimeline = memo(ClaimTimeline, (prevProps, nextProps) 
 // Memoized component for quick actions
 export const MemoizedQuickActions = memo(QuickActions, (prevProps, nextProps) => {
   return prevProps.claimId === nextProps.claimId &&
-         prevProps.createdBy === nextProps.createdBy;
+         prevProps.createdBy === nextProps.createdBy &&
+         JSON.stringify(prevProps.claimData) === JSON.stringify(nextProps.claimData);
 });
 
 // Memoized component for economic information

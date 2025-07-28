@@ -124,6 +124,7 @@ const ClaimDetails = () => {
               <MemoizedQuickActions 
                 claimId={claimData.id} 
                 createdBy={claimData.created_by}
+                claimData={claimData}
                 onSendToSupplier={() => setEmailDialogOpen(true)} 
               />
             </div>

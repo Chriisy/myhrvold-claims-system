@@ -9,14 +9,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnhancedToast } from "@/hooks/useEnhancedToast";
 import { useState } from "react";
+import { generateClaimPDF } from "@/utils/pdfGenerator";
 
 interface QuickActionsProps {
   claimId: string;
   createdBy: string;
   onSendToSupplier: () => void;
+  claimData?: any; // Add claim data prop
 }
 
-export const QuickActions = ({ claimId, createdBy, onSendToSupplier }: QuickActionsProps) => {
+export const QuickActions = ({ claimId, createdBy, onSendToSupplier, claimData }: QuickActionsProps) => {
   const updateStatusMutation = useUpdateClaimStatus();
   const deleteClaimMutation = useDeleteClaim();
   const { profile } = useAuth();
@@ -44,35 +46,24 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier }: QuickActi
     try {
       setIsGeneratingPDF(true);
       
-      // Get current session token
-      const { data: { session } } = await supabase.auth.getSession();
+      let claimToUse = claimData;
       
-      if (!session?.access_token) {
-        throw new Error('No authentication token available');
+      // If no claim data provided, fetch it
+      if (!claimToUse) {
+        const { data: claim, error: claimError } = await supabase
+          .from('claims')
+          .select('*')
+          .eq('id', claimId)
+          .single();
+
+        if (claimError || !claim) {
+          throw new Error('Could not fetch claim data');
+        }
+        claimToUse = claim;
       }
 
-      const response = await fetch('https://bearepylqdbqlljoigeo.supabase.co/functions/v1/generate-claim-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ claimId, language })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `reklamasjon-${claimId}-${language}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Generate and download PDF using jsPDF
+      generateClaimPDF(claimToUse, language);
 
       toast({
         title: "PDF nedlastet",
