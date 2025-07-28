@@ -174,156 +174,131 @@ ${t.companyName}`;
       </div>
 
       {/* Letter Content */}
-      <Card className="shadow-lg border-0 print:shadow-none">
-        <CardContent className="p-0">
-          {/* Header with professional gradient */}
-          <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-8 text-center">
-            <h1 className="text-4xl font-bold tracking-wider mb-2">{t.companyName}</h1>
-            <p className="text-lg opacity-90">{t.subtitle}</p>
+      <div className="bg-white border border-gray-200 print:border-0">
+        {/* Simple Header */}
+        <div className="bg-slate-700 text-white p-6 text-center">
+          <h1 className="text-2xl font-bold">{t.companyName}</h1>
+          <p className="text-sm mt-1">{t.subtitle}</p>
+        </div>
+
+        {/* Letter Body */}
+        <div className="p-8 space-y-6">
+          {/* Header Info */}
+          <div className="flex justify-between items-center border-b pb-4">
+            <div>
+              <p className="text-xs text-gray-500 uppercase">Dato</p>
+              <p className="font-medium">{currentDate}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500 uppercase">{t.claimNumber}</p>
+              <p className="font-bold text-lg">{claim.claim_number}</p>
+            </div>
           </div>
 
-          {/* Letter Body */}
-          <div className="p-8 space-y-8">
-            {/* Header Info */}
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-muted-foreground">Dato / Date:</p>
-                <p className="font-medium">{currentDate}</p>
+          {/* Recipient */}
+          <div>
+            <p className="text-xs text-gray-500 uppercase mb-1">{t.greeting}</p>
+            <p className="font-semibold text-lg">{claim.supplier}</p>
+          </div>
+
+          {/* Subject */}
+          <div className="text-center py-4 border-y">
+            <h2 className="text-xl font-bold">{t.subject}</h2>
+          </div>
+
+          {/* Introduction */}
+          <p className="leading-relaxed">{t.intro}</p>
+
+          {/* Product Information */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.productInfo}</h3>
+            <div className="space-y-3">
+              <div className="flex">
+                <span className="text-xs text-gray-500 uppercase w-32">{t.product}</span>
+                <span className="font-medium">{claim.product_name}</span>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">{t.claimNumber}:</p>
-                <p className="font-bold text-primary text-lg">{claim.claim_number}</p>
-              </div>
-            </div>
-
-            {/* Recipient */}
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">{t.greeting}:</p>
-              <p className="font-semibold text-lg">{claim.supplier}</p>
-            </div>
-
-            <Separator />
-
-            {/* Subject */}
-            <div className="text-center py-4">
-              <h2 className="text-2xl font-bold text-primary">{t.subject}</h2>
-            </div>
-
-            {/* Introduction */}
-            <p className="text-foreground leading-relaxed">{t.intro}</p>
-
-            {/* Product Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                <div className="w-2 h-6 bg-primary rounded-full mr-3"></div>
-                {t.productInfo}
-              </h3>
-              <div className="grid grid-cols-2 gap-4 pl-5">
-                <div className="bg-muted/30 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-muted-foreground">{t.product.toUpperCase()}</p>
-                  <p className="font-semibold">{claim.product_name}</p>
+              {claim.product_model && (
+                <div className="flex">
+                  <span className="text-xs text-gray-500 uppercase w-32">{t.model}</span>
+                  <span className="font-medium">{claim.product_model}</span>
                 </div>
-                {claim.product_model && (
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">{t.model.toUpperCase()}</p>
-                    <p className="font-semibold">{claim.product_model}</p>
-                  </div>
-                )}
-                {claim.serial_number && (
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">{t.serialNumber.toUpperCase()}</p>
-                    <p className="font-semibold">{claim.serial_number}</p>
-                  </div>
-                )}
-                {claim.purchase_date && (
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">{t.purchaseDate.toUpperCase()}</p>
-                    <p className="font-semibold">{formatDate(claim.purchase_date, language)}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Issue Description */}
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                <div className="w-2 h-6 bg-primary rounded-full mr-3"></div>
-                {t.issueTitle}
-              </h3>
-              <div className="pl-5 space-y-4">
-                <div className="bg-muted/30 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">{t.issue.toUpperCase()}</p>
-                  <p className="leading-relaxed">{claim.issue_description}</p>
+              )}
+              {claim.serial_number && (
+                <div className="flex">
+                  <span className="text-xs text-gray-500 uppercase w-32">{t.serialNumber}</span>
+                  <span className="font-medium">{claim.serial_number}</span>
                 </div>
-                {claim.detailed_description && (
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground mb-2">{t.workDescription.toUpperCase()}</p>
-                    <p className="leading-relaxed">{claim.detailed_description}</p>
-                  </div>
-                )}
-                <div className="bg-muted/30 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">{t.technician.toUpperCase()}</p>
-                  <p className="font-semibold">{claim.technician_name}</p>
+              )}
+              {claim.purchase_date && (
+                <div className="flex">
+                  <span className="text-xs text-gray-500 uppercase w-32">{t.purchaseDate}</span>
+                  <span className="font-medium">{formatDate(claim.purchase_date, language)}</span>
                 </div>
-              </div>
+              )}
             </div>
+          </div>
 
-            {/* Cost Summary */}
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                <div className="w-2 h-6 bg-primary rounded-full mr-3"></div>
-                {t.refundRequest}
-              </h3>
-              <div className="pl-5">
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-2">{t.totalCost.toUpperCase()}</p>
-                    <p className="text-3xl font-bold text-primary">{formatCurrency(claim.total_cost)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Documentation */}
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                <div className="w-2 h-6 bg-primary rounded-full mr-3"></div>
-                {t.documentation}
-              </h3>
-              <p className="pl-5 text-foreground leading-relaxed">{t.docText}</p>
-            </div>
-
-            {/* Resolution Request */}
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                <div className="w-2 h-6 bg-primary rounded-full mr-3"></div>
-                {t.resolution}
-              </h3>
-              <p className="pl-5 text-foreground leading-relaxed font-medium">{t.resolutionText}</p>
-            </div>
-
-            <Separator />
-
-            {/* Closing */}
+          {/* Issue Description */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.issueTitle}</h3>
             <div className="space-y-4">
-              <p className="text-foreground leading-relaxed">{t.closing}</p>
-              
-              <div className="pt-8">
-                <p className="font-medium">{t.regards}</p>
-                <div className="mt-4">
-                  <p className="text-xl font-bold text-primary">{t.companyName}</p>
-                  <p className="text-muted-foreground">{t.subtitle}</p>
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-2">{t.issue}</p>
+                <p className="leading-relaxed">{claim.issue_description}</p>
+              </div>
+              {claim.detailed_description && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase mb-2">{t.workDescription}</p>
+                  <p className="leading-relaxed">{claim.detailed_description}</p>
                 </div>
+              )}
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-2">{t.technician}</p>
+                <p className="font-medium">{claim.technician_name}</p>
               </div>
             </div>
+          </div>
 
-            {/* Footer */}
-            <div className="pt-8 border-t border-border/50">
-              <p className="text-sm text-muted-foreground text-center italic">{t.footer}</p>
+          {/* Cost Summary */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.refundRequest}</h3>
+            <div className="bg-gray-50 border rounded p-6 text-center">
+              <p className="text-xs text-gray-500 uppercase mb-2">{t.totalCost}</p>
+              <p className="text-2xl font-bold">{formatCurrency(claim.total_cost)}</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Documentation */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.documentation}</h3>
+            <p className="leading-relaxed">{t.docText}</p>
+          </div>
+
+          {/* Resolution Request */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">{t.resolution}</h3>
+            <p className="leading-relaxed font-medium">{t.resolutionText}</p>
+          </div>
+
+          {/* Closing */}
+          <div className="space-y-4 pt-6 border-t">
+            <p className="leading-relaxed">{t.closing}</p>
+            
+            <div className="pt-6">
+              <p className="font-medium">{t.regards}</p>
+              <div className="mt-4">
+                <p className="text-lg font-bold">{t.companyName}</p>
+                <p className="text-gray-600">{t.subtitle}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="pt-6 border-t text-center">
+            <p className="text-xs text-gray-500 italic">{t.footer}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
