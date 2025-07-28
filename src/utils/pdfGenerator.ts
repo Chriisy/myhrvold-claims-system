@@ -30,6 +30,7 @@ export interface ClaimData {
   expected_refund?: number;
   supplier_notes?: string;
   created_date: string;
+  custom_line_items?: any[];
 }
 
 const translations = {
@@ -249,11 +250,34 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   doc.text(claim.technician_name, 60, yPosition);
   yPosition += 7;
 
+  // Spare parts details
+  const customLineItems = claim.custom_line_items ? 
+    (Array.isArray(claim.custom_line_items) ? claim.custom_line_items : 
+     (typeof claim.custom_line_items === 'string' ? JSON.parse(claim.custom_line_items) : [])) : [];
+  
+  if (customLineItems.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('Spare Parts Used:', 20, yPosition);
+    yPosition += 7;
+    
+    customLineItems.forEach((item: any) => {
+      doc.setFont('helvetica', 'normal');
+      doc.text(`• ${item.description || item.partNumber || 'Unknown part'}`, 25, yPosition);
+      if (item.quantity && item.unitPrice) {
+        doc.text(`Qty: ${item.quantity} x ${formatCurrency(item.unitPrice)} = ${formatCurrency(item.quantity * item.unitPrice)}`, 25, yPosition + 5);
+        yPosition += 10;
+      } else {
+        yPosition += 7;
+      }
+    });
+    yPosition += 3;
+  }
+
   if (claim.parts_cost) {
     doc.setFont('helvetica', 'bold');
-    doc.text('Parts Cost: ', 20, yPosition);
+    doc.text('Total Parts Cost: ', 20, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(formatCurrency(claim.parts_cost), 60, yPosition);
+    doc.text(formatCurrency(claim.parts_cost), 80, yPosition);
     yPosition += 7;
   }
 

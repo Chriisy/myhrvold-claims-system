@@ -27,6 +27,7 @@ interface ClaimData {
   travel_distance_km?: number;
   vehicle_cost_per_km?: number;
   parts_cost?: number;
+  custom_line_items?: any[];
   consumables_cost?: number;
   external_services_cost?: number;
   total_cost?: number;
@@ -247,9 +248,35 @@ ${t.companyName}`;
             <div>
               <span className="font-medium">{t.technician}:</span> {claim.technician_name}
             </div>
+            
+            {/* Spare parts details */}
+            {(() => {
+              const customLineItems = claim.custom_line_items ? 
+                (Array.isArray(claim.custom_line_items) ? claim.custom_line_items : 
+                 (typeof claim.custom_line_items === 'string' ? JSON.parse(claim.custom_line_items) : [])) : [];
+              
+              return customLineItems.length > 0 && (
+                <div className="mt-4">
+                  <span className="font-medium">Spare Parts Used:</span>
+                  <ul className="ml-4 mt-2">
+                    {customLineItems.map((item: any, index: number) => (
+                      <li key={index} className="mb-1">
+                        • {item.description || item.partNumber || 'Unknown part'}
+                        {item.quantity && item.unitPrice && (
+                          <span className="ml-2 text-sm text-gray-600">
+                            Qty: {item.quantity} x {formatCurrency(item.unitPrice)} = {formatCurrency(item.quantity * item.unitPrice)}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
+            
             {claim.parts_cost && (
               <div>
-                <span className="font-medium">Parts Cost:</span> {formatCurrency(claim.parts_cost)}
+                <span className="font-medium">Total Parts Cost:</span> {formatCurrency(claim.parts_cost)}
               </div>
             )}
           </div>
