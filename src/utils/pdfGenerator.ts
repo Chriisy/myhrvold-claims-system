@@ -261,14 +261,26 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     yPosition += 7;
     
     customLineItems.forEach((item: any) => {
+      // Part number and description header
+      doc.setFont('helvetica', 'bold');
+      const partHeader = item.partNumber ? `${item.partNumber} - ${item.description || 'N/A'}` : (item.description || 'N/A');
+      doc.text(`• ${partHeader}`, 25, yPosition);
+      yPosition += 5;
+      
+      // Details row
       doc.setFont('helvetica', 'normal');
-      doc.text(`• ${item.description || item.partNumber || 'Unknown part'}`, 25, yPosition);
-      if (item.quantity && item.unitPrice) {
-        doc.text(`Qty: ${item.quantity} x ${formatCurrency(item.unitPrice)} = ${formatCurrency(item.quantity * item.unitPrice)}`, 25, yPosition + 5);
-        yPosition += 10;
-      } else {
-        yPosition += 7;
-      }
+      doc.text(`Delenr: ${item.partNumber || 'N/A'}`, 30, yPosition);
+      doc.text(`Beskrivelse: ${item.description || 'N/A'}`, 90, yPosition);
+      yPosition += 5;
+      
+      doc.text(`Antall: ${item.quantity || 1}`, 30, yPosition);
+      doc.text(`Pris: ${formatCurrency(item.unitPrice || 0)}`, 90, yPosition);
+      yPosition += 5;
+      
+      // Total for this item
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total: ${formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}`, 150, yPosition);
+      yPosition += 8;
     });
     yPosition += 3;
   }
