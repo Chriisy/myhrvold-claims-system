@@ -30,29 +30,35 @@ export class OCRService {
 
   private static getInvoicePatterns() {
     return {
-      // Enhanced patterns based on T.MYHRVOLD invoice analysis
-      invoiceNumber: /(?:Faktura|FAKTURA)[\s\S]*?(\d{7,8})|(?:^|\s)(\d{7})(?:\s|$)/mi,
-      customerName: /(?:Ordreadresse:|Kundenr:|til:|AS\s*$)[\s\n]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]{3,50}(?:\s+AS|\s+ASA)?)/mi,
-      customerOrgNumber: /(?:Org\.?\s*nr\.?|Orgnr)[:\s]*([NO]?\d{9}[A-Z]*)/i,
-      productName: /(?:Time\s+service|Bil\s+[-‑]\s+Sone|Grønn\s+bryter|Touch\s+screen|Time\s+kjøring|COMENDA|Parkering|Kilometer\s+servicebesøk)/i,
-      productModel: /(?:Produktnummer|Modell|COM\d+|AG\d+|HTE\s+\d+)[:\s]*([A-Z0-9\-\.]+)/i,
-      totalAmount: /(?:Sum\s+avgiftsfritt|Ordresum|Total)[\s\n]*(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
-      laborCost: /(?:Time\s+service|T1|RT1?)[\s\S]*?(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
-      partsCost: /(?:Bil\s+[-‑]\s+Sone|bryter|screen|Parkering|Servicemateriel|COM\d+|Grønn|Touch)[\s\S]*?(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
-      evaticJobNumber: /(?:Prosjekt\s+nummer[:\s]*|Service\s+nr[:\s]*|Prosjekt\s+nr[:\s]*|nummer[:\s]*)(\d{5,6})/i,
-      invoiceDate: /(?:Fakturadato|Ordredato)[:\s]*(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/i,
-      kidNumber: /KID[:\s]*(\d{7,10})/i
+      // Enhanced patterns specifically for T.MYHRVOLD and similar Norwegian invoices
+      invoiceNumber: /(?:Faktura[\s\n]*(\d{7,8})|(\d{7,8})(?=\s*Fakturadat)|^(\d{7,8})$)/mi,
+      customerName: /(?:Ordreadresse:|Lev\.adr:|til:|Kunde:)[\s\n]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]{2,50}(?:\s+AS|\s+ASA)?)|([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]+(?:\s+AS|\s+ASA))(?=[\s\n]*(?:Postboks|Adresse|\d{4}))/mi,
+      customerOrgNumber: /(?:Org\.?\s*nr\.?|Orgnr|Organisasjonsnummer)[:\s]*([NO]?\d{9}[A-Z]*)/i,
+      productName: /(?:Time\s+kjøring|Touch\s+screen|Service|Reparasjon|Oppgradering|Blasestylter|Besøksgebyr|Demonter|Tekniker|Prosjekt)/i,
+      productModel: /(?:Prosjekt\s+nummer|Produktnummer|Modell|Service\s+nr)[:\s]*(\d{5,6})/i,
+      totalAmount: /(?:Sum\s+avgiftsfritt|Ordresum|Sum\s+eks|Total)[\s\n]*(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
+      laborCost: /(?:Time\s+kjøring|Timer?)[\s\S]*?(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
+      partsCost: /(?:Touch\s+screen|Blase|Oppgradering|materiale)[\s\S]*?(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
+      evaticJobNumber: /(?:Prosjekt\s+nummer[:\s]*|Service\s+nr[:\s]*|nummer[:\s]*)(\d{5,6})/i,
+      invoiceDate: /(?:Fakturadato|dato)[:\s]*(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/i,
+      kidNumber: /KID[:\s]*(\d{8,10})/i,
+      // Additional specific patterns for T.MYHRVOLD format
+      technicianName: /(?:Tekniker[:\s]+)([A-ZÆØÅ][A-Za-zæøåÆØÅ\s]+)/i,
+      workDescription: /(?:Beskrivelse[:\s]*)([A-Za-zæøåÆØÅ\s\.\,\-\:]{10,200})/i
     };
   }
 
   private static extractValue(text: string, pattern: RegExp, defaultValue: any = '') {
     const match = text.match(pattern);
     if (match) {
-      // Try both capture groups for invoice number
+      // Try multiple capture groups for invoice number and customer name
       if (pattern === this.getInvoicePatterns().invoiceNumber) {
+        return (match[1] || match[2] || match[3] || '').trim();
+      }
+      if (pattern === this.getInvoicePatterns().customerName) {
         return (match[1] || match[2] || '').trim();
       }
-      return match[1].trim();
+      return (match[1] || '').trim();
     }
     return defaultValue;
   }
@@ -144,19 +150,29 @@ export class OCRService {
 
     console.log('Extracted data:', data);
 
-    // Calculate confidence score
+    // Calculate confidence score based on key fields only
     let confidence = 0;
-    let totalFields = 0;
+    let keyFields = 0;
 
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'confidence') return;
-      totalFields++;
-      if (value && value !== '') {
+    // Key fields that are most important for confidence calculation
+    const importantFields = [
+      'invoiceNumber', 'customerName', 'totalAmount', 'evaticJobNumber'
+    ];
+
+    importantFields.forEach(fieldName => {
+      keyFields++;
+      const value = data[fieldName as keyof ScannedInvoiceData];
+      if (value && value !== '' && value !== 0) {
         confidence++;
       }
     });
 
-    data.confidence = totalFields > 0 ? confidence / totalFields : 0;
+    // Bonus points for having any amount data
+    if (data.laborCost > 0 || data.partsCost > 0) {
+      confidence += 0.5;
+    }
+
+    data.confidence = keyFields > 0 ? confidence / keyFields : 0;
     return data;
   }
 
@@ -168,7 +184,7 @@ export class OCRService {
 
     // Enhanced OCR parameters for Norwegian invoices
     await worker.setParameters({
-      'tessedit_char_whitelist': '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅabcdefghijklmnopqrstuvwxyzæøå .,-:/()',
+      'tessedit_char_whitelist': '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅabcdefghijklmnopqrstuvwxyzæøå .,-:/()+',
       'preserve_interword_spaces': '1'
     });
 
