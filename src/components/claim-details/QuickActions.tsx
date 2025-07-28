@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CheckCircle2, Mail, Trash2 } from "lucide-react";
+import { CheckCircle2, Mail, Trash2, FileDown } from "lucide-react";
 import { ButtonLoading } from "@/components/ui/loading";
 import { useUpdateClaimStatus, useDeleteClaim } from "@/hooks/useClaimMutations";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useEnhancedToast } from "@/hooks/useEnhancedToast";
+import { useState } from "react";
 
 interface QuickActionsProps {
   claimId: string;
@@ -18,6 +21,8 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier }: QuickActi
   const deleteClaimMutation = useDeleteClaim();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useEnhancedToast();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const handleMarkAsResolved = () => {
     updateStatusMutation.mutate({
@@ -33,6 +38,56 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier }: QuickActi
         navigate('/claims');
       }
     });
+  };
+
+  const handleDownloadPDF = async (language: 'no' | 'en') => {
+    try {
+      setIsGeneratingPDF(true);
+      
+      // Get current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch('https://bearepylqdbqlljoigeo.supabase.co/functions/v1/generate-claim-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ claimId, language })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reklamasjon-${claimId}-${language}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "PDF nedlastet",
+        description: `Reklamasjonsdokument på ${language === 'no' ? 'norsk' : 'engelsk'} er lastet ned.`,
+      });
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast({
+        title: "Feil ved nedlasting",
+        description: "Kunne ikke laste ned PDF. Prøv igjen senere.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   // Check if user can delete this claim (admin or creator)
@@ -69,6 +124,37 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier }: QuickActi
         <Button className="w-full" variant="outline">
           Kontakt kunde
         </Button>
+
+        <div className="flex gap-2">
+          <Button 
+            className="flex-1" 
+            variant="outline"
+            onClick={() => handleDownloadPDF('no')}
+            disabled={isGeneratingPDF}
+          >
+            <FileDown className="h-4 w-4 mr-2" />
+            <ButtonLoading
+              isLoading={isGeneratingPDF}
+              loadingText="Genererer..."
+            >
+              Last ned PDF (NO)
+            </ButtonLoading>
+          </Button>
+          <Button 
+            className="flex-1" 
+            variant="outline"
+            onClick={() => handleDownloadPDF('en')}
+            disabled={isGeneratingPDF}
+          >
+            <FileDown className="h-4 w-4 mr-2" />
+            <ButtonLoading
+              isLoading={isGeneratingPDF}
+              loadingText="Generating..."
+            >
+              Download PDF (EN)
+            </ButtonLoading>
+          </Button>
+        </div>
         
         {canDelete && (
           <AlertDialog>
