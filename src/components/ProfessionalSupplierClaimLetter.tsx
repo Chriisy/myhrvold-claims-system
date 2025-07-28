@@ -259,19 +259,17 @@ ${t.companyName}`;
                 <div className="mt-4">
                   <span className="font-medium">Spare Parts Used:</span>
                   <div className="mt-2">
-                    {customLineItems.map((item: any, index: number) => (
-                      <div key={index} className="mb-2 text-sm">
-                        <div className="flex flex-wrap gap-4">
-                          <span><strong>Delenr:</strong> {item.partNumber || 'N/A'}</span>
-                          <span><strong>Beskrivelse:</strong> {item.description || 'N/A'}</span>
-                          <span><strong>Antall:</strong> {item.quantity || 1}</span>
-                          <span><strong>Pris:</strong> {formatCurrency(item.unitPrice || 0)}</span>
-                        </div>
-                        <div className="text-right font-medium">
-                          Total: {formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}
-                        </div>
-                      </div>
-                    ))}
+                     {customLineItems.map((item: any, index: number) => (
+                       <div key={index} className="mb-3 border-b pb-2 text-sm">
+                         <div className="font-medium mb-1">
+                           {item.partNumber ? `${item.partNumber} - ${item.description}` : (item.description || 'N/A')}
+                         </div>
+                         <div className="flex justify-between">
+                           <span>Antall: {item.quantity || 1} x {formatCurrency(item.unitPrice || 0)}</span>
+                           <span className="font-medium">{formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}</span>
+                         </div>
+                       </div>
+                     ))}
                   </div>
                 </div>
               );
