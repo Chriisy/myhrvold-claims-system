@@ -32,63 +32,77 @@ interface ClaimData {
   created_date: string;
 }
 
+// Eksakte oversettelser som spesifisert
 const translations = {
   no: {
     subtitle: "Profesjonell Service & Support",
     claimTitle: "Garantiskrav",
     status: "Under behandling",
     productInfo: "Produktinformasjon",
-    product: "Produkt",
-    model: "Modell", 
-    serialNumber: "Serienummer",
-    purchaseDate: "Kjøpsdato",
-    warrantyPeriod: "Garantiperiode",
+    product: "PRODUKT",
+    model: "MODELL",
+    serialNumber: "SERIENUMMER",
+    purchaseDate: "KJØPSDATO",
+    warrantyPeriod: "GARANTIPERIODE",
     issueDescription: "Feilbeskrivelse",
-    problem: "Problem",
-    detailedDescription: "Detaljert beskrivelse",
+    problem: "PROBLEM",
+    detailedDescription: "DETALJERT BESKRIVELSE",
     customerInfo: "Kundeinformasjon",
-    customer: "Kunde",
-    address: "Adresse",
+    customer: "KUNDE",
+    address: "ADRESSE",
     workPerformed: "Utført arbeid",
-    technician: "Tekniker",
-    partsCost: "Deler kostnad",
+    technician: "TEKNIKER",
+    partsCost: "DELER KOSTNAD",
     costSummary: "Kostnadssammendrag",
-    totalCost: "Total kostnad",
-    expectedRefund: "Forventet refusjon",
+    totalCost: "Total kostnad:",
+    expectedRefund: "Forventet refusjon:",
     footerText1: "Dette dokumentet er generert automatisk fra vårt garantisystem.",
     footerText2: "Krav nummer",
     footerText3: "Generert",
-    footerText4: "Myhrvold Gruppen - Din partner for profesjonell service",
+    footerText4: "Din partner for profesjonell service",
     year: "år"
   },
   en: {
-    subtitle: "Professional Service & Support", 
+    subtitle: "Professional Service & Support",
     claimTitle: "Warranty Claim",
     status: "Under Review",
     productInfo: "Product Information",
-    product: "Product",
-    model: "Model",
-    serialNumber: "Serial Number",
-    purchaseDate: "Purchase Date", 
-    warrantyPeriod: "Warranty Period",
+    product: "PRODUCT",
+    model: "MODEL",
+    serialNumber: "SERIAL NUMBER",
+    purchaseDate: "PURCHASE DATE",
+    warrantyPeriod: "WARRANTY PERIOD",
     issueDescription: "Issue Description",
-    problem: "Problem",
-    detailedDescription: "Detailed Description",
+    problem: "PROBLEM",
+    detailedDescription: "DETAILED DESCRIPTION",
     customerInfo: "Customer Information",
-    customer: "Customer",
-    address: "Address",
+    customer: "CUSTOMER",
+    address: "ADDRESS",
     workPerformed: "Work Performed",
-    technician: "Technician",
-    partsCost: "Parts Cost",
+    technician: "TECHNICIAN",
+    partsCost: "PARTS COST",
     costSummary: "Cost Summary",
-    totalCost: "Total Cost",
-    expectedRefund: "Expected Refund",
+    totalCost: "Total Cost:",
+    expectedRefund: "Expected Refund:",
     footerText1: "This document was generated automatically from our warranty system.",
     footerText2: "Claim Number",
     footerText3: "Generated",
-    footerText4: "Myhrvold Gruppen - Your partner for professional service",
+    footerText4: "Your partner for professional service",
     year: "year"
   }
+};
+
+// Eksakte hex farger konvertert til RGB
+const colors = {
+  primaryBlue: [30, 58, 95],      // #1e3a5f
+  gradientBlue: [44, 90, 160],    // #2c5aa0
+  white: [255, 255, 255],         // #ffffff
+  sectionBg: [248, 249, 250],     // #f8f9fa
+  labelText: [30, 58, 95],        // #1e3a5f
+  valueText: [44, 62, 80],        // #2c3e50
+  borderColor: [233, 236, 239],   // #e9ecef
+  grayText: [108, 117, 125],      // #6c757d
+  statusGreen: [40, 167, 69]      // #28a745
 };
 
 const formatDate = (dateString: string | null | undefined, language: 'no' | 'en') => {
@@ -105,178 +119,214 @@ const formatCurrency = (amount: number | null | undefined) => {
 };
 
 export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
-  const doc = new jsPDF();
+  const doc = new jsPDF('p', 'mm', 'a4');
   const t = translations[language];
   let yPosition = 0;
 
-  // Myhrvold Gruppen brand colors
-  const primaryBlue = [30, 58, 95];     // #1e3a5f
-  const gradientBlue = [44, 90, 160];   // #2c5aa0  
-  const lightGray = [243, 244, 246];    // #f3f4f6
-  const darkGray = [75, 85, 99];        // #4b5563
-  const greenStatus = [34, 197, 94];    // #22c55e
-
-  // Create professional header
+  // Helper til å konvertere pt til mm for jsPDF
+  const ptToMm = (pt: number) => pt * 0.352778;
+  
+  // Opprett profesjonell header med gradient
   const createHeader = () => {
-    // Main header background with gradient effect
-    doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+    // Hovedgradient bakgrunn (simulert med rektangler)
+    doc.setFillColor(colors.primaryBlue[0], colors.primaryBlue[1], colors.primaryBlue[2]);
     doc.rect(0, 0, 210, 45, 'F');
     
-    // Gradient simulation
-    doc.setFillColor(gradientBlue[0], gradientBlue[1], gradientBlue[2]);
-    doc.rect(0, 35, 210, 10, 'F');
+    // Gradient simulering med flere lag
+    for (let i = 0; i < 10; i++) {
+      const opacity = i / 10;
+      const r = colors.primaryBlue[0] + (colors.gradientBlue[0] - colors.primaryBlue[0]) * opacity;
+      const g = colors.primaryBlue[1] + (colors.gradientBlue[1] - colors.primaryBlue[1]) * opacity;
+      const b = colors.primaryBlue[2] + (colors.gradientBlue[2] - colors.primaryBlue[2]) * opacity;
+      doc.setFillColor(r, g, b);
+      doc.rect(0, 35 + i, 210, 1, 'F');
+    }
     
-    // Company name
-    doc.setTextColor(255, 255, 255);
+    // Logo: 40pt = 14mm i jsPDF
+    doc.setTextColor(colors.white[0], colors.white[1], colors.white[2]);
+    doc.setFontSize(40);
+    doc.setFont('helvetica', 'bold');
+    doc.text('MYHRVOLD GRUPPEN', 105, 15, { align: 'center' });
+    
+    // Undertittel: 17.6pt = 6.2mm i jsPDF
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'normal');
+    doc.text(t.subtitle, 105, 25, { align: 'center' });
+    
+    // Claim number boks med spesifisert styling
+    doc.setFillColor(255, 255, 255, 0.2);
+    doc.roundedRect(15, 50, 180, 20, 3, 3, 'F');
+    
+    // Venstre border (4pt = 1.4mm)
+    doc.setFillColor(colors.white[0], colors.white[1], colors.white[2]);
+    doc.rect(15, 50, 1.4, 20, 'F');
+    
+    // Claim tittel: 22.4pt = 8mm i jsPDF
+    doc.setTextColor(colors.white[0], colors.white[1], colors.white[2]);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('MYHRVOLD GRUPPEN', 105, 20, { align: 'center' });
-    
-    // Subtitle
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.text(t.subtitle, 105, 30, { align: 'center' });
-    
-    // Claim info box
-    doc.setFillColor(255, 255, 255, 0.15);
-    doc.rect(20, 50, 170, 18, 'F');
-    doc.setDrawColor(255, 255, 255, 0.4);
-    doc.setLineWidth(1);
-    doc.rect(20, 50, 170, 18);
-    
-    // Claim title and number
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${t.claimTitle} - ${claim.claim_number}`, 25, 58);
+    doc.text(`${t.claimTitle} - ${claim.claim_number}`, 20, 58);
     
     // Status badge
-    doc.setFillColor(greenStatus[0], greenStatus[1], greenStatus[2]);
-    doc.rect(140, 52, 45, 10, 'F');
-    doc.setTextColor(255, 255, 255);
+    doc.setFillColor(colors.statusGreen[0], colors.statusGreen[1], colors.statusGreen[2]);
+    doc.roundedRect(140, 53, 45, 10, 2, 2, 'F');
+    doc.setTextColor(colors.white[0], colors.white[1], colors.white[2]);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
-    doc.text(t.status.toUpperCase(), 162.5, 58, { align: 'center' });
+    doc.text(t.status.toUpperCase(), 162.5, 59, { align: 'center' });
     
     yPosition = 80;
   };
 
-  // Section header with bullet point style
+  // Seksjonstittel med sirkel (20pt diameter = 7mm)
   const addSectionHeader = (title: string) => {
     if (yPosition > 250) {
       doc.addPage();
       yPosition = 20;
     }
     
-    // Blue bullet point
-    doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-    doc.circle(25, yPosition - 2, 3, 'F');
+    // Blå sirkel (20pt diameter = 7mm)
+    doc.setFillColor(colors.primaryBlue[0], colors.primaryBlue[1], colors.primaryBlue[2]);
+    doc.circle(18, yPosition + 2, 3.5, 'F');
     
-    // Section title
-    doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-    doc.setFontSize(12);
+    // Seksjonstittel: 20.8pt = 7.3mm i jsPDF
+    doc.setTextColor(colors.labelText[0], colors.labelText[1], colors.labelText[2]);
+    doc.setFontSize(21);
     doc.setFont('helvetica', 'bold');
-    doc.text(title, 32, yPosition);
+    doc.text(title, 25, yPosition + 5);
     
-    yPosition += 10;
+    yPosition += 15;
   };
 
-  // Two-column layout for info items
-  const addInfoGrid = (items: Array<{label: string, value: string, isLeftColumn?: boolean}>) => {
-    let leftY = yPosition;
-    let rightY = yPosition;
-    
-    items.forEach((item, index) => {
-      const isLeft = item.isLeftColumn !== false && index % 2 === 0;
-      const xPos = isLeft ? 35 : 115;
-      const currentY = isLeft ? leftY : rightY;
-      
-      if (currentY > 270) {
-        doc.addPage();
-        leftY = rightY = yPosition = 20;
-      }
-      
-      // Label
-      doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.text(item.label.toUpperCase(), xPos, currentY);
-      
-      // Value
-      doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      const wrappedText = doc.splitTextToSize(item.value, 70);
-      doc.text(wrappedText, xPos, currentY + 5);
-      
-      const lineHeight = wrappedText.length * 4 + 12;
-      
-      if (isLeft) {
-        leftY += lineHeight;
-      } else {
-        rightY += lineHeight;
-      }
-    });
-    
-    yPosition = Math.max(leftY, rightY) + 5;
-  };
-
-  // Full-width info item
-  const addFullWidthInfo = (label: string, value: string) => {
-    if (yPosition > 260) {
+  // Seksjon med korrekt bakgrunn og styling
+  const startSection = (title: string, isSpecial: boolean = false) => {
+    if (yPosition > 240) {
       doc.addPage();
       yPosition = 20;
     }
     
-    // Label
-    doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text(label.toUpperCase(), 35, yPosition);
+    if (!isSpecial) {
+      // Seksjons bakgrunn: #f8f9fa
+      doc.setFillColor(colors.sectionBg[0], colors.sectionBg[1], colors.sectionBg[2]);
+      doc.roundedRect(15, yPosition, 180, 35, 3, 3, 'F');
+      
+      // Venstre border: 4pt = 1.4mm
+      doc.setFillColor(colors.primaryBlue[0], colors.primaryBlue[1], colors.primaryBlue[2]);
+      doc.roundedRect(15, yPosition, 1.4, 35, 1.5, 1.5, 'F');
+    }
     
-    // Value
-    doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    const wrappedText = doc.splitTextToSize(value, 155);
-    doc.text(wrappedText, 35, yPosition + 5);
-    
-    yPosition += wrappedText.length * 4 + 15;
+    addSectionHeader(title);
   };
 
-  // Cost summary with special styling
+  // Info-item med eksakt styling som spesifisert
+  const addInfoItem = (label: string, value: string, x: number = 25, width: number = 80) => {
+    if (yPosition > 265) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Info-item bakgrunn
+    doc.setFillColor(colors.white[0], colors.white[1], colors.white[2]);
+    doc.roundedRect(x, yPosition, width, 15, 2, 2, 'F');
+    
+    // Border: 1pt = 0.35mm
+    doc.setDrawColor(colors.borderColor[0], colors.borderColor[1], colors.borderColor[2]);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(x, yPosition, width, 15, 2, 2, 'S');
+    
+    // Label (UPPERCASE): 14.4pt = 5.1mm
+    doc.setTextColor(colors.labelText[0], colors.labelText[1], colors.labelText[2]);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(label.toUpperCase(), x + 3, yPosition + 5);
+    
+    // Value: 17.6pt = 6.2mm
+    doc.setTextColor(colors.valueText[0], colors.valueText[1], colors.valueText[2]);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    const wrappedValue = doc.splitTextToSize(value, width - 6);
+    doc.text(wrappedValue, x + 3, yPosition + 10);
+    
+    yPosition += 18;
+  };
+
+  // To-kolonne layout som spesifisert
+  const addTwoColumnGrid = (items: Array<{label: string, value: string}>) => {
+    let currentY = yPosition;
+    
+    for (let i = 0; i < items.length; i += 2) {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = yPosition = 20;
+      }
+      
+      // Venstre kolonne
+      const leftItem = items[i];
+      if (leftItem) {
+        yPosition = currentY;
+        addInfoItem(leftItem.label, leftItem.value, 25, 80);
+      }
+      
+      // Høyre kolonne
+      const rightItem = items[i + 1];
+      if (rightItem) {
+        yPosition = currentY;
+        addInfoItem(rightItem.label, rightItem.value, 115, 80);
+      }
+      
+      currentY = yPosition;
+    }
+    
+    yPosition = currentY;
+  };
+
+  // Full bredde info-item
+  const addFullWidthInfo = (label: string, value: string) => {
+    addInfoItem(label, value, 25, 170);
+  };
+
+  // Cost Summary med spesiell blå bakgrunn
   const addCostSummary = () => {
     if (yPosition > 220) {
       doc.addPage();
       yPosition = 20;
     }
     
-    // Blue bullet point
-    doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-    doc.circle(25, yPosition - 2, 3, 'F');
+    // Blå sirkel for tittel
+    doc.setFillColor(colors.primaryBlue[0], colors.primaryBlue[1], colors.primaryBlue[2]);
+    doc.circle(18, yPosition + 2, 3.5, 'F');
     
-    // Title
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(12);
+    // Tittel
+    doc.setTextColor(colors.white[0], colors.white[1], colors.white[2]);
+    doc.setFontSize(21);
     doc.setFont('helvetica', 'bold');
-    doc.text(t.costSummary, 32, yPosition);
-    
-    // Background for cost summary
-    doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-    doc.rect(20, yPosition + 5, 170, 30, 'F');
+    doc.text(t.costSummary, 25, yPosition + 5);
     
     yPosition += 15;
     
+    // Blå bakgrunn for cost summary
+    doc.setFillColor(colors.primaryBlue[0], colors.primaryBlue[1], colors.primaryBlue[2]);
+    doc.roundedRect(15, yPosition, 180, 25, 3, 3, 'F');
+    
+    yPosition += 8;
+    
     // Cost items
-    const addCostLine = (label: string, amount: number | undefined, isBold: boolean = false) => {
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(isBold ? 11 : 10);
-      doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+    const addCostLine = (label: string, amount: number | undefined, isFinal: boolean = false) => {
+      doc.setTextColor(colors.white[0], colors.white[1], colors.white[2]);
+      doc.setFontSize(isFinal ? 14 : 11);
+      doc.setFont('helvetica', isFinal ? 'bold' : 'normal');
       
-      doc.text(label, 30, yPosition);
-      doc.text(formatCurrency(amount), 180, yPosition, { align: 'right' });
+      doc.text(label, 25, yPosition);
+      doc.text(formatCurrency(amount), 185, yPosition, { align: 'right' });
       
-      yPosition += 8;
+      if (!isFinal) {
+        // Border-bottom med 20% opacity
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.2);
+        doc.line(25, yPosition + 2, 185, yPosition + 2);
+      }
+      
+      yPosition += isFinal ? 10 : 8;
     };
     
     addCostLine(t.totalCost, claim.total_cost);
@@ -285,67 +335,75 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     yPosition += 10;
   };
 
-  // Footer
+  // Footer med eksakt spesifikasjon
   const addFooter = () => {
     const footerY = 275;
     
-    // Footer background
-    doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+    // Footer bakgrunn
+    doc.setFillColor(colors.sectionBg[0], colors.sectionBg[1], colors.sectionBg[2]);
     doc.rect(0, footerY, 210, 22, 'F');
     
-    // Footer text
-    doc.setTextColor(100, 116, 139);
-    doc.setFontSize(8);
+    // Border-top
+    doc.setDrawColor(colors.borderColor[0], colors.borderColor[1], colors.borderColor[2]);
+    doc.setLineWidth(0.35);
+    doc.line(0, footerY, 210, footerY);
+    
+    // Footer tekst: 14.4pt = 5.1mm
+    doc.setTextColor(colors.grayText[0], colors.grayText[1], colors.grayText[2]);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     
     const currentDate = new Date().toLocaleDateString(language === 'no' ? 'nb-NO' : 'en-GB');
     
     doc.text(t.footerText1, 105, footerY + 6, { align: 'center' });
     doc.text(`${t.footerText2}: ${claim.claim_number} | ${t.footerText3}: ${currentDate}`, 105, footerY + 12, { align: 'center' });
-    doc.text(t.footerText4, 105, footerY + 18, { align: 'center' });
+    
+    // Fet tekst for siste linje
+    doc.setFont('helvetica', 'bold');
+    doc.text(`MYHRVOLD GRUPPEN - ${t.footerText4}`, 105, footerY + 18, { align: 'center' });
   };
 
-  // Build the PDF
+  // Bygg PDF-en i riktig rekkefølge
   createHeader();
   
-  // Product Information
-  addSectionHeader(t.productInfo);
+  // 1. Produktinformasjon
+  startSection(t.productInfo);
   const productItems = [];
   if (claim.product_name) productItems.push({label: t.product, value: claim.product_name});
   if (claim.product_model) productItems.push({label: t.model, value: claim.product_model});
   if (claim.serial_number) productItems.push({label: t.serialNumber, value: claim.serial_number});
   if (claim.purchase_date) productItems.push({label: t.purchaseDate, value: formatDate(claim.purchase_date, language)});
   if (claim.warranty_period) productItems.push({label: t.warrantyPeriod, value: `${claim.warranty_period} ${t.year}`});
-  addInfoGrid(productItems);
+  addTwoColumnGrid(productItems);
   
-  // Issue Description
-  addSectionHeader(t.issueDescription);
+  // 2. Feilbeskrivelse
+  startSection(t.issueDescription);
   addFullWidthInfo(t.problem, claim.issue_description);
   if (claim.detailed_description) {
     addFullWidthInfo(t.detailedDescription, claim.detailed_description);
   }
   
-  // Customer Information
-  addSectionHeader(t.customerInfo);
+  // 3. Kundeinformasjon
+  startSection(t.customerInfo);
   const customerItems = [];
   if (claim.customer_name) customerItems.push({label: t.customer, value: claim.customer_name});
   if (claim.customer_address) customerItems.push({label: t.address, value: claim.customer_address});
-  addInfoGrid(customerItems);
+  addTwoColumnGrid(customerItems);
   
-  // Work Performed
-  addSectionHeader(t.workPerformed);
+  // 4. Utført arbeid
+  startSection(t.workPerformed);
   const workItems = [];
   if (claim.technician_name) workItems.push({label: t.technician, value: claim.technician_name});
   if (claim.parts_cost) workItems.push({label: t.partsCost, value: formatCurrency(claim.parts_cost)});
-  addInfoGrid(workItems);
+  addTwoColumnGrid(workItems);
   
-  // Cost Summary
+  // 5. Kostnadssammendrag (spesiell styling)
   addCostSummary();
   
   // Footer
   addFooter();
 
-  // Download
+  // Last ned med riktig filnavn
   const fileName = language === 'no' 
     ? `garantikrav_${claim.claim_number}_NO.pdf`
     : `warranty_claim_${claim.claim_number}_EN.pdf`;
