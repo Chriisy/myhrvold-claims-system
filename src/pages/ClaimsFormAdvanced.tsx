@@ -579,8 +579,14 @@ const ClaimsFormAdvanced = () => {
     e.preventDefault();
     if (!user || !validateForm()) return;
     
-    setLoading(true);
-    try {
+     setLoading(true);
+     
+     // Debug logging for spare parts
+     console.log('DEBUG - Parts array:', parts);
+     console.log('DEBUG - CustomLineItems:', customLineItems);
+     console.log('DEBUG - CustomLineItems JSON:', JSON.stringify(customLineItems));
+     
+     try {
       const baseClaimData = {
         customer_name: formData.customerName,
         customer_number: formData.customerNumber,
@@ -607,7 +613,7 @@ const ClaimsFormAdvanced = () => {
         hourly_rate: formData.hourlyRate,
         overtime_50_hours: formData.overtime50Hours,
         overtime_100_hours: formData.overtime100Hours,
-        custom_line_items: JSON.stringify(customLineItems),
+         custom_line_items: JSON.stringify(customLineItems),
         travel_hours: formData.travelHours,
         travel_distance_km: formData.travelDistanceKm,
         vehicle_cost_per_km: formData.vehicleCostPerKm,

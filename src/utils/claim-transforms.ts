@@ -37,6 +37,19 @@ export const mapIssueTypeToNorwegian = (type: Tables<'claims'>['issue_type']): s
 
 // Transform Supabase claim data to our UI format
 export const transformClaimForUI = (claim: ClaimWithRelations) => {
+  // Parse custom line items from database
+  let customLineItems = [];
+  if (claim.custom_line_items) {
+    try {
+      customLineItems = typeof claim.custom_line_items === 'string' 
+        ? JSON.parse(claim.custom_line_items) 
+        : claim.custom_line_items;
+    } catch (error) {
+      console.error('Error parsing custom_line_items:', error);
+      customLineItems = [];
+    }
+  }
+  
   return {
     id: claim.claim_number,
     status: mapStatusToNorwegian(claim.status),
@@ -58,6 +71,31 @@ export const transformClaimForUI = (claim: ClaimWithRelations) => {
       type: mapIssueTypeToNorwegian(claim.issue_type),
       description: claim.issue_description,
       urgency: mapUrgencyToNorwegian(claim.urgency_level)
+    },
+    economics: {
+      workHours: claim.work_hours || 0,
+      hourlyRate: claim.hourly_rate || 0,
+      overtime50Hours: claim.overtime_50_hours || 0,
+      overtime100Hours: claim.overtime_100_hours || 0,
+      travelHours: claim.travel_hours || 0,
+      travelDistanceKm: claim.travel_distance_km || 0,
+      vehicleCostPerKm: claim.vehicle_cost_per_km || 7.5,
+      customLineItems: customLineItems,
+      partsCost: claim.parts_cost || 0,
+      travelCost: claim.travel_cost || 0,
+      consumablesCost: claim.consumables_cost || 0,
+      externalServicesCost: claim.external_services_cost || 0,
+      totalCost: claim.total_cost || 0,
+      expectedRefund: claim.expected_refund || 0,
+      actualRefund: claim.actual_refund,
+      refundStatus: claim.refund_status,
+      netCost: claim.net_cost,
+      refundedWorkCost: claim.refunded_work_cost || 0,
+      refundedPartsCost: claim.refunded_parts_cost || 0,
+      refundedTravelCost: claim.refunded_travel_cost || 0,
+      refundedVehicleCost: claim.refunded_vehicle_cost || 0,
+      refundedOtherCost: claim.refunded_other_cost || 0,
+      totalRefunded: claim.total_refunded || 0
     },
     technician: claim.technician_name,
     createdDate: new Date(claim.created_date).toLocaleDateString('no-NO'),

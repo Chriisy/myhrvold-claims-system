@@ -56,6 +56,18 @@ const ClaimDetails = () => {
   const claim = transformClaimForUI(claimData);
 
   // Prepare economic data
+  let customLineItems = [];
+  if (claimData.custom_line_items) {
+    try {
+      customLineItems = typeof claimData.custom_line_items === 'string' 
+        ? JSON.parse(claimData.custom_line_items) 
+        : claimData.custom_line_items;
+    } catch (error) {
+      console.error('Error parsing custom_line_items:', error);
+      customLineItems = [];
+    }
+  }
+  
   const economicData = {
     workHours: claimData.work_hours || 0,
     hourlyRate: claimData.hourly_rate || 0,
@@ -64,6 +76,7 @@ const ClaimDetails = () => {
     travelHours: claimData.travel_hours || 0,
     travelDistanceKm: claimData.travel_distance_km || 0,
     vehicleCostPerKm: claimData.vehicle_cost_per_km || 7.5,
+    customLineItems: customLineItems,
     partsCost: claimData.parts_cost || 0,
     travelCost: claimData.travel_cost || 0,
     consumablesCost: claimData.consumables_cost || 0,
