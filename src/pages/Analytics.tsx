@@ -44,6 +44,8 @@ const Analytics = () => {
   const [supplierStats, setSupplierStats] = useState<SupplierStats[]>([]);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [departmentStats, setDepartmentStats] = useState<any[]>([]);
+  const [partsAnalytics, setPartsAnalytics] = useState<any[]>([]);
+  const [partsSupplierStats, setPartsSupplierStats] = useState<any[]>([]);
 
   useEffect(() => {
     if (profile) {
@@ -86,6 +88,9 @@ const Analytics = () => {
       if (profile?.role === 'admin') {
         await processDepartmentStats(claims || []);
       }
+
+      // Process parts analytics
+      await processPartsAnalytics(claims || []);
 
     } catch (error) {
       console.error('Error fetching analytics:', error);
@@ -205,6 +210,89 @@ const Analytics = () => {
     setDepartmentStats(departments);
   };
 
+  const processPartsAnalytics = async (claims: any[]) => {
+    const partsMap = new Map();
+    const supplierPartsMap = new Map();
+    
+    claims.forEach(claim => {
+      // Parse custom line items to get parts data
+      let customLineItems = [];
+      try {
+        if (claim.custom_line_items) {
+          customLineItems = typeof claim.custom_line_items === 'string' 
+            ? JSON.parse(claim.custom_line_items) 
+            : claim.custom_line_items;
+        }
+      } catch (error) {
+        console.error('Error parsing custom_line_items:', error);
+      }
+
+      customLineItems.forEach((item: any) => {
+        const partNumber = item.partNumber || item.part_number || 'Ukjent';
+        const description = item.description || '';
+        const quantity = parseInt(item.quantity) || 1;
+        const unitPrice = parseFloat(item.unitPrice || item.unit_price) || 0;
+        const totalCost = quantity * unitPrice;
+
+        // Parts statistics
+        if (!partsMap.has(partNumber)) {
+          partsMap.set(partNumber, {
+            partNumber,
+            description,
+            totalQuantity: 0,
+            totalCost: 0,
+            usageCount: 0,
+            avgPrice: 0,
+            claimIds: new Set()
+          });
+        }
+
+        const part = partsMap.get(partNumber);
+        part.totalQuantity += quantity;
+        part.totalCost += totalCost;
+        part.usageCount += 1;
+        part.claimIds.add(claim.id);
+        part.avgPrice = part.totalCost / part.totalQuantity;
+
+        // Supplier parts statistics
+        const supplier = claim.supplier || 'Ukjent leverandør';
+        if (!supplierPartsMap.has(supplier)) {
+          supplierPartsMap.set(supplier, {
+            supplier,
+            totalPartsCost: 0,
+            uniqueParts: new Set(),
+            partsCount: 0
+          });
+        }
+
+        const supplierParts = supplierPartsMap.get(supplier);
+        supplierParts.totalPartsCost += totalCost;
+        supplierParts.uniqueParts.add(partNumber);
+        supplierParts.partsCount += quantity;
+      });
+    });
+
+    // Convert to arrays and sort
+    const parts = Array.from(partsMap.values())
+      .map(p => ({
+        ...p,
+        claimCount: p.claimIds.size,
+        claimIds: undefined
+      }))
+      .sort((a, b) => b.totalCost - a.totalCost);
+
+    const supplierParts = Array.from(supplierPartsMap.values())
+      .map(s => ({
+        ...s,
+        uniquePartsCount: s.uniqueParts.size,
+        uniqueParts: undefined
+      }))
+      .sort((a, b) => b.totalPartsCost - a.totalPartsCost);
+
+    setPartsAnalytics(parts);
+    setPartsSupplierStats(supplierParts);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nb-NO', {
       style: 'currency',
@@ -299,7 +387,7 @@ const Analytics = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className={`grid w-full ${profile?.role === 'admin' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
+          <TabsList className={`grid w-full ${profile?.role === 'admin' ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="products" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Produktfeil</span>
               <span className="sm:hidden">Produkter</span>
@@ -307,6 +395,10 @@ const Analytics = () => {
             <TabsTrigger value="suppliers" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Leverandører</span>
               <span className="sm:hidden">Leverandør</span>
+            </TabsTrigger>
+            <TabsTrigger value="parts" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Deler</span>
+              <span className="sm:hidden">Deler</span>
             </TabsTrigger>
             <TabsTrigger value="trends" className="text-xs sm:text-sm">Trender</TabsTrigger>
             {profile?.role === 'admin' && (
@@ -433,6 +525,141 @@ const Analytics = () => {
                           <div className="text-right">
                             <p className="font-semibold">{formatCurrency(supplier.total_cost)}</p>
                             <p className="text-sm text-muted-foreground">total kostnad</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Parts Analytics Tab */}
+          <TabsContent value="parts" className="space-y-6">
+            {loading ? (
+              <LoadingSkeleton />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Mest brukte deler
+                    </CardTitle>
+                    <CardDescription>Rangert etter total kostnad</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={{
+                      totalCost: { label: "Total kostnad", color: "hsl(var(--primary))" }
+                    }}>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={partsAnalytics.slice(0, 8)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="partNumber" 
+                            tick={{ fontSize: 10 }}
+                            angle={-45}
+                            textAnchor="end"
+                          />
+                          <YAxis />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="totalCost" fill="hsl(var(--primary))" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      Delestatistikk
+                    </CardTitle>
+                    <CardDescription>Detaljert oversikt over delekostnader</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {partsAnalytics.slice(0, 5).map((part, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{part.partNumber}</p>
+                            <p className="text-sm text-muted-foreground">{part.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {part.totalQuantity} stk i {part.claimCount} claims
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{formatCurrency(part.totalCost)}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatCurrency(part.avgPrice)}/stk
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      Deler per leverandør
+                    </CardTitle>
+                    <CardDescription>Delekostnader fordelt på leverandører</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={{
+                      totalPartsCost: { label: "Delekostnader", color: "hsl(var(--secondary))" }
+                    }}>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={partsSupplierStats.slice(0, 6)}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ supplier, percent }) => `${supplier} ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="totalPartsCost"
+                          >
+                            {partsSupplierStats.slice(0, 6).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Leverandør deleoversikt</CardTitle>
+                    <CardDescription>Antall ulike deler og totalkostnad</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {partsSupplierStats.slice(0, 5).map((supplier, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{supplier.supplier}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {supplier.uniquePartsCount} ulike deler
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {supplier.partsCount} deler totalt
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{formatCurrency(supplier.totalPartsCost)}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatCurrency(supplier.totalPartsCost / supplier.partsCount)}/stk
+                            </p>
                           </div>
                         </div>
                       ))}
