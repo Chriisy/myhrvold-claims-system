@@ -277,6 +277,45 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          created_by: string
+          customer_name: string
+          customer_number: string
+          email: string | null
+          id: string
+          is_active: boolean
+          phone: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          created_by: string
+          customer_name: string
+          customer_number: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string
+          customer_name?: string
+          customer_number?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           created_at: string
@@ -435,6 +474,42 @@ export type Database = {
           success?: boolean
           user_corrections?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      parts: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          is_active: boolean
+          part_number: string
+          supplier_name: string | null
+          unit_price: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          is_active?: boolean
+          part_number: string
+          supplier_name?: string | null
+          unit_price?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          part_number?: string
+          supplier_name?: string | null
+          unit_price?: number | null
         }
         Relationships: []
       }

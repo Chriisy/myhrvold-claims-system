@@ -15,6 +15,9 @@ import { useAuth } from "@/hooks/useOptimizedAuth";
 import { supabase } from "@/integrations/supabase/client";
 import InvoiceScanner from "@/components/InvoiceScanner";
 import { useUpdateClaim } from '@/hooks/useClaimMutations';
+import { PartAutocomplete } from '@/components/ui/part-autocomplete';
+import { CustomerAutocomplete } from '@/components/ui/customer-autocomplete';
+import { Part, Customer } from '@/services/autocompleteService';
 
 const ClaimsFormAdvanced = () => {
   const navigate = useNavigate();
@@ -798,22 +801,42 @@ const ClaimsFormAdvanced = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="customerName">Kunde navn *</Label>
-                      <Input 
-                        id="customerName" 
+                      <CustomerAutocomplete
                         value={formData.customerName}
-                        onChange={(e) => handleInputChange('customerName', e.target.value)}
-                        placeholder="Rema 1000 Stavanger" 
-                        required 
+                        onChange={(value, customer) => {
+                          handleInputChange('customerName', value);
+                          if (customer) {
+                            // Auto-fill customer fields when customer is selected
+                            handleInputChange('customerNumber', customer.customer_number);
+                            handleInputChange('customerContact', customer.contact_person || '');
+                            handleInputChange('customerEmail', customer.email || '');
+                            handleInputChange('customerPhone', customer.phone || '');
+                            handleInputChange('customerAddress', customer.address || '');
+                          }
+                        }}
+                        placeholder="Start typing customer name..."
+                        searchBy="name"
+                        allowCreateNew={true}
                       />
                     </div>
                     <div>
                       <Label htmlFor="customerNumber">Kundenummer *</Label>
-                      <Input 
-                        id="customerNumber" 
+                      <CustomerAutocomplete
                         value={formData.customerNumber}
-                        onChange={(e) => handleInputChange('customerNumber', e.target.value)}
-                        placeholder="KN123456" 
-                        required 
+                        onChange={(value, customer) => {
+                          handleInputChange('customerNumber', value);
+                          if (customer) {
+                            // Auto-fill customer fields when customer is selected
+                            handleInputChange('customerName', customer.customer_name);
+                            handleInputChange('customerContact', customer.contact_person || '');
+                            handleInputChange('customerEmail', customer.email || '');
+                            handleInputChange('customerPhone', customer.phone || '');
+                            handleInputChange('customerAddress', customer.address || '');
+                          }
+                        }}
+                        placeholder="Start typing customer number..."
+                        searchBy="number"
+                        allowCreateNew={true}
                       />
                     </div>
                   </div>
@@ -1093,10 +1116,18 @@ const ClaimsFormAdvanced = () => {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <Label>Delnummer</Label>
-                          <Input 
+                          <PartAutocomplete
                             value={part.partNumber}
-                            onChange={(e) => updatePart(part.id, 'partNumber', e.target.value)}
-                            placeholder="ABC123-45"
+                            onChange={(value, partData) => {
+                              updatePart(part.id, 'partNumber', value);
+                              if (partData) {
+                                // Auto-fill part fields when part is selected
+                                updatePart(part.id, 'description', partData.description);
+                                updatePart(part.id, 'price', partData.unit_price);
+                              }
+                            }}
+                            placeholder="Start typing part number..."
+                            allowCreateNew={true}
                           />
                         </div>
                         <div>
