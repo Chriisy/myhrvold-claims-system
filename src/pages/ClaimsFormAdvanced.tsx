@@ -653,9 +653,6 @@ const ClaimsFormAdvanced = () => {
         vehicle_cost_refunded: formData.vehicleCostRefunded,
         parts_cost_refunded: formData.partsCostRefunded,
         other_cost_refunded: formData.otherCostRefunded,
-        total_cost: calculateTotalCost(), // Legger til total kostnad
-        total_refunded: calculateTotalRefund(), // Legger til total refusjon
-        net_cost: calculateNetCost(), // Legger til netto kostnad
         internal_notes: formData.internalNotes,
         customer_notes: formData.customerNotes,
       };
