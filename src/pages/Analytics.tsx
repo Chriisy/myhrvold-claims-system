@@ -613,13 +613,15 @@ const Analytics = () => {
                     <div className="space-y-4">
                       {partsAnalytics.slice(0, 8).map((part, index) => (
                         <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{part.partNumber}</p>
-                            <p className="text-sm text-muted-foreground">{part.description}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Brukt {part.usageCount} ganger i {part.claimCount} reklamasjoner
-                            </p>
-                          </div>
+                           <div>
+                             <div className="text-xs text-muted-foreground">Part Number:</div>
+                             <p className="font-medium">{part.partNumber}</p>
+                             <div className="text-xs text-muted-foreground">Description:</div>
+                             <p className="text-sm text-muted-foreground">{part.description}</p>
+                             <p className="text-sm text-muted-foreground">
+                               Used {part.usageCount} times in {part.claimCount} claims
+                             </p>
+                           </div>
                           <div className="text-right">
                             <p className="font-semibold">{formatCurrency(part.totalCost)}</p>
                             <p className="text-sm text-muted-foreground">
