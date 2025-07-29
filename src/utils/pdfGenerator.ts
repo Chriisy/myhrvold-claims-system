@@ -64,7 +64,7 @@ const translations = {
     closing: 'Vi ser frem til en rask avklaring av denne saken.',
     regards: 'Med vennlig hilsen',
     companyName: 'MYHRVOLD GRUPPEN',
-    subtitle: 'Profesjonell Service & Support',
+    
     footer: 'Dette dokumentet er sendt digitalt og krever ikke underskrift.',
     year: 'år'
   },
@@ -98,7 +98,7 @@ const translations = {
     closing: 'We look forward to a quick resolution of this matter.',
     regards: 'Best regards',
     companyName: 'MYHRVOLD GRUPPEN',
-    subtitle: 'Professional Service & Support',
+    
     footer: 'This document is sent digitally and does not require signature.',
     year: 'year'
   }
@@ -122,24 +122,20 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   const t = translations[language];
   let yPosition = 30;
 
-  // Simple header
+  // Clean header
   doc.setFillColor(71, 85, 105); // slate-700
-  doc.rect(0, 0, 210, 30, 'F');
+  doc.rect(0, 0, 210, 25, 'F');
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('MYHRVOLD GRUPPEN', 105, 15, { align: 'center' });
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Profesjonell Service & Support', 105, 22, { align: 'center' });
+  doc.text('MYHRVOLD GRUPPEN', 105, 17, { align: 'center' });
 
   // Document title
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  yPosition = 45;
+  yPosition = 40;
   doc.text(`${t.subject} - ${claim.claim_number}`, 105, yPosition, { align: 'center' });
 
   yPosition += 20;

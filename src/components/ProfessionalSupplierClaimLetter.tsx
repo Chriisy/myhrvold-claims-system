@@ -85,7 +85,7 @@ const translations = {
     closing: 'Vi ser frem til en rask avklaring av denne saken.',
     regards: 'Med vennlig hilsen',
     companyName: 'MYHRVOLD GRUPPEN',
-    subtitle: 'Profesjonell Service & Support',
+    
     footer: 'Dette dokumentet er sendt digitalt og krever ikke underskrift.',
     year: 'år'
   },
@@ -119,7 +119,7 @@ const translations = {
     closing: 'We look forward to a quick resolution of this matter.',
     regards: 'Best regards',
     companyName: 'MYHRVOLD GRUPPEN',
-    subtitle: 'Professional Service & Support',
+    
     footer: 'This document is sent digitally and does not require signature.',
     year: 'year'
   }
