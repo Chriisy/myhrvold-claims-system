@@ -267,10 +267,15 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.warranty}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
-    // Fix the "1 year year" issue
-    const warrantyText = claim.warranty_period.includes(t.year) 
-      ? claim.warranty_period 
-      : `${claim.warranty_period} ${t.year}`;
+    // Fix the "1year" spacing issue
+    let warrantyText = claim.warranty_period;
+    if (!warrantyText.includes(' ')) {
+      // Add space between number and year (e.g., "1year" -> "1 year")
+      warrantyText = warrantyText.replace(/(\d+)(\w+)/, '$1 $2');
+    }
+    if (!warrantyText.includes(t.year)) {
+      warrantyText += ` ${t.year}`;
+    }
     doc.text(warrantyText, labelWidth, yPosition);
     yPosition += 5;
   }
@@ -312,18 +317,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     yPosition += 3;
   }
 
-  yPosition += 12;
-
-  // Requested Action section (new addition)
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(t.requestedAction, 20, yPosition);
-  yPosition += 8;
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(t.defaultAction, 20, yPosition);
-  yPosition += 8;
+  yPosition += 15;
 
   // Customer Information
   doc.setFontSize(14);
@@ -418,7 +412,18 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     yPosition += 3;
   }
 
+  yPosition += 15;
+
+  // Requested Action section (moved to bottom for better logical flow)
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(t.requestedAction, 20, yPosition);
   yPosition += 8;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(t.defaultAction, 20, yPosition);
+  yPosition += 15;
 
   // Footer with system information
   doc.setFontSize(9);
