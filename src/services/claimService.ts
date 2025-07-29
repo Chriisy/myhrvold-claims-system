@@ -141,20 +141,18 @@ export const claimService = {
     }
 
     // Add timeline entry
-    if (notes) {
-      const { error: timelineError } = await supabase
-        .from('claim_timeline')
-        .insert({
-          claim_id: actualClaimId,
-          status,
-          notes,
-          changed_by: (await supabase.auth.getUser()).data.user?.id || '',
-        });
+    const { error: timelineError } = await supabase
+      .from('claim_timeline')
+      .insert({
+        claim_id: actualClaimId,
+        status,
+        notes: notes || (status === 'resolved' ? 'Reklamasjon markert som løst' : `Status endret til ${status}`),
+        changed_by: (await supabase.auth.getUser()).data.user?.id || '',
+      });
 
-      if (timelineError) {
-        console.error('Error adding timeline entry:', timelineError);
-        // Don't throw here, status update succeeded
-      }
+    if (timelineError) {
+      console.error('Error adding timeline entry:', timelineError);
+      // Don't throw here, status update succeeded
     }
   },
 
