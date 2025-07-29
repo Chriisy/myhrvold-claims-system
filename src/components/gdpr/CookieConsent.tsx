@@ -13,10 +13,14 @@ export const CookieConsent = () => {
     // Show banner if no cookie consent has been given yet
     const cookieConsent = hasConsent('cookies');
     
-    if (!cookieConsent) {
+    console.log('Cookie consent check:', { cookieConsent, loading });
+    
+    if (!loading && !cookieConsent) {
       setIsVisible(true);
+    } else if (!loading && cookieConsent) {
+      setIsVisible(false);
     }
-  }, [hasConsent]);
+  }, [hasConsent, loading]);
 
   const handleAcceptAll = async () => {
     await updateConsent('cookies', true);
