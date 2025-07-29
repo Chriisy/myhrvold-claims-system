@@ -30,6 +30,8 @@ export const gdprService = {
         consent_given: consentGiven,
         consent_date: new Date().toISOString(),
         withdrawn_date: consentGiven ? null : new Date().toISOString()
+      }, {
+        onConflict: 'user_id,consent_type'
       });
 
     if (error) throw error;
