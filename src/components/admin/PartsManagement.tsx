@@ -89,7 +89,7 @@ const PartsManagement = ({ onStatsUpdate }: PartsManagementProps) => {
         part_number: formData.part_number,
         description: formData.description,
         unit_price: parseFloat(formData.unit_price),
-        supplier_name: formData.supplier_name || null,
+        supplier_name: formData.supplier_name && formData.supplier_name !== "none" ? formData.supplier_name : null,
         category: formData.category || null
       };
 
@@ -282,14 +282,14 @@ const PartsManagement = ({ onStatsUpdate }: PartsManagementProps) => {
                 <div>
                   <Label htmlFor="supplier_name">Leverandør</Label>
                   <Select 
-                    value={formData.supplier_name} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, supplier_name: value }))}
+                    value={formData.supplier_name || "none"} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, supplier_name: value === "none" ? "" : value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Velg leverandør" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Ingen leverandør</SelectItem>
+                      <SelectItem value="none">Ingen leverandør</SelectItem>
                       {suppliers.map((supplier) => (
                         <SelectItem key={supplier.name} value={supplier.name}>
                           {supplier.name}
