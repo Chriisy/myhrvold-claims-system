@@ -125,6 +125,35 @@ const formatCurrency = (amount: number | null | undefined) => {
   }).format(amount);
 };
 
+// Helper function to split text into multiple lines
+const splitTextToLines = (doc: jsPDF, text: string, maxWidth: number) => {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  words.forEach(word => {
+    const testLine = currentLine + (currentLine ? ' ' : '') + word;
+    const lineWidth = doc.getTextWidth(testLine);
+    
+    if (lineWidth <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        lines.push(word);
+      }
+    }
+  });
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  return lines;
+};
+
 export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   const doc = new jsPDF('p', 'mm', 'a4');
   const t = translations[language];
@@ -211,9 +240,17 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   if (claim.detailed_description) {
     doc.setFont('helvetica', 'bold');
     doc.text('Detailed Description: ', 20, yPosition);
+    yPosition += 7;
+    
     doc.setFont('helvetica', 'normal');
-    doc.text(claim.detailed_description, 20, yPosition + 7);
-    yPosition += 14;
+    const maxWidth = 170; // Max width for text
+    const lines = splitTextToLines(doc, claim.detailed_description, maxWidth);
+    
+    lines.forEach(line => {
+      doc.text(line, 20, yPosition);
+      yPosition += 5;
+    });
+    yPosition += 5;
   }
 
   yPosition += 10;
@@ -265,14 +302,24 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     yPosition += 10;
     
     customLineItems.forEach((item: any, index: number) => {
-      // Details in organized columns - no prices
+      // Part number and quantity on the same line
       doc.setFont('helvetica', 'normal');
       doc.text(`${t.partNumber}: ${item.partNumber || 'N/A'}`, 25, yPosition);
-      doc.text(`${t.description}: ${item.description || 'N/A'}`, 100, yPosition);
-      yPosition += 5;
+      doc.text(`${t.quantity}: ${item.quantity || 1}`, 120, yPosition);
+      yPosition += 7;
       
-      doc.text(`${t.quantity}: ${item.quantity || 1}`, 25, yPosition);
-      yPosition += 12;
+      // Description with text wrapping
+      if (item.description) {
+        doc.text(`${t.description}:`, 25, yPosition);
+        yPosition += 5;
+        
+        const descriptionLines = splitTextToLines(doc, item.description, 150);
+        descriptionLines.forEach(line => {
+          doc.text(line, 30, yPosition);
+          yPosition += 5;
+        });
+      }
+      yPosition += 5;
     });
     
     yPosition += 5;
