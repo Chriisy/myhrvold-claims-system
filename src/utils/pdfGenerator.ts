@@ -265,14 +265,14 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   doc.setFont('helvetica', 'bold');
   doc.text('Customer: ', 20, yPosition);
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.customer_name, 60, yPosition);
+  doc.text(claim.customer_name, 70, yPosition);
   yPosition += 5;
 
   if (claim.customer_address) {
     doc.setFont('helvetica', 'bold');
     doc.text('Address: ', 20, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(claim.customer_address, 60, yPosition);
+    doc.text(claim.customer_address, 70, yPosition);
     yPosition += 5;
   }
 
@@ -288,7 +288,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.technician}: `, 20, yPosition);
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.technician_name, 60, yPosition);
+  doc.text(claim.technician_name, 70, yPosition);
   yPosition += 5;
 
   // Spare parts details (without prices)
@@ -311,14 +311,33 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
       
       // Description with text wrapping
       if (item.description) {
-        doc.text(`${t.description}:`, 25, yPosition);
-        yPosition += 4;
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${t.description}: `, 25, yPosition);
+        doc.setFont('helvetica', 'normal');
         
-        const descriptionLines = splitTextToLines(doc, item.description, 150);
-        descriptionLines.forEach(line => {
-          doc.text(line, 30, yPosition);
+        // Check if description fits on same line
+        const descWidth = doc.getTextWidth(`${t.description}: `);
+        const availableWidth = 170 - descWidth;
+        const descLines = splitTextToLines(doc, item.description, availableWidth);
+        
+        if (descLines[0] && doc.getTextWidth(descLines[0]) <= availableWidth) {
+          // First line fits on same line as label
+          doc.text(descLines[0], 25 + descWidth, yPosition);
           yPosition += 4;
-        });
+          
+          // Remaining lines indented
+          for (let i = 1; i < descLines.length; i++) {
+            doc.text(descLines[i], 30, yPosition);
+            yPosition += 4;
+          }
+        } else {
+          // Description too long, put on next line
+          yPosition += 4;
+          descLines.forEach(line => {
+            doc.text(line, 30, yPosition);
+            yPosition += 4;
+          });
+        }
       }
       yPosition += 4;
     });
