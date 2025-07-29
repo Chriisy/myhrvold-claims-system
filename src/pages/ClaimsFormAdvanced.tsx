@@ -54,6 +54,8 @@ const ClaimsFormAdvanced = () => {
     // Business fields - dual job number system
     technicianName: profile?.full_name || "",
     department: profile?.department || "",
+    salesperson: "",
+    salespersonDepartment: "",
     evaticJobNumber: "",
     msJobNumber: "",
     
@@ -128,7 +130,13 @@ const ClaimsFormAdvanced = () => {
       if (savedData) {
         try {
           const parsedData = JSON.parse(savedData);
-          setFormData(prev => ({ ...prev, ...parsedData }));
+          setFormData(prev => ({ 
+            ...prev, 
+            ...parsedData,
+            // Ensure new fields have default values
+            salesperson: parsedData.salesperson || "",
+            salespersonDepartment: parsedData.salespersonDepartment || "",
+          }));
           toast({
             title: "Lagret data gjenopprettet",
             description: "Tidligere lagret skjemadata er lastet inn",
@@ -185,10 +193,12 @@ const ClaimsFormAdvanced = () => {
                issueDescription: data.issue_description || "",
                detailedDescription: data.detailed_description || "",
                urgencyLevel: data.urgency_level || "normal",
-               technicianName: data.technician_name || "",
-               department: data.department || "",
-               evaticJobNumber: data.evatic_job_number || "",
-               msJobNumber: data.ms_job_number || "",
+                technicianName: data.technician_name || "",
+                department: data.department || "",
+                salesperson: "", // New field - not yet in database
+                salespersonDepartment: "", // New field - not yet in database
+                evaticJobNumber: data.evatic_job_number || "",
+                msJobNumber: data.ms_job_number || "",
                workHours: data.work_hours || 0,
                hourlyRate: data.hourly_rate || 0,
                overtime50Hours: data.overtime_50_hours || 0,
@@ -1543,40 +1553,72 @@ const ClaimsFormAdvanced = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Organisasjonsinformasjon</CardTitle>
-                  <CardDescription>Tekniker og ansvarlig avdeling</CardDescription>
+                  <CardDescription>Ansvarlige personer og avdelinger</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="technicianName">Tekniker</Label>
-                      <Input 
-                        id="technicianName" 
-                        value={formData.technicianName}
-                        onChange={(e) => handleInputChange('technicianName', e.target.value)}
-                        readOnly={profile?.role === 'technician'}
-                        className={profile?.role === 'technician' ? "bg-muted" : ""}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="department">Avdeling</Label>
-                      <Select 
-                        value={formData.department} 
-                        onValueChange={(value) => handleInputChange('department', value)}
-                        disabled={profile?.role === 'technician'}
-                      >
-                        <SelectTrigger className={profile?.role === 'technician' ? "bg-muted" : ""}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="oslo">Oslo</SelectItem>
-                          <SelectItem value="bergen">Bergen</SelectItem>
-                          <SelectItem value="trondheim">Trondheim</SelectItem>
-                          <SelectItem value="stavanger">Stavanger</SelectItem>
-                          <SelectItem value="kristiansand">Kristiansand</SelectItem>
-                          <SelectItem value="nord_norge">Nord Norge</SelectItem>
-                          <SelectItem value="innlandet">Innlandet</SelectItem>
-                        </SelectContent>
-                      </Select>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h4 className="font-medium mb-3">Ansvarlige</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="technicianName">Tekniker</Label>
+                        <Input 
+                          id="technicianName" 
+                          value={formData.technicianName}
+                          onChange={(e) => handleInputChange('technicianName', e.target.value)}
+                          readOnly={profile?.role === 'technician'}
+                          className={profile?.role === 'technician' ? "bg-muted" : ""}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="department">Avdeling</Label>
+                        <Select 
+                          value={formData.department} 
+                          onValueChange={(value) => handleInputChange('department', value)}
+                          disabled={profile?.role === 'technician'}
+                        >
+                          <SelectTrigger className={profile?.role === 'technician' ? "bg-muted" : ""}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="oslo">Oslo</SelectItem>
+                            <SelectItem value="bergen">Bergen</SelectItem>
+                            <SelectItem value="trondheim">Trondheim</SelectItem>
+                            <SelectItem value="stavanger">Stavanger</SelectItem>
+                            <SelectItem value="kristiansand">Kristiansand</SelectItem>
+                            <SelectItem value="nord_norge">Nord Norge</SelectItem>
+                            <SelectItem value="innlandet">Innlandet</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="salesperson">Selger/Salgsperson</Label>
+                        <Input 
+                          id="salesperson" 
+                          value={formData.salesperson}
+                          onChange={(e) => handleInputChange('salesperson', e.target.value)}
+                          placeholder="Navn på selger"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="salespersonDepartment">Selgers avdeling</Label>
+                        <Select 
+                          value={formData.salespersonDepartment} 
+                          onValueChange={(value) => handleInputChange('salespersonDepartment', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Velg avdeling" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="oslo">Oslo</SelectItem>
+                            <SelectItem value="bergen">Bergen</SelectItem>
+                            <SelectItem value="trondheim">Trondheim</SelectItem>
+                            <SelectItem value="stavanger">Stavanger</SelectItem>
+                            <SelectItem value="kristiansand">Kristiansand</SelectItem>
+                            <SelectItem value="nord_norge">Nord Norge</SelectItem>
+                            <SelectItem value="innlandet">Innlandet</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -1679,6 +1721,12 @@ const ClaimsFormAdvanced = () => {
                     <div className="space-y-1 text-sm">
                       <p><strong>Tekniker:</strong> {formData.technicianName}</p>
                       <p><strong>Avdeling:</strong> {formData.department}</p>
+                      {formData.salesperson && (
+                        <p><strong>Selger:</strong> {formData.salesperson}</p>
+                      )}
+                      {formData.salespersonDepartment && (
+                        <p><strong>Selgers avdeling:</strong> {formData.salespersonDepartment}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
