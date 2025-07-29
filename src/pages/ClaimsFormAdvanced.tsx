@@ -140,21 +140,17 @@ const ClaimsFormAdvanced = () => {
     }
   }, [profile, isEditing, toast]);
 
-  // Auto-save form data every 5 minutes
+  // Auto-save form data every 30 seconds (silent)
   useEffect(() => {
-    if (!isEditing) {
+    if (!isEditing && formData.customerName) { // Only auto-save if there's actual data
       const autoSaveInterval = setInterval(() => {
         localStorage.setItem('claimFormAutoSave', JSON.stringify(formData));
-        toast({
-          title: "Automatisk lagring",
-          description: "Skjemadata er lagret automatisk",
-          duration: 2000,
-        });
-      }, 5 * 60 * 1000); // 5 minutes
+        // Silent save - no toast notification to avoid interrupting user
+      }, 30 * 1000); // 30 seconds
 
       return () => clearInterval(autoSaveInterval);
     }
-  }, [formData, isEditing, toast]);
+  }, [formData, isEditing]);
 
   // Load existing claim for editing
   useEffect(() => {
