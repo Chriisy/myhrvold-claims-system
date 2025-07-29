@@ -47,9 +47,8 @@ const translations = {
     serialNumber: 'Serienummer',
     purchaseDate: 'Kjøpsdato',
     warranty: 'Garantiperiode',
-    issueTitle: 'Feilbeskrivelse og utført arbeid',
-    issue: 'Registrert feil',
-    workDescription: 'Utført arbeid',
+    reportedIssue: 'Registrert feil',
+    serviceAction: 'Utført arbeid',
     technician: 'Tekniker',
     costBreakdown: 'Kostnadssammenbrudd',
     laborCosts: 'Arbeidskostnader',
@@ -87,9 +86,8 @@ const translations = {
     serialNumber: 'Serial Number',
     purchaseDate: 'Purchase Date',
     warranty: 'Warranty Period',
-    issueTitle: 'Issue Description & Work Performed',
-    issue: 'Reported Issue',
-    workDescription: 'Work Performed',
+    reportedIssue: 'Reported Issue',
+    serviceAction: 'Service Action Taken',
     technician: 'Technician',
     costBreakdown: 'Cost Breakdown',
     laborCosts: 'Labor Costs',
@@ -181,10 +179,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   doc.setFont('helvetica', 'bold');
   doc.text('MYHRVOLD GRUPPEN', 20, 18);
   
-  // Subtitle/tagline
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Professional Warranty Services', 20, 25);
+  // Remove subtitle as suggested
   
   // Claim ID in top right corner
   doc.setFontSize(12);
@@ -282,22 +277,25 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
 
   yPosition += 12;
 
-  // Issue Description with improved language
+  // Reported Issue
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text(t.issueTitle, 20, yPosition);
+  doc.text(t.reportedIssue, 20, yPosition);
   yPosition += 8;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(claim.issue_description, 20, yPosition);
-  yPosition += 5;
+  yPosition += 8;
+
+  // Service Action Taken
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(t.serviceAction, 20, yPosition);
+  yPosition += 8;
 
   if (claim.detailed_description) {
-    doc.setFont('helvetica', 'bold');
-    doc.text('Detailed Description: ', 20, yPosition);
-    yPosition += 5;
-    
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     // Improve the language for better professionalism
     let improvedDescription = claim.detailed_description;
@@ -317,6 +315,17 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     yPosition += 3;
   }
 
+  yPosition += 12;
+
+  // Requested Action section (moved up after work performed)
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(t.requestedAction, 20, yPosition);
+  yPosition += 8;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(t.defaultAction, 20, yPosition);
   yPosition += 15;
 
   // Customer Information
@@ -370,43 +379,19 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     yPosition += 6;
     
     customLineItems.forEach((item: any, index: number) => {
-      // Part number and quantity on the same line
+      // Bullet point style for spare parts
       doc.setFont('helvetica', 'normal');
-      doc.text(`${t.partNumber}: ${item.partNumber || 'N/A'}`, 25, yPosition);
-      doc.text(`${t.quantity}: ${item.quantity || 1}`, 120, yPosition);
+      doc.text('•', 25, yPosition);
+      doc.text(`${t.partNumber}: ${item.partNumber || 'N/A'}`, 30, yPosition);
       yPosition += 4;
       
-      // Description with text wrapping
-      if (item.description) {
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${t.description}:`, 25, yPosition);
-        doc.setFont('helvetica', 'normal');
-        
-        // Add proper space after colon
-        const descWidth = doc.getTextWidth(`${t.description}: `);
-        const availableWidth = 160 - descWidth;
-        const descLines = splitTextToLines(doc, item.description, availableWidth);
-        
-        if (descLines[0] && doc.getTextWidth(descLines[0]) <= availableWidth) {
-          // First line fits on same line as label
-          doc.text(descLines[0], 25 + descWidth, yPosition);
-          yPosition += 4;
-          
-          // Remaining lines indented
-          for (let i = 1; i < descLines.length; i++) {
-            doc.text(descLines[i], 30, yPosition);
-            yPosition += 4;
-          }
-        } else {
-          // Description too long, put on next line
-          yPosition += 4;
-          descLines.forEach(line => {
-            doc.text(line, 30, yPosition);
-            yPosition += 4;
-          });
-        }
-      }
+      doc.text('•', 25, yPosition);
+      doc.text(`${t.description}: ${item.description || 'N/A'}`, 30, yPosition);  
       yPosition += 4;
+      
+      doc.text('•', 25, yPosition);
+      doc.text(`${t.quantity}: ${item.quantity || 1}`, 30, yPosition);
+      yPosition += 6; // Extra space between parts
     });
     
     yPosition += 3;
@@ -414,16 +399,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
 
   yPosition += 15;
 
-  // Requested Action section (moved to bottom for better logical flow)
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(t.requestedAction, 20, yPosition);
-  yPosition += 8;
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(t.defaultAction, 20, yPosition);
-  yPosition += 15;
+  // Remove duplicate Requested Action section
 
   // Footer with system information
   doc.setFontSize(9);
