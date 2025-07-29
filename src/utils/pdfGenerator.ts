@@ -170,34 +170,34 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
 
   // Document title
   doc.setTextColor(0, 0, 0);
-  doc.setFontSize(20);
+  doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  yPosition = 40;
+  yPosition = 35;
   doc.text(`${t.subject} - ${claim.claim_number}`, 105, yPosition, { align: 'center' });
 
-  yPosition += 20;
+  yPosition += 15;
 
   // Product Information
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text(t.productInfo, 20, yPosition);
-  yPosition += 10;
+  yPosition += 8;
 
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.product}: `, 20, yPosition);
   doc.setFont('helvetica', 'normal');
   doc.text(claim.product_name, 60, yPosition);
-  yPosition += 7;
+  yPosition += 5;
 
   if (claim.product_model) {
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.model}: `, 20, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(claim.product_model, 60, yPosition);
-    yPosition += 7;
+    yPosition += 5;
   }
 
   if (claim.serial_number) {
@@ -205,7 +205,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     doc.text(`${t.serialNumber}: `, 20, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(claim.serial_number, 60, yPosition);
-    yPosition += 7;
+    yPosition += 5;
   }
 
   if (claim.purchase_date) {
@@ -213,7 +213,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     doc.text(`${t.purchaseDate}: `, 20, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(formatDate(claim.purchase_date, language), 60, yPosition);
-    yPosition += 7;
+    yPosition += 5;
   }
 
   if (claim.warranty_period) {
@@ -221,26 +221,26 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     doc.text(`${t.warranty}: `, 20, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(`${claim.warranty_period} ${t.year}`, 60, yPosition);
-    yPosition += 7;
+    yPosition += 5;
   }
 
-  yPosition += 10;
+  yPosition += 8;
 
   // Issue Description
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Issue Description', 20, yPosition);
-  yPosition += 10;
+  yPosition += 8;
 
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(claim.issue_description, 20, yPosition);
-  yPosition += 7;
+  yPosition += 5;
 
   if (claim.detailed_description) {
     doc.setFont('helvetica', 'bold');
     doc.text('Detailed Description: ', 20, yPosition);
-    yPosition += 7;
+    yPosition += 5;
     
     doc.setFont('helvetica', 'normal');
     const maxWidth = 170; // Max width for text
@@ -248,48 +248,48 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     
     lines.forEach(line => {
       doc.text(line, 20, yPosition);
-      yPosition += 5;
+      yPosition += 4;
     });
-    yPosition += 5;
+    yPosition += 3;
   }
 
-  yPosition += 10;
+  yPosition += 8;
 
   // Customer Information
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Customer Information', 20, yPosition);
-  yPosition += 10;
+  yPosition += 8;
 
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text('Customer: ', 20, yPosition);
   doc.setFont('helvetica', 'normal');
   doc.text(claim.customer_name, 60, yPosition);
-  yPosition += 7;
+  yPosition += 5;
 
   if (claim.customer_address) {
     doc.setFont('helvetica', 'bold');
     doc.text('Address: ', 20, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(claim.customer_address, 60, yPosition);
-    yPosition += 7;
+    yPosition += 5;
   }
 
-  yPosition += 10;
+  yPosition += 8;
 
   // Work Performed
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Work Performed', 20, yPosition);
-  yPosition += 10;
+  yPosition += 8;
 
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.technician}: `, 20, yPosition);
   doc.setFont('helvetica', 'normal');
   doc.text(claim.technician_name, 60, yPosition);
-  yPosition += 7;
+  yPosition += 5;
 
   // Spare parts details (without prices)
   const customLineItems = claim.custom_line_items ? 
@@ -297,35 +297,36 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
      (typeof claim.custom_line_items === 'string' ? JSON.parse(claim.custom_line_items) : [])) : [];
   
   if (customLineItems.length > 0) {
+    yPosition += 3;
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.sparePartsUsed}:`, 20, yPosition);
-    yPosition += 10;
+    yPosition += 6;
     
     customLineItems.forEach((item: any, index: number) => {
       // Part number and quantity on the same line
       doc.setFont('helvetica', 'normal');
       doc.text(`${t.partNumber}: ${item.partNumber || 'N/A'}`, 25, yPosition);
       doc.text(`${t.quantity}: ${item.quantity || 1}`, 120, yPosition);
-      yPosition += 7;
+      yPosition += 4;
       
       // Description with text wrapping
       if (item.description) {
         doc.text(`${t.description}:`, 25, yPosition);
-        yPosition += 5;
+        yPosition += 4;
         
         const descriptionLines = splitTextToLines(doc, item.description, 150);
         descriptionLines.forEach(line => {
           doc.text(line, 30, yPosition);
-          yPosition += 5;
+          yPosition += 4;
         });
       }
-      yPosition += 5;
+      yPosition += 4;
     });
     
-    yPosition += 5;
+    yPosition += 3;
   }
 
-  yPosition += 10;
+  yPosition += 8;
 
   // Footer
   doc.setFontSize(9);
