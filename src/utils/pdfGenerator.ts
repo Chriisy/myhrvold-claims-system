@@ -263,16 +263,18 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
+  const customerLabelWidth = doc.getTextWidth('Customer: ');
   doc.text('Customer: ', 20, yPosition);
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.customer_name, 70, yPosition);
+  doc.text(claim.customer_name, 20 + customerLabelWidth, yPosition);
   yPosition += 5;
 
   if (claim.customer_address) {
     doc.setFont('helvetica', 'bold');
+    const addressLabelWidth = doc.getTextWidth('Address: ');
     doc.text('Address: ', 20, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(claim.customer_address, 70, yPosition);
+    doc.text(claim.customer_address, 20 + addressLabelWidth, yPosition);
     yPosition += 5;
   }
 
@@ -286,9 +288,10 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
+  const technicianLabelWidth = doc.getTextWidth(`${t.technician}: `);
   doc.text(`${t.technician}: `, 20, yPosition);
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.technician_name, 70, yPosition);
+  doc.text(claim.technician_name, 20 + technicianLabelWidth, yPosition);
   yPosition += 5;
 
   // Spare parts details (without prices)
