@@ -246,7 +246,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   doc.text(claim.technician_name, 60, yPosition);
   yPosition += 7;
 
-  // Spare parts details
+  // Spare parts details (without prices)
   const customLineItems = claim.custom_line_items ? 
     (Array.isArray(claim.custom_line_items) ? claim.custom_line_items : 
      (typeof claim.custom_line_items === 'string' ? JSON.parse(claim.custom_line_items) : [])) : [];
@@ -257,52 +257,20 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     yPosition += 10;
     
     customLineItems.forEach((item: any, index: number) => {
-      // Details in organized columns - no duplicate header
+      // Details in organized columns - no prices
       doc.setFont('helvetica', 'normal');
       doc.text(`Delenr: ${item.partNumber || 'N/A'}`, 25, yPosition);
       doc.text(`Beskrivelse: ${item.description || 'N/A'}`, 100, yPosition);
       yPosition += 5;
       
       doc.text(`Antall: ${item.quantity || 1}`, 25, yPosition);
-      doc.text(`Pris: ${formatCurrency(item.unitPrice || 0)}`, 100, yPosition);
-      
-      // Right-aligned total
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Total: ${formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}`, 190, yPosition, { align: 'right' });
       yPosition += 12;
     });
     
-    // Only show total if multiple items
-    if (customLineItems.length > 1) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Total Parts Cost: ', 20, yPosition);
-      doc.setFont('helvetica', 'normal');
-      doc.text(formatCurrency(claim.parts_cost), 80, yPosition);
-      yPosition += 7;
-    }
     yPosition += 5;
   }
 
   yPosition += 10;
-
-  // Cost Summary
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Cost Summary', 20, yPosition);
-  yPosition += 10;
-
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`${t.totalCost}: `, 20, yPosition);
-  doc.setFont('helvetica', 'normal');
-  doc.text(formatCurrency(claim.total_cost), 60, yPosition);
-  yPosition += 7;
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Expected Refund: ', 20, yPosition);
-  doc.setFont('helvetica', 'normal');
-  doc.text(formatCurrency(claim.expected_refund || 0), 60, yPosition);
-  yPosition += 20;
 
   // Footer
   doc.setFontSize(9);
