@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { supabase } from "@/integrations/supabase/client";
 import InvoiceScanner from "@/components/InvoiceScanner";
+import { useUpdateClaim } from '@/hooks/useClaimMutations';
 
 const ClaimsFormAdvanced = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const ClaimsFormAdvanced = () => {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [supplierProfiles, setSupplierProfiles] = useState<any[]>([]);
   const [selectedSupplierProfile, setSelectedSupplierProfile] = useState<any>(null);
+  const updateClaimMutation = useUpdateClaim();
   
   // Form data with advanced economics
   const [formData, setFormData] = useState({
@@ -658,13 +660,11 @@ const ClaimsFormAdvanced = () => {
       };
 
       if (isEditing) {
-        // Update existing claim
-        const { error: updateError } = await supabase
-          .from('claims')
-          .update(baseClaimData)
-          .eq('id', claimId);
-
-        if (updateError) throw updateError;
+        // Update existing claim using the mutation hook
+        await updateClaimMutation.mutateAsync({
+          claimId: claimId!,
+          claimData: baseClaimData
+        });
 
         // Add timeline entry for update
         await supabase.from('claim_timeline').insert([{
@@ -673,11 +673,6 @@ const ClaimsFormAdvanced = () => {
           changed_by: user.id,
           notes: 'Reklamasjon oppdatert'
         }]);
-
-        toast({
-          title: "Reklamasjon oppdatert",
-          description: "Endringene ble lagret.",
-        });
 
         navigate(`/claims/${claimId}`);
       } else {

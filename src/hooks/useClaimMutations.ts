@@ -70,3 +70,40 @@ export const useDeleteClaim = () => {
     }
   });
 };
+
+export const useUpdateClaim = () => {
+  const queryClient = useQueryClient();
+  const { showSuccess, showError } = useEnhancedToast();
+
+  return useMutation({
+    mutationFn: ({ 
+      claimId, 
+      claimData 
+    }: { 
+      claimId: string; 
+      claimData: any; 
+    }) => claimService.updateClaim(claimId, claimData),
+    
+    onSuccess: (_, variables) => {
+      // Invalidate and refetch all relevant queries
+      queryClient.invalidateQueries({ queryKey: ['claim', variables.claimId] });
+      queryClient.invalidateQueries({ queryKey: ['claims'] });
+      queryClient.invalidateQueries({ queryKey: ['claims-paginated'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-claims'] });
+      
+      showSuccess(
+        "Reklamasjon oppdatert",
+        "Endringene ble lagret"
+      );
+    },
+    
+    onError: (error) => {
+      console.error('Error updating claim:', error);
+      showError(
+        "Feil ved oppdatering",
+        error instanceof Error ? error.message : "Kunne ikke oppdatere reklamasjon"
+      );
+    }
+  });
+};
