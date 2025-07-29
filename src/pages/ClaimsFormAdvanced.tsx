@@ -640,6 +640,7 @@ const ClaimsFormAdvanced = () => {
         consumables_cost: formData.consumablesCost,
         external_services_cost: formData.externalServicesCost,
         travel_cost: formData.travelCost,
+        expected_refund: calculateTotalRefund(), // Beregnet forventet refusjon
         refunded_work_cost: formData.refundedWorkCost,
         refunded_travel_cost: formData.refundedTravelCost,
         refunded_vehicle_cost: formData.refundedVehicleCost,
@@ -652,6 +653,9 @@ const ClaimsFormAdvanced = () => {
         vehicle_cost_refunded: formData.vehicleCostRefunded,
         parts_cost_refunded: formData.partsCostRefunded,
         other_cost_refunded: formData.otherCostRefunded,
+        total_cost: calculateTotalCost(), // Legger til total kostnad
+        total_refunded: calculateTotalRefund(), // Legger til total refusjon
+        net_cost: calculateNetCost(), // Legger til netto kostnad
         internal_notes: formData.internalNotes,
         customer_notes: formData.customerNotes,
       };
