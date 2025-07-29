@@ -87,7 +87,11 @@ const translations = {
     companyName: 'MYHRVOLD GRUPPEN',
     
     footer: 'Dette dokumentet er sendt digitalt og krever ikke underskrift.',
-    year: 'år'
+    year: 'år',
+    partNumber: 'Delenr',
+    description: 'Beskrivelse',
+    quantity: 'Antall',
+    unitPrice: 'Pris'
   },
   en: {
     subject: 'Warranty Claim - Refund Request',
@@ -121,7 +125,11 @@ const translations = {
     companyName: 'MYHRVOLD GRUPPEN',
     
     footer: 'This document is sent digitally and does not require signature.',
-    year: 'year'
+    year: 'year',
+    partNumber: 'Part Number',
+    description: 'Description',
+    quantity: 'Quantity',
+    unitPrice: 'Unit Price'
   }
 };
 
@@ -262,10 +270,10 @@ ${t.companyName}`;
                     {customLineItems.map((item: any, index: number) => (
                       <div key={index} className="bg-gray-50 p-3 rounded border">
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div><strong>Delenr:</strong> {item.partNumber || 'N/A'}</div>
-                          <div><strong>Beskrivelse:</strong> {item.description || 'N/A'}</div>
-                          <div><strong>Antall:</strong> {item.quantity || 1}</div>
-                          <div><strong>Pris:</strong> {formatCurrency(item.unitPrice || 0)}</div>
+                           <div><strong>{t.partNumber}:</strong> {item.partNumber || 'N/A'}</div>
+                           <div><strong>{t.description}:</strong> {item.description || 'N/A'}</div>
+                           <div><strong>{t.quantity}:</strong> {item.quantity || 1}</div>
+                           <div><strong>{t.unitPrice}:</strong> {formatCurrency(item.unitPrice || 0)}</div>
                         </div>
                         <div className="text-right font-medium mt-2 pt-2 border-t">
                           <strong>Total: {formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}</strong>

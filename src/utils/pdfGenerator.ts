@@ -66,7 +66,9 @@ const translations = {
     companyName: 'MYHRVOLD GRUPPEN',
     
     footer: 'Dette dokumentet er sendt digitalt og krever ikke underskrift.',
-    year: 'år'
+    year: 'år',
+    partNumber: 'Delenr',
+    description: 'Beskrivelse'
   },
   en: {
     subject: 'Warranty Claim - Refund Request',
@@ -100,7 +102,9 @@ const translations = {
     companyName: 'MYHRVOLD GRUPPEN',
     
     footer: 'This document is sent digitally and does not require signature.',
-    year: 'year'
+    year: 'year',
+    partNumber: 'Part Number',
+    description: 'Description'
   }
 };
 
@@ -259,8 +263,8 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
     customLineItems.forEach((item: any, index: number) => {
       // Details in organized columns - no prices
       doc.setFont('helvetica', 'normal');
-      doc.text(`Delenr: ${item.partNumber || 'N/A'}`, 25, yPosition);
-      doc.text(`Beskrivelse: ${item.description || 'N/A'}`, 100, yPosition);
+      doc.text(`${t.partNumber}: ${item.partNumber || 'N/A'}`, 25, yPosition);
+      doc.text(`${t.description}: ${item.description || 'N/A'}`, 100, yPosition);
       yPosition += 5;
       
       doc.text(`Antall: ${item.quantity || 1}`, 25, yPosition);
