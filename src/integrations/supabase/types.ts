@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          operation: string
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          operation: string
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          operation?: string
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       claim_timeline: {
         Row: {
           changed_by: string
@@ -316,6 +355,30 @@ export type Database = {
         }
         Relationships: []
       }
+      data_retention_policies: {
+        Row: {
+          auto_delete: boolean
+          created_at: string
+          id: string
+          retention_days: number
+          table_name: string
+        }
+        Insert: {
+          auto_delete?: boolean
+          created_at?: string
+          id?: string
+          retention_days: number
+          table_name: string
+        }
+        Update: {
+          auto_delete?: boolean
+          created_at?: string
+          id?: string
+          retention_days?: number
+          table_name?: string
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           created_at: string
@@ -612,11 +675,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_consent: {
+        Row: {
+          consent_date: string
+          consent_given: boolean
+          consent_type: string
+          id: string
+          ip_address: unknown | null
+          user_id: string
+          withdrawn_date: string | null
+        }
+        Insert: {
+          consent_date?: string
+          consent_given?: boolean
+          consent_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_id: string
+          withdrawn_date?: string | null
+        }
+        Update: {
+          consent_date?: string
+          consent_given?: boolean
+          consent_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_id?: string
+          withdrawn_date?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      anonymize_user_data: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       check_overdue_claims: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -632,6 +729,10 @@ export type Database = {
           p_metadata?: Json
         }
         Returns: string
+      }
+      export_user_data: {
+        Args: { p_user_id: string }
+        Returns: Json
       }
       generate_account_code: {
         Args: {
@@ -650,6 +751,16 @@ export type Database = {
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      log_data_access: {
+        Args: {
+          p_table_name: string
+          p_operation: string
+          p_record_id?: string
+          p_old_values?: Json
+          p_new_values?: Json
+        }
         Returns: string
       }
     }

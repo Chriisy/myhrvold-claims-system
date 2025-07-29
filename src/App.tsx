@@ -7,6 +7,7 @@ import { AuthProvider } from "./hooks/useOptimizedAuth";
 import { PreferencesProvider } from "./contexts/PreferencesContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ConnectionStatus } from "./components/ui/ConnectionStatus";
+import { CookieConsent } from "./components/gdpr/CookieConsent";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/AnalyticsEnhanced";
@@ -17,6 +18,7 @@ import { ClaimEconomics } from "./pages/ClaimEconomics";
 import SupplierManagement from "./pages/SupplierManagement";
 import AdminSettings from "./pages/AdminSettings";
 import Auth from "./pages/Auth";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -44,6 +46,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
               <Route path="/claims" element={<ProtectedRoute><ClaimsList /></ProtectedRoute>} />
@@ -56,6 +59,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <CookieConsent />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
