@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Building2, UserCheck, Settings } from "lucide-react";
+import { ArrowLeft, Users, Building2, UserCheck, Settings, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import UserManagement from "@/components/admin/UserManagement";
 import SupplierManagement from "@/components/admin/SupplierManagement";
 import CustomerManagement from "@/components/admin/CustomerManagement";
+import PartsManagement from "@/components/admin/PartsManagement";
 import SystemSettings from "@/components/admin/SystemSettings";
 
 const AdminSettings = () => {
@@ -22,6 +23,8 @@ const AdminSettings = () => {
     totalSuppliers: 0,
     activeSuppliers: 0,
     totalCustomers: 0,
+    totalParts: 0,
+    activeParts: 0,
     recentClaims: 0
   });
 
@@ -39,6 +42,12 @@ const AdminSettings = () => {
       // Fetch supplier stats  
       const { data: suppliers } = await supabase
         .from('suppliers')
+        .select('id, is_active');
+
+      
+      // Fetch parts stats
+      const { data: parts } = await supabase
+        .from('parts')
         .select('id, is_active');
 
       // Fetch customer count from unique customers in claims
@@ -63,6 +72,8 @@ const AdminSettings = () => {
         totalSuppliers: suppliers?.length || 0,
         activeSuppliers: suppliers?.filter(s => s.is_active).length || 0,
         totalCustomers: uniqueCustomers.size,
+        totalParts: parts?.length || 0,
+        activeParts: parts?.filter(p => p.is_active).length || 0,
         recentClaims: recentClaims?.length || 0
       });
     } catch (error) {
@@ -160,6 +171,19 @@ const AdminSettings = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Deler</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalParts}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.activeParts} aktive deler
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Aktivitet</CardTitle>
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -174,7 +198,7 @@ const AdminSettings = () => {
 
         {/* Admin Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Brukere
@@ -186,6 +210,10 @@ const AdminSettings = () => {
             <TabsTrigger value="customers" className="flex items-center gap-2">
               <UserCheck className="h-4 w-4" />
               Kunder
+            </TabsTrigger>
+            <TabsTrigger value="parts" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Deler
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -203,6 +231,10 @@ const AdminSettings = () => {
 
           <TabsContent value="customers" className="space-y-6">
             <CustomerManagement onStatsUpdate={fetchAdminStats} />
+          </TabsContent>
+
+          <TabsContent value="parts" className="space-y-6">
+            <PartsManagement onStatsUpdate={fetchAdminStats} />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">
