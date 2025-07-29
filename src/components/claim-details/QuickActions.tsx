@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEnhancedToast } from "@/hooks/useEnhancedToast";
 import { useState } from "react";
 import { generateClaimPDF } from "@/utils/pdfGenerator";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface QuickActionsProps {
   claimId: string;
@@ -25,6 +26,7 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier, claimData }
   const navigate = useNavigate();
   const { toast } = useEnhancedToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleMarkAsResolved = () => {
     updateStatusMutation.mutate({
@@ -46,9 +48,12 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier, claimData }
     try {
       setIsGeneratingPDF(true);
       
+      // Invalidate cache to ensure we get the latest data
+      await queryClient.invalidateQueries({ queryKey: ['claim', claimId] });
+      
       let claimToUse = claimData;
       
-      // If no claim data provided, fetch it
+      // If no claim data provided, fetch it fresh from database
       if (!claimToUse) {
         const { data: claim, error: claimError } = await supabase
           .from('claims')
