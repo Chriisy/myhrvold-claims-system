@@ -10,11 +10,10 @@ export const CookieConsent = () => {
   const { hasConsent, updateConsent, loading } = useGDPR();
 
   useEffect(() => {
-    // Show banner if no consent has been given yet
+    // Show banner if no cookie consent has been given yet
     const cookieConsent = hasConsent('cookies');
-    const dataConsent = hasConsent('data_processing');
     
-    if (!cookieConsent && !dataConsent) {
+    if (!cookieConsent) {
       setIsVisible(true);
     }
   }, [hasConsent]);

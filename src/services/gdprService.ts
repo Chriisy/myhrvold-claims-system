@@ -19,16 +19,17 @@ export interface UserDataExport {
 export const gdprService = {
   // Record user consent
   async recordConsent(consentType: string, consentGiven: boolean) {
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('user_consent')
       .upsert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: user.data.user.id,
         consent_type: consentType,
         consent_given: consentGiven,
         consent_date: new Date().toISOString(),
         withdrawn_date: consentGiven ? null : new Date().toISOString()
-      }, {
-        onConflict: 'user_id,consent_type'
       });
 
     if (error) throw error;
