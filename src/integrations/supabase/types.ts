@@ -148,6 +148,7 @@ export type Database = {
           supplier: string
           supplier_email_sent_date: string | null
           supplier_notes: string | null
+          supplier_reference_number: string | null
           supplier_response_date: string | null
           technician_name: string
           total_cost: number | null
@@ -223,6 +224,7 @@ export type Database = {
           supplier: string
           supplier_email_sent_date?: string | null
           supplier_notes?: string | null
+          supplier_reference_number?: string | null
           supplier_response_date?: string | null
           technician_name: string
           total_cost?: number | null
@@ -298,6 +300,7 @@ export type Database = {
           supplier?: string
           supplier_email_sent_date?: string | null
           supplier_notes?: string | null
+          supplier_reference_number?: string | null
           supplier_response_date?: string | null
           technician_name?: string
           total_cost?: number | null

@@ -49,6 +49,7 @@ const ClaimsFormAdvanced = () => {
     purchaseDate: "",
     warrantyPeriod: "",
     supplier: "",
+    supplierReferenceNumber: "",
     
     // Issue details
     issueType: "",
@@ -193,8 +194,9 @@ const ClaimsFormAdvanced = () => {
                serialNumber: data.serial_number || "",
                purchaseDate: data.purchase_date || "",
                warrantyPeriod: data.warranty_period || "",
-               supplier: data.supplier || "",
-               issueType: data.issue_type || "",
+                supplier: data.supplier || "",
+                supplierReferenceNumber: data.supplier_reference_number || "",
+                issueType: data.issue_type || "",
                issueDescription: data.issue_description || "",
                detailedDescription: data.detailed_description || "",
                urgencyLevel: data.urgency_level || "normal",
@@ -623,9 +625,10 @@ const ClaimsFormAdvanced = () => {
         product_model: formData.productModel,
         serial_number: formData.serialNumber,
         purchase_date: formData.purchaseDate || null,
-        warranty_period: formData.warrantyPeriod,
-        supplier: formData.supplier,
-        issue_type: formData.issueType as 'warranty' | 'claim' | 'service_callback' | 'extended_warranty',
+         warranty_period: formData.warrantyPeriod,
+         supplier: formData.supplier,
+         supplier_reference_number: formData.supplierReferenceNumber,
+         issue_type: formData.issueType as 'warranty' | 'claim' | 'service_callback' | 'extended_warranty',
         issue_description: formData.issueDescription,
         detailed_description: formData.detailedDescription,
         urgency_level: formData.urgencyLevel as 'low' | 'normal' | 'high' | 'critical',
@@ -969,10 +972,19 @@ const ClaimsFormAdvanced = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                  </div>
-                  
-                  {selectedSupplierProfile && (
+                     </div>
+                     <div>
+                       <Label htmlFor="supplierReferenceNumber">Leverandør referansenr</Label>
+                       <Input 
+                         id="supplierReferenceNumber" 
+                         value={formData.supplierReferenceNumber}
+                         onChange={(e) => handleInputChange('supplierReferenceNumber', e.target.value)}
+                         placeholder="Referansenummer fra leverandør" 
+                       />
+                     </div>
+                   </div>
+                   
+                   {selectedSupplierProfile && (
                     <Alert>
                       <Info className="h-4 w-4" />
                       <AlertDescription>
@@ -1695,8 +1707,9 @@ const ClaimsFormAdvanced = () => {
                       <div className="space-y-1 text-sm">
                         <p><strong>Kunde:</strong> {formData.customerName} ({formData.customerNumber})</p>
                         <p><strong>Produkt:</strong> {formData.productName}</p>
-                        <p><strong>Leverandør:</strong> {formData.supplier}</p>
-                        <p><strong>Jobbreferanse:</strong> {formData.evaticJobNumber || formData.msJobNumber || 'Ikke angitt'}</p>
+                         <p><strong>Leverandør:</strong> {formData.supplier}</p>
+                         {formData.supplierReferenceNumber && <p><strong>Leverandør ref.nr:</strong> {formData.supplierReferenceNumber}</p>}
+                         <p><strong>Jobbreferanse:</strong> {formData.evaticJobNumber || formData.msJobNumber || 'Ikke angitt'}</p>
                       </div>
                     </div>
                      <div>

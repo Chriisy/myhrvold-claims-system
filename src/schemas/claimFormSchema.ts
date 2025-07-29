@@ -31,6 +31,7 @@ export const productInfoSchema = z.object({
   supplier: z.string()
     .min(1, "Leverandør er påkrevd")
     .max(100, "Leverandør kan ikke være lengre enn 100 tegn"),
+  supplierReferenceNumber: z.string().optional(),
 });
 
 // Issue Description Schema
@@ -223,6 +224,7 @@ export const getDefaultClaimFormValues = (): ClaimFormData => ({
   purchaseDate: "",
   warrantyPeriod: undefined,
   supplier: "",
+  supplierReferenceNumber: "",
   
   // Issue description
   issueType: "warranty",
