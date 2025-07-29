@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, TrendingUp, AlertTriangle, DollarSign, Package, Building2 } from "lucide-react";
+import { ArrowLeft, TrendingUp, AlertTriangle, DollarSign, Package, Building2, Wrench } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -574,6 +574,36 @@ const Analytics = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
+                      <Wrench className="h-5 w-5" />
+                      Mest brukte deler
+                    </CardTitle>
+                    <CardDescription>Deler som brukes oftest i reklamasjoner</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={{
+                      usageCount: { label: "Antall ganger brukt", color: "hsl(var(--primary))" }
+                    }}>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={partsAnalytics.slice(0, 10)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="partNumber" 
+                            tick={{ fontSize: 12 }}
+                            angle={-45}
+                            textAnchor="end"
+                          />
+                          <YAxis />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="usageCount" fill="hsl(var(--primary))" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
                       <DollarSign className="h-5 w-5" />
                       Delestatistikk
                     </CardTitle>
@@ -581,13 +611,13 @@ const Analytics = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {partsAnalytics.slice(0, 5).map((part, index) => (
+                      {partsAnalytics.slice(0, 8).map((part, index) => (
                         <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
                             <p className="font-medium">{part.partNumber}</p>
                             <p className="text-sm text-muted-foreground">{part.description}</p>
                             <p className="text-sm text-muted-foreground">
-                              {part.totalQuantity} stk i {part.claimCount} claims
+                              Brukt {part.usageCount} ganger i {part.claimCount} claims
                             </p>
                           </div>
                           <div className="text-right">
