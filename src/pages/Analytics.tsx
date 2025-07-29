@@ -617,7 +617,7 @@ const Analytics = () => {
                             <p className="font-medium">{part.partNumber}</p>
                             <p className="text-sm text-muted-foreground">{part.description}</p>
                             <p className="text-sm text-muted-foreground">
-                              Brukt {part.usageCount} ganger i {part.claimCount} claims
+                              Brukt {part.usageCount} ganger i {part.claimCount} reklamasjoner
                             </p>
                           </div>
                           <div className="text-right">
