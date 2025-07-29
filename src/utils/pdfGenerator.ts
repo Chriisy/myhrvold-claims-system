@@ -68,7 +68,9 @@ const translations = {
     footer: 'Dette dokumentet er sendt digitalt og krever ikke underskrift.',
     year: 'år',
     partNumber: 'Delenr',
-    description: 'Beskrivelse'
+    description: 'Beskrivelse',
+    quantity: 'Antall',
+    sparePartsUsed: 'Reservedeler brukt'
   },
   en: {
     subject: 'Warranty Claim - Refund Request',
@@ -104,7 +106,9 @@ const translations = {
     footer: 'This document is sent digitally and does not require signature.',
     year: 'year',
     partNumber: 'Part Number',
-    description: 'Description'
+    description: 'Description',
+    quantity: 'Quantity',
+    sparePartsUsed: 'Spare Parts Used'
   }
 };
 
@@ -257,7 +261,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   
   if (customLineItems.length > 0) {
     doc.setFont('helvetica', 'bold');
-    doc.text('Spare Parts Used:', 20, yPosition);
+    doc.text(`${t.sparePartsUsed}:`, 20, yPosition);
     yPosition += 10;
     
     customLineItems.forEach((item: any, index: number) => {
@@ -267,7 +271,7 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
       doc.text(`${t.description}: ${item.description || 'N/A'}`, 100, yPosition);
       yPosition += 5;
       
-      doc.text(`Antall: ${item.quantity || 1}`, 25, yPosition);
+      doc.text(`${t.quantity}: ${item.quantity || 1}`, 25, yPosition);
       yPosition += 12;
     });
     
