@@ -186,45 +186,48 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   
+  // Product fields with consistent spacing
+  const labelWidth = 70; // Fixed width for all labels
+  
   doc.setFont('helvetica', 'bold');
-  doc.text(`${t.product}: `, 20, yPosition);
+  doc.text(`${t.product}:`, 20, yPosition);
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.product_name, 60, yPosition);
+  doc.text(claim.product_name, labelWidth, yPosition);
   yPosition += 5;
 
   if (claim.product_model) {
     doc.setFont('helvetica', 'bold');
-    doc.text(`${t.model}: `, 20, yPosition);
+    doc.text(`${t.model}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(claim.product_model, 60, yPosition);
+    doc.text(claim.product_model, labelWidth, yPosition);
     yPosition += 5;
   }
 
   if (claim.serial_number) {
     doc.setFont('helvetica', 'bold');
-    doc.text(`${t.serialNumber}: `, 20, yPosition);
+    doc.text(`${t.serialNumber}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(claim.serial_number, 60, yPosition);
+    doc.text(claim.serial_number, labelWidth, yPosition);
     yPosition += 5;
   }
 
   if (claim.purchase_date) {
     doc.setFont('helvetica', 'bold');
-    doc.text(`${t.purchaseDate}: `, 20, yPosition);
+    doc.text(`${t.purchaseDate}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(formatDate(claim.purchase_date, language), 60, yPosition);
+    doc.text(formatDate(claim.purchase_date, language), labelWidth, yPosition);
     yPosition += 5;
   }
 
   if (claim.warranty_period) {
     doc.setFont('helvetica', 'bold');
-    doc.text(`${t.warranty}: `, 20, yPosition);
+    doc.text(`${t.warranty}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${claim.warranty_period} ${t.year}`, 60, yPosition);
+    doc.text(`${claim.warranty_period} ${t.year}`, labelWidth, yPosition);
     yPosition += 5;
   }
 
-  yPosition += 8;
+  yPosition += 12;
 
   // Issue Description
   doc.setFontSize(14);
@@ -315,12 +318,12 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
       // Description with text wrapping
       if (item.description) {
         doc.setFont('helvetica', 'bold');
-        doc.text(`${t.description}: `, 25, yPosition);
+        doc.text(`${t.description}:`, 25, yPosition);
         doc.setFont('helvetica', 'normal');
         
-        // Check if description fits on same line
+        // Add proper space after colon
         const descWidth = doc.getTextWidth(`${t.description}: `);
-        const availableWidth = 170 - descWidth;
+        const availableWidth = 160 - descWidth;
         const descLines = splitTextToLines(doc, item.description, availableWidth);
         
         if (descLines[0] && doc.getTextWidth(descLines[0]) <= availableWidth) {
