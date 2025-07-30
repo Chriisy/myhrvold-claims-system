@@ -53,8 +53,11 @@ serve(async (req) => {
     
     console.log('Image data received, length:', imageBase64.length);
 
-    // Initialize OpenAI client
-    const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+    // Initialize OpenAI client with timeout
+    const openai = new OpenAI({ 
+      apiKey: OPENAI_API_KEY,
+      timeout: 30000 // 30 second timeout
+    });
 
     try {
       // 1. Convert base64 to blob and upload to OpenAI
@@ -91,13 +94,12 @@ serve(async (req) => {
 
       console.log('Thread created:', thread.id);
 
-      // 3. Create and poll run with timeout
+      // 3. Create and poll run
       console.log('Creating run with assistant...');
       const runPromise = openai.beta.threads.runs.createAndPoll(
         thread.id,
         { 
-          assistant_id: ASSISTANT_ID,
-          timeout: 30000 // 30 second timeout
+          assistant_id: ASSISTANT_ID
         }
       );
 
