@@ -442,7 +442,7 @@ const ClaimsForm = () => {
           {/* Issue Description */}
           <Card>
             <CardHeader>
-              <CardTitle>Problembesk­rivelse</CardTitle>
+              <CardTitle>Problembeskrivelse</CardTitle>
               <CardDescription>Beskriv feilen eller problemet i detalj</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
