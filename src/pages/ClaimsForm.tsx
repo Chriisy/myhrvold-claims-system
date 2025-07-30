@@ -499,8 +499,9 @@ const ClaimsForm = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="warranty">Garanti</SelectItem>
-                      <SelectItem value="repair">Reparasjon</SelectItem>
-                      <SelectItem value="maintenance">Vedlikehold</SelectItem>
+                      <SelectItem value="claim">Reklamasjon</SelectItem>
+                      <SelectItem value="service_callback">Service/tilbakekall</SelectItem>
+                      <SelectItem value="extended_warranty">Utvidet garanti</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -508,7 +509,7 @@ const ClaimsForm = () => {
                   <Label htmlFor="urgencyLevel">Hastighetsgrad</Label>
                   <Select value={formData.urgencyLevel} onValueChange={(value) => handleInputChange('urgencyLevel', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Velg hastighetsgrad" />
+                      <SelectValue placeholder="Normal" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Lav</SelectItem>
@@ -524,7 +525,16 @@ const ClaimsForm = () => {
                 <Input
                   value={formData.issueDescription}
                   onChange={(e) => handleInputChange('issueDescription', e.target.value)}
-                  placeholder="Temperature controller defective"
+                  placeholder="Feil på meldekort"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="solutionDescription">Løsning</Label>
+                <Textarea
+                  value={formData.solutionDescription}
+                  onChange={(e) => handleInputChange('solutionDescription', e.target.value)}
+                  placeholder="Reparasjonsarbeid som er utført på reklamasjonen"
+                  className="min-h-[100px]"
                 />
               </div>
               <div className="space-y-2">
@@ -532,7 +542,7 @@ const ClaimsForm = () => {
                 <Textarea
                   value={formData.detailedDescription}
                   onChange={(e) => handleInputChange('detailedDescription', e.target.value)}
-                  placeholder="Replaced the controller as it was not supplying power to the lower heating element. The unit was not programmed from the factory"
+                  placeholder="Det var et problem med hovedkort som fikk kjøleskapet til å gå ut av kontrol og ødelegge alle produktene inni kjølskapet. Det er ikke noen som veil om hvorfor dette har skjedd."
                   className="min-h-[100px]"
                 />
               </div>
@@ -549,7 +559,7 @@ const ClaimsForm = () => {
                 <p className="text-sm text-muted-foreground">Logg til alle reservedeler som ble brukt i reparasjonen</p>
 
                 {usedParts.map((part, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg">
+                  <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg">
                     <div className="space-y-2">
                       <Label>Delnummer</Label>
                       <Input
@@ -559,20 +569,11 @@ const ClaimsForm = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Pris (kr)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={part.unitPrice}
-                        onChange={(e) => updateUsedPart(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="space-y-2">
                       <Label>Beskrivelse</Label>
                       <Input
                         value={part.description}
                         onChange={(e) => updateUsedPart(index, 'description', e.target.value)}
-                        placeholder="Temperature controller with Ubert logo"
+                        placeholder="Temperature controller med Ubert logo"
                       />
                     </div>
                     <div className="space-y-2">
@@ -589,9 +590,8 @@ const ClaimsForm = () => {
                       <Input
                         type="number"
                         step="0.01"
-                        value={part.totalPrice.toFixed(2)}
-                        readOnly
-                        className="bg-muted"
+                        value={part.unitPrice}
+                        onChange={(e) => updateUsedPart(index, 'unitPrice', parseFloat(e.target.value) || 0)}
                       />
                     </div>
                     <div className="flex items-end">
@@ -656,7 +656,48 @@ const ClaimsForm = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Overtid 50% timer</Label>
-                    <Input type="number" step="0.5" defaultValue="0" />
+                    <Input
+                      type="number"
+                      step="0.5"
+                      value={formData.overtimeCost50}
+                      onChange={(e) => handleInputChange('overtimeCost50', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <Label>Reise timer</Label>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      value={formData.travelHours}
+                      onChange={(e) => handleInputChange('travelHours', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Reisekostnad (kr)</Label>
+                    <Input
+                      type="number"
+                      value={formData.travelCost}
+                      onChange={(e) => handleInputChange('travelCost', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kjøretøy km</Label>
+                    <Input
+                      type="number"
+                      value={formData.vehicleKm}
+                      onChange={(e) => handleInputChange('vehicleKm', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Overtid 100% timer</Label>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      value={formData.overtimeCost100}
+                      onChange={(e) => handleInputChange('overtimeCost100', parseFloat(e.target.value) || 0)}
+                    />
                   </div>
                 </div>
               </div>
