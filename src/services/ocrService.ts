@@ -1,6 +1,7 @@
 import { createWorker } from 'tesseract.js';
 import { ScannedInvoiceData } from '@/types/scanner';
 import { parseMyhrvold, validateMyhrvoldInvoice } from '@/utils/myhrvoldParser';
+import { supabase } from '@/integrations/supabase/client';
 
 export class OCRService {
   private static parseAmount(amountStr: string): number {
@@ -381,7 +382,46 @@ export class OCRService {
     return warnings;
   }
 
-  public static async processImage(file: File): Promise<{ text: string; confidence: number }> {
+  public static async processImageWithOpenAI(file: File): Promise<{ text: string; confidence: number }> {
+    console.log('Processing image with OpenAI Vision API...');
+    
+    try {
+      // Convert file to base64
+      const arrayBuffer = await file.arrayBuffer();
+      const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      
+      // Call OpenAI Vision API via Edge Function
+      const { data, error } = await supabase.functions.invoke('openai-vision-ocr', {
+        body: { imageBase64: base64String }
+      });
+      
+      if (error) {
+        throw new Error(error.message || 'OpenAI Vision API error');
+      }
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to process image');
+      }
+      
+      const extractedData = data.data;
+      console.log('OpenAI extracted data:', extractedData);
+      
+      return {
+        text: data.rawText,
+        confidence: extractedData.confidence / 100 // Convert to 0-1 range
+      };
+      
+    } catch (error) {
+      console.error('OpenAI Vision processing failed:', error);
+      throw error;
+    }
+  }
+
+  public static async processImage(file: File, useOpenAI: boolean = false): Promise<{ text: string; confidence: number }> {
+    if (useOpenAI) {
+      return this.processImageWithOpenAI(file);
+    }
+    
     // Process with Tesseract.js - optimized for Norwegian invoices
     const worker = await createWorker(['nor', 'eng'], 1, {
       logger: m => console.log(m)

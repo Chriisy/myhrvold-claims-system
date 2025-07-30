@@ -7,6 +7,7 @@ import { OCRService } from '@/services/ocrService';
 import { ScannedInvoiceData, InvoiceScannerProps } from '@/types/scanner';
 import { ScannerUpload } from '@/components/scanner/ScannerUpload';
 import { ScannerResults } from '@/components/scanner/ScannerResults';
+import { OCRMethodSelector } from '@/components/scanner/OCRMethodSelector';
 
 const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
   open,
@@ -18,13 +19,14 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
   const [extractedData, setExtractedData] = useState<ScannedInvoiceData | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showMethodSelector, setShowMethodSelector] = useState(true);
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (file: File, useOpenAI: boolean = false) => {
     if (!file) return;
 
     // Validate file type
     if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
-      showError('Ugyldig filtype', 'Kun JPG og PNG er støttet med Tesseract.js');
+      showError('Ugyldig filtype', 'Kun JPG og PNG er støttet');
       return;
     }
 
@@ -46,20 +48,35 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
       reader.readAsDataURL(file);
 
       // Process with OCR service
-      const { text } = await OCRService.processImage(file);
+      const { text } = await OCRService.processImage(file, useOpenAI);
 
       // Parse the extracted text
-      const parsedData = await OCRService.parseVismaInvoice(text, file);
+      let parsedData: ScannedInvoiceData;
+      
+      if (useOpenAI) {
+        // OpenAI returns structured data directly
+        parsedData = JSON.parse(text);
+      } else {
+        // Tesseract needs parsing
+        parsedData = await OCRService.parseVismaInvoice(text, file);
+      }
       
       setExtractedData(parsedData);
       validateExtractedData(parsedData);
       showSuccess(
         'Faktura skannet!',
-        `${Math.round(parsedData.confidence)}% sikkerhet på gjenkjenning`
+        `${Math.round((parsedData.confidence || 0) * 100)}% sikkerhet på gjenkjenning ${useOpenAI ? '(OpenAI)' : '(Tesseract)'}`
       );
 
     } catch (error: any) {
       console.error('OCR Error:', error);
+      
+      // If OpenAI fails, try Tesseract as fallback
+      if (useOpenAI) {
+        showError('OpenAI feilet', 'Prøver Tesseract som backup...');
+        return handleFileUpload(file, false);
+      }
+      
       showError(
         'Skanning feilet',
         error.message || 'Kunne ikke lese fakturaen. Prøv med et klarere bilde.'
@@ -68,6 +85,9 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
       setIsProcessing(false);
     }
   };
+
+  const handleOpenAIUpload = (file: File) => handleFileUpload(file, true);
+  const handleTesseractUpload = (file: File) => handleFileUpload(file, false);
 
   const validateExtractedData = (data: ScannedInvoiceData) => {
     const errors: string[] = [];
@@ -104,6 +124,7 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
     setPreviewImage(null);
     setValidationErrors([]);
     setIsProcessing(false);
+    setShowMethodSelector(true);
     onOpenChange(false);
   };
 
@@ -121,11 +142,35 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Method Selection */}
+          {!extractedData && showMethodSelector && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Velg OCR-metode</h3>
+              <OCRMethodSelector
+                onMethodSelect={(useOpenAI) => {
+                  setShowMethodSelector(false);
+                  // Create file input element programmatically
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      handleFileUpload(file, useOpenAI);
+                    }
+                  };
+                  input.click();
+                }}
+                isProcessing={isProcessing}
+              />
+            </div>
+          )}
+
           {/* Upload Section */}
-          {!extractedData && (
+          {!extractedData && !showMethodSelector && (
             <ScannerUpload 
               isProcessing={isProcessing}
-              onFileUpload={handleFileUpload}
+              onFileUpload={handleTesseractUpload}
             />
           )}
 
