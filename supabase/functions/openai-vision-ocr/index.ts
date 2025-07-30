@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import OpenAI from "https://deno.land/x/openai@v4.65.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,6 +8,7 @@ const corsHeaders = {
 };
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+const ASSISTANT_ID = Deno.env.get('ASSISTANT_ID');
 
 // Basic text extraction from image bytes (mock implementation)
 async function extractBasicText(bytes: Uint8Array): Promise<string> {
@@ -29,53 +31,20 @@ serve(async (req) => {
   }
 
   try {
-    console.log('OpenAI Vision OCR request started');
+    console.log('OpenAI Assistant OCR request started');
     
     if (!OPENAI_API_KEY) {
       console.error('OPENAI_API_KEY is not configured');
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
+    if (!ASSISTANT_ID) {
+      console.error('ASSISTANT_ID is not configured');
+      throw new Error('ASSISTANT_ID is not configured');
+    }
+
     console.log('Parsing request body...');
     const { imageBase64 } = await req.json();
-    
-    // 🎯 PRIORITY: Check if this is a Myhrvold invoice first
-    if (imageBase64) {
-      // Create temporary file for Myhrvold detection
-      try {
-        // Convert base64 to Uint8Array
-        const binaryString = atob(imageBase64);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        
-        // Create a basic text extraction for detection
-        const basicText = await extractBasicText(bytes);
-        
-        // Check if this is a Myhrvold invoice
-        if (basicText.includes('T. MYHRVOLD AS') || basicText.includes('T.MYHRVOLD AS')) {
-          console.log('🎯 Detected Myhrvold invoice - using enhanced parser');
-          
-          // Use Myhrvold parser instead of GPT-Vision
-          const mockFile = new File([bytes], 'invoice.pdf', { type: 'application/pdf' });
-          const parsedData = await parseMyhrvoldDirectly(mockFile);
-          
-          if (parsedData) {
-            console.log('✅ Myhrvold parser successful:', parsedData);
-            return new Response(JSON.stringify({
-              success: true,
-              data: parsedData,
-              source: 'myhrvoldParser'
-            }), {
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-          }
-        }
-      } catch (myhrvoldError) {
-        console.log('⚠️ Myhrvold parser failed, falling back to GPT-Vision:', myhrvoldError);
-      }
-    }
     
     if (!imageBase64) {
       console.error('No image data provided');
@@ -84,70 +53,155 @@ serve(async (req) => {
     
     console.log('Image data received, length:', imageBase64.length);
 
-    // Prepare the enhanced prompt for Norwegian T. Myhrvold invoices
-    const prompt = `
-Du er ekspert på å analysere norske T. Myhrvold fakturaer. Analyser dette bildet nøye og trekk ut følgende informasjon. 
+    // Initialize OpenAI client
+    const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-VIKTIG: Returner kun gyldig JSON uten ekstra tekst eller formatering:
+    try {
+      // 1. Convert base64 to blob and upload to OpenAI
+      console.log('Converting base64 to blob...');
+      const binaryString = atob(imageBase64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const blob = new Blob([bytes], { type: 'image/jpeg' });
+      const file = new File([blob], 'invoice.jpg', { type: 'image/jpeg' });
 
+      console.log('Uploading file to OpenAI...');
+      const uploadResponse = await openai.files.create({
+        file: file,
+        purpose: 'assistants'
+      });
+
+      console.log('File uploaded successfully:', uploadResponse.id);
+
+      // 2. Create thread and run with assistant
+      console.log('Creating thread...');
+      const thread = await openai.beta.threads.create({
+        messages: [{
+          role: 'user',
+          content: 'Extract invoice data from this T. Myhrvold invoice image.',
+          attachments: [{
+            file_id: uploadResponse.id,
+            tools: [{ type: 'code_interpreter' }]
+          }]
+        }]
+      });
+
+      console.log('Thread created:', thread.id);
+
+      // 3. Create and poll run with timeout
+      console.log('Creating run with assistant...');
+      const runPromise = openai.beta.threads.runs.createAndPoll(
+        thread.id,
+        { 
+          assistant_id: ASSISTANT_ID,
+          timeout: 30000 // 30 second timeout
+        }
+      );
+
+      // Add timeout wrapper
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Assistant timeout after 30 seconds')), 30000);
+      });
+
+      console.log('Waiting for assistant response...');
+      const run = await Promise.race([runPromise, timeoutPromise]);
+
+      if (run.status !== 'completed') {
+        throw new Error(`Assistant run failed with status: ${run.status}`);
+      }
+
+      console.log('Run completed successfully');
+
+      // 4. Get the latest message from the thread
+      console.log('Fetching assistant response...');
+      const messages = await openai.beta.threads.messages.list(
+        thread.id,
+        { order: 'desc', limit: 1 }
+      );
+
+      if (!messages.data || messages.data.length === 0) {
+        throw new Error('No response from assistant');
+      }
+
+      const assistantMessage = messages.data[0];
+      if (!assistantMessage.content || assistantMessage.content.length === 0) {
+        throw new Error('Empty response from assistant');
+      }
+
+      const messageContent = assistantMessage.content[0];
+      if (messageContent.type !== 'text') {
+        throw new Error('Assistant response is not text');
+      }
+
+      const responseText = messageContent.text.value;
+      console.log('Assistant response received:', responseText.substring(0, 200) + '...');
+
+      // 5. Parse JSON response
+      console.log('Parsing JSON from assistant response...');
+      let extractedData;
+      try {
+        // Try to extract JSON from response (assistant might include extra text)
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        const jsonText = jsonMatch ? jsonMatch[0] : responseText;
+        extractedData = JSON.parse(jsonText);
+        console.log('Successfully parsed JSON:', extractedData);
+      } catch (e) {
+        console.error('JSON parsing failed:', e);
+        console.error('Raw assistant response:', responseText);
+        throw new Error(`Failed to parse assistant response as JSON: ${e.message}`);
+      }
+
+      // 6. Clean up uploaded file
+      try {
+        await openai.files.del(uploadResponse.id);
+        console.log('Cleaned up uploaded file');
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup uploaded file:', cleanupError);
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data: extractedData,
+          source: 'assistant',
+          rawText: responseText 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+
+    } catch (assistantError) {
+      console.error('Assistant API error:', assistantError);
+      
+      // Fallback to direct Vision API if assistant fails
+      console.log('🔄 Falling back to Vision API...');
+      
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          response_format: { type: 'json_object' },
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { 
+                  type: 'text', 
+                  text: `Extract T. Myhrvold invoice data as JSON:
 {
-  "invoiceNumber": "7-8 siffer fakturanummer (finn nummer nærmest 'Faktura' eller øverst)",
-  "invoiceDate": "fakturadato i DD.MM.YYYY format",
-  "customerName": "T. Myhrvold AS (alltid dette for T. Myhrvold fakturaer)",
-  "customerNumber": "kundenummer hvis synlig",
-  "customerOrgNumber": "organisasjonsnummer (9 siffer) hvis synlig",
-  "productName": "produktnavn fra 'Oppdrag:' linjen eller første produktlinje",
-  "serviceNumber": "service nr hvis synlig",
-  "projectNumber": "prosjekt nr hvis synlig",
-  "technician": "tekniker/montør navn hvis synlig",
-  "technicianHours": "antall timer for 'T1' eller 'Time service' (kun tall)",
-  "hourlyRate": "timesats/pris per time for T1 (kun tall)",
-  "workCost": "total arbeidskostnad for T1/timer (kun tall)",
-  "travelTimeHours": "reisetimer hvis synlig (kun tall)",
-  "travelTimeCost": "reisekostnad hvis synlig (kun tall)",
-  "vehicleKm": "kjøretøy km hvis synlig (kun tall)",
-  "vehicleCost": "kjøretøy kostnad hvis synlig (kun tall)",
-  "partsCost": "sum av alle deler/materialer som IKKE er T1/RT1/KM (kun tall)",
-  "totalAmount": "totalbeløp/ordresum nederst på fakturaen (kun tall)",
-  "confidence": "din konfidens 0-100 basert på hvor klart teksten er"
-}
-
-KRITISKE REGLER:
-- Alle tall skal være rene tall uten 'kr', mellomrom eller komma som tusenskilletegn
-- Bruk punktum som desimalskilletegn (eks: 1234.50)
-- Hvis felt ikke finnes, bruk null
-- Totalbeløp er vanligvis nederst på fakturaen som "Ordresum" eller "Sum eks mva"
-- T1 = timeservice/arbeid, andre koder = deler/materialer
-- Vær spesielt nøye med totalbeløp og arbeidskostnader`;
-
-    console.log('Calling OpenAI Vision API...');
-    // Call OpenAI Vision API with JSON response format
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        response_format: { type: 'json_object' }, // 🎯 KRITISK FIX - tvinger ren JSON
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { 
-                type: 'text', 
-                text: `Return ONLY valid JSON with Norwegian T. Myhrvold invoice data:
-{
-  "invoiceNumber": "7-8 digit number",
+  "invoiceNumber": "string",
   "invoiceDate": "DD.MM.YYYY", 
   "customerName": "T. Myhrvold AS",
-  "customerNumber": "customer number if visible",
-  "customerOrgNumber": "9 digit org number if visible",
-  "productName": "product from Oppdrag line",
-  "serviceNumber": "service nr if visible", 
-  "projectNumber": "prosjekt nr if visible",
-  "technician": "technician name if visible",
+  "productName": "string",
+  "technician": "string",
   "technicianHours": 0,
   "hourlyRate": 0,
   "workCost": 0,
@@ -160,65 +214,43 @@ KRITISKE REGLER:
   "confidence": 85
 }
 
-CRITICAL CLASSIFICATION RULES:
-- workCost = ONLY lines with code "T1" (labor/service hours)
-- partsCost = ALL other lines EXCEPT T1, RT1, KM (materials/parts)
-- travelTimeCost = lines with "RT1" code (travel time)
-- vehicleCost = lines with "KM" code (vehicle/mileage)
-- totalAmount = "Ordresum" or bottom total on invoice
-
-All numbers as pure numbers without currency or spaces. Use null for missing fields.`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageBase64}`,
-                  detail: 'high'
+Rules: workCost=T1 lines, partsCost=non-T1/RT1/KM lines, pure numbers only.`
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/jpeg;base64,${imageBase64}`,
+                    detail: 'high'
+                  }
                 }
-              }
-            ]
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0
-      })
-    });
+              ]
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0
+        })
+      });
 
-    console.log('OpenAI response status:', response.status);
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
-      throw new Error(`OpenAI API error (${response.status}): ${error}`);
-    }
-
-    console.log('Parsing OpenAI response...');
-    const result = await response.json();
-    const extractedText = result.choices[0].message.content;
-    console.log('OpenAI extracted text:', extractedText.substring(0, 200) + '...');
-
-    // Parse JSON response (response_format garanterer ren JSON)
-    console.log('Parsing JSON from OpenAI response...');
-    let extractedData;
-    try {
-      extractedData = JSON.parse(extractedText); // Ren JSON nå - ingen markdown!
-      console.log('Successfully parsed JSON:', extractedData);
-    } catch (e) {
-      console.error('JSON parsing failed:', e);
-      console.error('Raw OpenAI response:', extractedText);
-      throw new Error(`Failed to parse OpenAI response as JSON: ${e.message}`);
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        data: extractedData,
-        rawText: extractedText 
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      if (!response.ok) {
+        throw new Error(`Vision API fallback failed: ${response.status}`);
       }
-    );
+
+      const result = await response.json();
+      const extractedText = result.choices[0].message.content;
+      const extractedData = JSON.parse(extractedText);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data: extractedData,
+          source: 'vision_fallback',
+          rawText: extractedText 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
   } catch (error) {
     console.error('Error in openai-vision-ocr:', error);

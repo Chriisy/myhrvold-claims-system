@@ -507,19 +507,19 @@ export class OCRService {
   }
 
   public static async processImageWithOpenAI(file: File): Promise<{ text: string; confidence: number }> {
-    console.log('Processing image with OpenAI Vision API...');
+    console.log('🤖 Processing image with OpenAI Assistant API...');
     
     try {
       // Convert file to base64
       const arrayBuffer = await file.arrayBuffer();
       const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
       
-      // Call OpenAI Vision API via Edge Function
+      // Call OpenAI Assistant API via Edge Function
       const { data, error } = await supabase.functions.invoke('openai-vision-ocr', {
         body: { imageBase64: base64String }
       });
       
-      console.log('OpenAI Edge Function response:', { data, error });
+      console.log('OpenAI Assistant Edge Function response:', { data, error });
       
       if (error) {
         console.error('Supabase function error:', error);
@@ -531,12 +531,13 @@ export class OCRService {
       }
       
       if (!data.success) {
-        console.error('OpenAI processing failed:', data);
-        throw new Error(data.error || 'Failed to process image with OpenAI');
+        console.error('OpenAI Assistant processing failed:', data);
+        throw new Error(data.error || 'Failed to process image with OpenAI Assistant');
       }
       
       const extractedData = data.data;
-      console.log('OpenAI extracted data:', extractedData);
+      console.log('✅ OpenAI Assistant extracted data:', extractedData);
+      console.log('📊 Processing source:', data.source); // 'assistant', 'vision_fallback', etc.
       
       // 🎯 CRITICAL FIX: Correct OpenAI's work classification for T. Myhrvold invoices
       if (extractedData.customerName === 'T. Myhrvold AS') {
