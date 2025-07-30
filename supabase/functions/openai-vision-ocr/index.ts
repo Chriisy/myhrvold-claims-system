@@ -69,7 +69,7 @@ KRITISKE REGLER:
 - Vær spesielt nøye med totalbeløp og arbeidskostnader`;
 
     console.log('Calling OpenAI Vision API...');
-    // Call OpenAI Vision API
+    // Call OpenAI Vision API with JSON response format
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -78,11 +78,37 @@ KRITISKE REGLER:
       },
       body: JSON.stringify({
         model: 'gpt-4o',
+        response_format: { type: 'json_object' }, // 🎯 KRITISK FIX - tvinger ren JSON
         messages: [
           {
             role: 'user',
             content: [
-              { type: 'text', text: prompt },
+              { 
+                type: 'text', 
+                text: `Return ONLY valid JSON with Norwegian T. Myhrvold invoice data:
+{
+  "invoiceNumber": "7-8 digit number",
+  "invoiceDate": "DD.MM.YYYY",
+  "customerName": "T. Myhrvold AS",
+  "customerNumber": "customer number if visible",
+  "customerOrgNumber": "9 digit org number if visible", 
+  "productName": "product from Oppdrag line",
+  "serviceNumber": "service nr if visible",
+  "projectNumber": "prosjekt nr if visible",
+  "technician": "technician name if visible",
+  "technicianHours": 0,
+  "hourlyRate": 0,
+  "workCost": 0,
+  "travelTimeHours": 0,
+  "travelTimeCost": 0,
+  "vehicleKm": 0,
+  "vehicleCost": 0,
+  "partsCost": 0,
+  "totalAmount": 0,
+  "confidence": 85
+}
+All numbers as pure numbers without currency or spaces. Use null for missing fields.`
+              },
               {
                 type: 'image_url',
                 image_url: {
@@ -111,21 +137,11 @@ KRITISKE REGLER:
     const extractedText = result.choices[0].message.content;
     console.log('OpenAI extracted text:', extractedText.substring(0, 200) + '...');
 
-    // Parse JSON response
+    // Parse JSON response (response_format garanterer ren JSON)
     console.log('Parsing JSON from OpenAI response...');
     let extractedData;
     try {
-      // Clean the response text - remove any markdown formatting
-      let cleanText = extractedText.trim();
-      if (cleanText.startsWith('```json')) {
-        cleanText = cleanText.replace(/```json\n?/, '').replace(/\n?```$/, '');
-      }
-      if (cleanText.startsWith('```')) {
-        cleanText = cleanText.replace(/```\n?/, '').replace(/\n?```$/, '');
-      }
-      
-      console.log('Cleaned text for parsing:', cleanText.substring(0, 200));
-      extractedData = JSON.parse(cleanText);
+      extractedData = JSON.parse(extractedText); // Ren JSON nå - ingen markdown!
       console.log('Successfully parsed JSON:', extractedData);
     } catch (e) {
       console.error('JSON parsing failed:', e);
