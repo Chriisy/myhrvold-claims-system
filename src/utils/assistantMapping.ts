@@ -27,12 +27,12 @@ export function mapAssistantDataToClaimForm(assistantData: any): ScannedInvoiceD
     
     // Product information
     productName: assistantData.productName || '',
-    productNumber: assistantData.productNumber || '',
+    productNumber: assistantData.productNumber || assistantData.serviceNumber || '',
     productModel: assistantData.productModel || '',
     serialNumber: assistantData.serialNumber || '',
-    msNumber: assistantData.msNumber || '',
+    msNumber: assistantData.msNumber || assistantData.serviceNumber || '',
     shortDescription: assistantData.productName || '',
-    detailedDescription: assistantData.description || assistantData.productName || '',
+    detailedDescription: assistantData.workDescription || assistantData.description || assistantData.productName || '',
     
     // Work costs - mapping from Assistant API
     technicianHours: Number(assistantData.technicianHours || 0),

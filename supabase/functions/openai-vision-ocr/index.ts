@@ -187,26 +187,49 @@ serve(async (req) => {
               content: [
                 { 
                   type: 'text', 
-                  text: `Extract T. Myhrvold invoice data as JSON:
+                  text: `Extract ALL T. Myhrvold invoice data as JSON. Scan the ENTIRE invoice carefully:
+
+REQUIRED OUTPUT FORMAT:
 {
-  "invoiceNumber": "string",
-  "invoiceDate": "DD.MM.YYYY", 
+  "invoiceNumber": "string (7-8 digits from faktura header)",
+  "invoiceDate": "DD.MM.YYYY (fakturadate)",
   "customerName": "T. Myhrvold AS",
-  "productName": "string",
-  "technician": "string",
+  "customerNumber": "string (if visible)",
+  "contactPerson": "string (vår referanse/ref field)",
+  "productName": "string (main service/product described)",
+  "productModel": "string (if mentioned)",
+  "serialNumber": "string (if visible)",
+  "technician": "string (tekniker name at bottom of invoice)",
+  "serviceNumber": "string (service nr/projekt nr)",
+  "projectNumber": "string (projekt nr if different)",
+  "msNumber": "string (MS number if visible)",
+  "workDescription": "string (detailed work performed)",
   "technicianHours": 0,
   "hourlyRate": 0,
   "workCost": 0,
   "travelTimeHours": 0,
   "travelTimeCost": 0,
   "vehicleKm": 0,
+  "krPerKm": 0,
   "vehicleCost": 0,
   "partsCost": 0,
   "totalAmount": 0,
-  "confidence": 85
+  "confidence": 95
 }
 
-Rules: workCost=T1 lines, partsCost=non-T1/RT1/KM lines, pure numbers only.`
+EXTRACTION RULES:
+1. invoiceNumber: Look for 7-8 digit number in header (e.g., 2313044)
+2. technician: Find name at bottom (e.g., "Eirik Jarl Wangberg")
+3. workCost: Sum all T1/Time service lines
+4. partsCost: Sum all non-T1/RT1/KM lines (equipment, parts)
+5. travelTimeCost: Sum all RT1/Reise lines
+6. vehicleCost: Sum all KM/Bil lines
+7. Extract contact person from "Vår referanse" field
+8. Extract detailed work description from beskrivelse
+9. Extract service/projekt numbers
+10. Calculate hours from cost/rate when possible
+
+Be thorough and extract ALL visible data!`
                 },
                 {
                   type: 'image_url',
