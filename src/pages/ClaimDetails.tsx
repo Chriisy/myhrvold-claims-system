@@ -65,6 +65,28 @@ const ClaimDetails = () => {
       customLineItems = [];
     }
   }
+
+  // Calculate costs consistently
+  const workCost = Number(claimData.work_hours || 0) * Number(claimData.hourly_rate || 0);
+  const overtime50Cost = Number(claimData.overtime_50_hours || 0) * Number(claimData.hourly_rate || 0) * 1.5;
+  const overtime100Cost = Number(claimData.overtime_100_hours || 0) * Number(claimData.hourly_rate || 0) * 2;
+  const travelTimeCost = Number(claimData.travel_hours || 0) * Number(claimData.hourly_rate || 0);
+  const vehicleCost = Number(claimData.travel_distance_km || 0) * Number(claimData.vehicle_cost_per_km || 7.5);
+  const customLineItemsTotal = customLineItems.reduce((sum: number, item: any) => 
+    sum + (Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0);
+  
+  const partsCost = Number(claimData.parts_cost || 0);
+  const travelCost = Number(claimData.travel_cost || 0);  
+  const consumablesCost = Number(claimData.consumables_cost || 0);
+  const externalServicesCost = Number(claimData.external_services_cost || 0);
+  
+  // Use calculated total cost for consistency
+  const calculatedTotalCost = workCost + overtime50Cost + overtime100Cost + travelTimeCost + vehicleCost + 
+                              partsCost + travelCost + consumablesCost + externalServicesCost + customLineItemsTotal;
+  const totalRefunded = Number(claimData.refunded_work_cost || 0) + Number(claimData.refunded_parts_cost || 0) + 
+                        Number(claimData.refunded_travel_cost || 0) + Number(claimData.refunded_vehicle_cost || 0) + 
+                        Number(claimData.refunded_other_cost || 0);
+  const calculatedNetCost = calculatedTotalCost - totalRefunded;
   
   const economicData = {
     workHours: claimData.work_hours || 0,
@@ -75,21 +97,21 @@ const ClaimDetails = () => {
     travelDistanceKm: claimData.travel_distance_km || 0,
     vehicleCostPerKm: claimData.vehicle_cost_per_km || 7.5,
     customLineItems: customLineItems,
-    partsCost: claimData.parts_cost || 0,
-    travelCost: claimData.travel_cost || 0,
-    consumablesCost: claimData.consumables_cost || 0,
-    externalServicesCost: claimData.external_services_cost || 0,
-    totalCost: claimData.total_cost || 0,
+    partsCost: partsCost,
+    travelCost: travelCost,
+    consumablesCost: consumablesCost,
+    externalServicesCost: externalServicesCost,
+    totalCost: calculatedTotalCost, // Use calculated value for consistency
     expectedRefund: claimData.expected_refund || 0,
     actualRefund: claimData.actual_refund,
     refundStatus: claimData.refund_status,
-    netCost: claimData.net_cost,
+    netCost: calculatedNetCost, // Use calculated value for consistency
     refundedWorkCost: claimData.refunded_work_cost,
     refundedPartsCost: claimData.refunded_parts_cost,
     refundedTravelCost: claimData.refunded_travel_cost,
     refundedVehicleCost: claimData.refunded_vehicle_cost,
     refundedOtherCost: claimData.refunded_other_cost,
-    totalRefunded: claimData.total_refunded
+    totalRefunded: totalRefunded
   };
 
   // Prepare organization data
