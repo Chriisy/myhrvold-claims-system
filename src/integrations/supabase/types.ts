@@ -798,6 +798,8 @@ export type Database = {
         | "kristiansand"
         | "nord_norge"
         | "innlandet"
+        | "vestfold"
+        | "agder"
       issue_type:
         | "warranty"
         | "claim"
@@ -950,6 +952,8 @@ export const Constants = {
         "kristiansand",
         "nord_norge",
         "innlandet",
+        "vestfold",
+        "agder",
       ],
       issue_type: [
         "warranty",
