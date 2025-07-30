@@ -37,7 +37,7 @@ export const productInfoSchema = z.object({
 // Issue Description Schema
 export const issueDescriptionSchema = z.object({
   issueType: z.enum(["warranty", "claim", "service_callback", "extended_warranty"], {
-    required_error: "Sakstype er påkrevd",
+    message: "Sakstype er påkrevd",
   }),
   issueDescription: z.string()
     .min(1, "Kort beskrivelse er påkrevd")
