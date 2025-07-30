@@ -373,19 +373,11 @@ const ClaimsFormAdvanced = () => {
     }
     
     // Cost Mapping - Use all available cost data
-    const workCost = ocrData.workCost || 0;
+    const workCost = ocrData.workCost || ocrData.laborCost || 0;
     const partsCost = ocrData.partsCost || 0;
     const travelTimeCost = ocrData.travelTimeCost || 0;
     const vehicleCost = ocrData.vehicleCost || 0;
     const totalCost = ocrData.totalAmount || 0;
-    
-    console.log('💰 Extracted costs from OCR:', {
-      workCost,
-      partsCost,
-      travelTimeCost,
-      vehicleCost,
-      totalCost
-    });
     
     // Apply all cost fields directly
     if (workCost > 0) {
@@ -451,7 +443,6 @@ const ClaimsFormAdvanced = () => {
     
     // Show summary of what was extracted
     const extractedFields = Object.keys(updates).length;
-    console.log(`✅ Applied ${extractedFields} field updates from OCR`);
     setFormData(prev => ({ ...prev, ...updates }));
 
     toast({
@@ -1793,9 +1784,9 @@ const ClaimsFormAdvanced = () => {
                          <p><strong>Reservedeler:</strong> {customLineItems.length} stk</p>
                          {customLineItems.length > 0 && (
                            <div className="mt-2 text-xs text-muted-foreground">
-                             {customLineItems.map((item, index) => (
-                               <div key={index}>• {item.partNumber} - {item.description} ({item.quantity} stk)</div>
-                             ))}
+                              {customLineItems.map((item, index) => (
+                                <div key={`${item.partNumber}-${index}`}>• {item.partNumber} - {item.description} ({item.quantity} stk)</div>
+                              ))}
                            </div>
                          )}
                        </div>

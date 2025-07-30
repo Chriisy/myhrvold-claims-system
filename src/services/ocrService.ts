@@ -27,7 +27,6 @@ export class OCRService {
     }
     
     const result = parseFloat(cleaned) || 0;
-    console.log(`Parsing amount: "${amountStr}" -> ${result}`);
     return result;
   }
 
@@ -144,7 +143,6 @@ export class OCRService {
   }
 
   public static async parseVismaInvoice(text: string, file?: File): Promise<ScannedInvoiceData> {
-    console.log('Parsing invoice with enhanced detection...');
     
     // First check if this is a Myhrvold invoice and use enhanced parser
     if (file && text.includes('T. Myhrvold AS')) {
@@ -153,7 +151,6 @@ export class OCRService {
         
         // Use fast detection
         if (isMyhrvoldInternal(text)) {
-          console.log('🎯 Using enhanced Myhrvold parser...');
           const parsedInvoice = await parseMyhrvold(file);
           
           return {
@@ -216,7 +213,6 @@ export class OCRService {
       const jsonData = JSON.parse(text);
       if (jsonData.invoiceNumber && jsonData.customerName) {
         openAIData = jsonData;
-        console.log('Processing OpenAI JSON data:', openAIData);
       }
     } catch (e) {
       // Not JSON, continue with text parsing
@@ -280,7 +276,6 @@ export class OCRService {
                              text.includes('Myhrvold');
     
     if (isMyhrvoldInvoice && file) {
-      console.log('Detected T. Myhrvold invoice, using enhanced parser...');
       try {
         const parsedInvoice = await parseMyhrvold(file);
         const warnings = validateMyhrvoldInvoice(parsedInvoice);
@@ -358,7 +353,6 @@ export class OCRService {
     }
     
     // Fallback to original regex-based parsing
-    console.log('Using fallback regex patterns...');
     const patterns = this.getInvoicePatterns();
 
     const data: ScannedInvoiceData = {
@@ -410,7 +404,6 @@ export class OCRService {
       confidence: 0
     };
 
-    console.log('Extracted data:', data);
 
     // 📊 Oppdatert Konfidensberegning (55% minimum)
     let confidence = 0;
@@ -466,7 +459,6 @@ export class OCRService {
       console.warn('OCR Warnings:', warnings);
     }
 
-    console.log(`OCR Confidence: ${Math.round(data.confidence * 100)}%`);
     return data;
   }
 
@@ -508,7 +500,6 @@ export class OCRService {
   }
 
   public static async processImageWithOpenAI(file: File, fillClaimForm?: (data: ScannedInvoiceData) => void): Promise<ScannedInvoiceData | null> {
-    console.log('🤖 Starting OpenAI Assistant analysis...');
     
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -538,9 +529,7 @@ export class OCRService {
 
   public static async processImageWithTesseract(file: File): Promise<ScannedInvoiceData | null> {
     // Process with Tesseract.js - optimized for Norwegian invoices
-    const worker = await createWorker(['nor', 'eng'], 1, {
-      logger: m => console.log(m)
-    });
+    const worker = await createWorker(['nor', 'eng'], 1);
 
     // ⚙️ Enhanced OCR parameters for Norwegian claims management
     await worker.setParameters({
@@ -550,10 +539,6 @@ export class OCRService {
 
     const { data: { text, confidence } } = await worker.recognize(file);
     await worker.terminate();
-
-    console.log('OCR Confidence:', confidence);
-    console.log('OCR Text length:', text.length);
-    console.log('OCR Text:', text);
 
     // Parse the invoice with enhanced detection
     const parsedData = await this.parseVismaInvoice(text, file);

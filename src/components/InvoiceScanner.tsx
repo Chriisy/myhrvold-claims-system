@@ -49,8 +49,7 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
 
       // Process with OCR service
       const parsedData = await OCRService.processImage(file, undefined, useOpenAI);
-      console.log('OCR result:', parsedData);
-
+      
       if (parsedData) {
         setExtractedData(parsedData);
         validateExtractedData(parsedData);

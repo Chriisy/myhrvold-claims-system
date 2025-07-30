@@ -35,7 +35,6 @@ export interface InvoiceJSON {
  * Maps InvoiceJSON structure to ClaimForm (ScannedInvoiceData)
  */
 export function map(json: InvoiceJSON): ScannedInvoiceData {
-  console.log('🗺️ Mapping InvoiceJSON to ClaimForm:', json);
 
   // Fallback check - throw ASSIST_FAIL if totals are missing
   if (!json.totals) {
@@ -114,11 +113,8 @@ export function map(json: InvoiceJSON): ScannedInvoiceData {
   if (totalDiff > 2) {
     console.warn(`⚠️ Total validation failed. Calculated: ${calculatedTotal}, Extracted: ${mappedData.totalAmount}, Diff: ${totalDiff}`);
     mappedData.confidence = Math.max(50, mappedData.confidence - 20);
-  } else {
-    console.log('✅ Total validation passed for mapped data');
   }
 
-  console.log('🎯 Mapped data:', mappedData);
   return mappedData;
 }
 
@@ -147,7 +143,6 @@ export function validateInvoiceJSON(data: InvoiceJSON): boolean {
  * @deprecated Use validateInvoiceJSON() instead
  */
 export function validateAssistantResponse(data: any): boolean {
-  console.log('⚠️ Using deprecated validateAssistantResponse. Consider using validateInvoiceJSON() instead.');
   return validateInvoiceJSON(data);
 }
 
@@ -157,7 +152,6 @@ export function validateAssistantResponse(data: any): boolean {
  * @deprecated Use map() function with InvoiceJSON instead
  */
 export function mapAssistantDataToClaimForm(assistantData: any): ScannedInvoiceData {
-  console.log('⚠️ Using deprecated mapAssistantDataToClaimForm. Consider using map() instead.');
   
   // Convert legacy format to InvoiceJSON format
   const invoiceJSON: InvoiceJSON = {
@@ -210,7 +204,6 @@ export function mapInvoiceRowsToLineItems(rows: any[]): any[] {
  * @deprecated Use mapInvoiceRowsToLineItems() instead
  */
 export function mapAssistantRowsToLineItems(rows: any[]): any[] {
-  console.log('⚠️ Using deprecated mapAssistantRowsToLineItems. Consider using mapInvoiceRowsToLineItems() instead.');
   return mapInvoiceRowsToLineItems(rows);
 }
 
