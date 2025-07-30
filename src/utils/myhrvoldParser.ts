@@ -21,6 +21,10 @@ interface ParsedInvoice {
   tekniker: string;
   total: number;
   rows: InvoiceRow[];
+  // Enhanced work classification
+  arbeidskostnad: number;
+  delekostnad: number;
+  reisekostnad: number;
   confidence: number;
 }
 
@@ -92,7 +96,26 @@ async function preprocessImage(file: File): Promise<ProcessedImage> {
   });
 }
 
-// Parse table rows with intelligent column detection
+// Enhanced column splitting that handles discount columns robustly
+function splitCols(raw: string): string[] {
+  const cols = raw.trim().split(/\s{2,}/).filter(col => col.trim());
+  
+  // If we get 6 columns, assume discount column exists at position -3 (remove it)
+  if (cols.length === 6) {
+    // Remove discount column (typically "35 %" or similar)
+    const discountIndex = cols.findIndex(col => col.match(/^\d+\s*%$/));
+    if (discountIndex !== -1) {
+      cols.splice(discountIndex, 1);
+    } else {
+      // Fallback: remove third-to-last column
+      cols.splice(-3, 1);
+    }
+  }
+  
+  return cols;
+}
+
+// Parse table rows with robust column detection and work classification
 function parseTableRows(text: string): InvoiceRow[] {
   const rows: InvoiceRow[] = [];
   
@@ -102,11 +125,14 @@ function parseTableRows(text: string): InvoiceRow[] {
       const line = raw.trim();
       if (!line || line.length < 10) return;
       
-      // Split by multiple spaces (2 or more)
-      const cols = line.split(/\s{2,}/).filter(col => col.trim());
+      // Use enhanced column splitting
+      const cols = splitCols(line);
       if (cols.length < 4) return;
       
       const [produktkode, ...rest] = cols;
+      
+      // Skip header rows
+      if (produktkode.match(/^(produktnr|beskrivelse|antall|pris|beløp)/i)) return;
       
       // Last three columns: antall, pris, beløp
       const belopStr = rest.at(-1)?.replace(/\s/g, '').replace(',', '.') || '0';
@@ -128,7 +154,7 @@ function parseTableRows(text: string): InvoiceRow[] {
   return rows;
 }
 
-// Calculate confidence based on extracted data quality
+// Enhanced confidence calculation with work classification
 function calculateConfidence(invoice: ParsedInvoice): number {
   let score = 0;
   let maxScore = 0;
@@ -156,9 +182,19 @@ function calculateConfidence(invoice: ParsedInvoice): number {
   if (invoice.oppdrag) score += 10;
   maxScore += 10;
   
-  // Table data (medium weight)
-  if (invoice.rows.length > 0) score += 10;
-  maxScore += 10;
+  // Table data and work classification (enhanced scoring)
+  if (invoice.rows.length > 0) score += 5;
+  maxScore += 5;
+  
+  // Check for proper work classification
+  const hasLabor = invoice.rows.some(r => r.produktkode.startsWith('T1'));
+  const hasParts = invoice.rows.some(r => !r.produktkode.startsWith('T1') && !r.produktkode.startsWith('RT1') && r.produktkode !== 'KM');
+  
+  if (hasLabor) score += 5;
+  maxScore += 5;
+  
+  if (hasParts || hasLabor) score += 5;
+  maxScore += 5;
   
   return maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
 }
@@ -207,7 +243,7 @@ export async function parseMyhrvold(file: File): Promise<ParsedInvoice> {
     
     const oppdrag = grab(/Oppdrag:\s*(.+?)(?=\n\n|\n[A-Z]|$)/is);
     
-    const beskrivelseUtfort = grab(/(?:Beskrivelse utført|Jobb utført):\s*(.+?)(?=\n\n|\nTeknik|$)/is);
+    const beskrivelseUtfort = grab(/(?:Beskrivelse utført|Jobb utført):\s*([\s\S]+?)(?=\n[A-ZÆØÅ]{3,}|$)/i);
     
     const tekniker = grab(/Tekniker:\s*(.+?)(?=\n|$)/i);
     
@@ -219,6 +255,21 @@ export async function parseMyhrvold(file: File): Promise<ParsedInvoice> {
     
     // ---------- 4) PARSE TABLE ROWS ----------
     const rows = parseTableRows(text);
+    
+    // ---------- 5) CLASSIFY WORK TYPES ----------
+    const laborRows = rows.filter(r => r.produktkode.startsWith('T1'));
+    const travelRows = rows.filter(r => r.produktkode.startsWith('RT1') || r.produktkode === 'KM');
+    const partsRows = rows.filter(r => !r.produktkode.startsWith('T1') && !r.produktkode.startsWith('RT1') && r.produktkode !== 'KM');
+    
+    const arbeidskostnad = laborRows.reduce((sum, row) => sum + row.belop, 0);
+    const reisekostnad = travelRows.reduce((sum, row) => sum + row.belop, 0);
+    const delekostnad = partsRows.reduce((sum, row) => sum + row.belop, 0);
+    
+    console.log('Work classification:', {
+      labor: { count: laborRows.length, cost: arbeidskostnad },
+      travel: { count: travelRows.length, cost: reisekostnad },
+      parts: { count: partsRows.length, cost: delekostnad }
+    });
     
     const invoice: ParsedInvoice = {
       fakturaNr,
@@ -233,6 +284,9 @@ export async function parseMyhrvold(file: File): Promise<ParsedInvoice> {
       tekniker,
       total,
       rows,
+      arbeidskostnad,
+      delekostnad,
+      reisekostnad,
       confidence: 0 // Will be calculated below
     };
     

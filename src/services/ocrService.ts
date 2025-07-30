@@ -216,13 +216,9 @@ export class OCRService {
           technician: parsedInvoice.tekniker,
           department: '',
           
-          // Legacy fields for compatibility
-          laborCost: parsedInvoice.rows
-            .filter(r => r.produktkode === 'T1')
-            .reduce((sum, r) => sum + r.belop, 0),
-          partsCost: parsedInvoice.rows
-            .filter(r => !['T1', 'RT1', 'KM', 'PARKERING'].includes(r.produktkode))
-            .reduce((sum, r) => sum + r.belop, 0),
+          // Legacy fields for compatibility - using enhanced classification
+          laborCost: parsedInvoice.arbeidskostnad,
+          partsCost: parsedInvoice.delekostnad,
           totalAmount: parsedInvoice.total,
           evaticJobNumber: parsedInvoice.serviceNr || parsedInvoice.prosjektNr,
           confidence: parsedInvoice.confidence

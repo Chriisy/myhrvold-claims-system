@@ -88,12 +88,12 @@ KRITISKE REGLER:
                 text: `Return ONLY valid JSON with Norwegian T. Myhrvold invoice data:
 {
   "invoiceNumber": "7-8 digit number",
-  "invoiceDate": "DD.MM.YYYY",
+  "invoiceDate": "DD.MM.YYYY", 
   "customerName": "T. Myhrvold AS",
   "customerNumber": "customer number if visible",
-  "customerOrgNumber": "9 digit org number if visible", 
+  "customerOrgNumber": "9 digit org number if visible",
   "productName": "product from Oppdrag line",
-  "serviceNumber": "service nr if visible",
+  "serviceNumber": "service nr if visible", 
   "projectNumber": "prosjekt nr if visible",
   "technician": "technician name if visible",
   "technicianHours": 0,
@@ -107,6 +107,14 @@ KRITISKE REGLER:
   "totalAmount": 0,
   "confidence": 85
 }
+
+CRITICAL CLASSIFICATION RULES:
+- workCost = ONLY lines with code "T1" (labor/service hours)
+- partsCost = ALL other lines EXCEPT T1, RT1, KM (materials/parts)
+- travelTimeCost = lines with "RT1" code (travel time)
+- vehicleCost = lines with "KM" code (vehicle/mileage)
+- totalAmount = "Ordresum" or bottom total on invoice
+
 All numbers as pure numbers without currency or spaces. Use null for missing fields.`
               },
               {
