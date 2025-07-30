@@ -49,13 +49,13 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
       const { text } = await OCRService.processImage(file);
 
       // Parse the extracted text
-      const parsedData = OCRService.parseVismaInvoice(text);
+      const parsedData = await OCRService.parseVismaInvoice(text, file);
       
       setExtractedData(parsedData);
       validateExtractedData(parsedData);
       showSuccess(
         'Faktura skannet!',
-        `${Math.round(parsedData.confidence * 100)}% sikkerhet på gjenkjenning`
+        `${Math.round(parsedData.confidence)}% sikkerhet på gjenkjenning`
       );
 
     } catch (error: any) {

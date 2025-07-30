@@ -1,5 +1,6 @@
 import { createWorker } from 'tesseract.js';
 import { ScannedInvoiceData } from '@/types/scanner';
+import { parseMyhrvold, validateMyhrvoldInvoice } from '@/utils/myhrvoldParser';
 
 export class OCRService {
   private static parseAmount(amountStr: string): number {
@@ -140,9 +141,98 @@ export class OCRService {
     return customer;
   }
 
-  public static parseVismaInvoice(text: string): ScannedInvoiceData {
-    console.log('Parsing text:', text);
+  public static async parseVismaInvoice(text: string, file?: File): Promise<ScannedInvoiceData> {
+    console.log('Parsing invoice with enhanced detection...');
     
+    // Check if this is a T. Myhrvold invoice
+    const isMyhrvoldInvoice = text.includes('T. Myhrvold AS') || 
+                             text.includes('Utstyr til næringsmiddelbransjen') ||
+                             text.includes('Myhrvold');
+    
+    if (isMyhrvoldInvoice && file) {
+      console.log('Detected T. Myhrvold invoice, using enhanced parser...');
+      try {
+        const parsedInvoice = await parseMyhrvold(file);
+        const warnings = validateMyhrvoldInvoice(parsedInvoice);
+        
+        if (warnings.length > 0) {
+          console.warn('Validation warnings:', warnings);
+        }
+        
+        // Map to ScannedInvoiceData format
+        return {
+          // Invoice details
+          invoiceNumber: parsedInvoice.fakturaNr,
+          invoiceDate: parsedInvoice.fakturaDato,
+          
+          // Customer information
+          customerName: 'T. Myhrvold AS',
+          customerNumber: parsedInvoice.kundeNr,
+          contactPerson: '',
+          email: '',
+          phone: '',
+          address: parsedInvoice.ordreAdresse,
+          customerOrgNumber: '',
+          
+          // Product information
+          productName: parsedInvoice.oppdrag?.substring(0, 60) || '',
+          productNumber: '',
+          productModel: '',
+          serialNumber: '',
+          msNumber: '',
+          shortDescription: parsedInvoice.oppdrag || '',
+          detailedDescription: parsedInvoice.beskrivelseUtfort || '',
+          
+          // Calculate work costs from table data
+          technicianHours: parsedInvoice.rows
+            .filter(r => r.produktkode === 'T1')
+            .reduce((sum, r) => sum + r.antall, 0),
+          hourlyRate: parsedInvoice.rows
+            .find(r => r.produktkode === 'T1')?.pris || 0,
+          workCost: parsedInvoice.rows
+            .filter(r => r.produktkode === 'T1')
+            .reduce((sum, r) => sum + r.belop, 0),
+          overtime50Hours: 0,
+          overtime50Cost: 0,
+          overtime100Hours: 0,
+          overtime100Cost: 0,
+          travelTimeHours: parsedInvoice.rows
+            .filter(r => r.produktkode === 'RT1')
+            .reduce((sum, r) => sum + r.antall, 0),
+          travelTimeCost: parsedInvoice.rows
+            .filter(r => r.produktkode === 'RT1')
+            .reduce((sum, r) => sum + r.belop, 0),
+          vehicleKm: parsedInvoice.rows
+            .filter(r => r.produktkode.includes('KM') || r.produktkode.includes('Bil'))
+            .reduce((sum, r) => sum + r.antall, 0),
+          krPerKm: parsedInvoice.rows
+            .find(r => r.produktkode.includes('KM') || r.produktkode.includes('Bil'))?.pris || 0,
+          vehicleCost: parsedInvoice.rows
+            .filter(r => r.produktkode.includes('KM') || r.produktkode.includes('Bil'))
+            .reduce((sum, r) => sum + r.belop, 0),
+          
+          // Technician details
+          technician: parsedInvoice.tekniker,
+          department: '',
+          
+          // Legacy fields for compatibility
+          laborCost: parsedInvoice.rows
+            .filter(r => r.produktkode === 'T1')
+            .reduce((sum, r) => sum + r.belop, 0),
+          partsCost: parsedInvoice.rows
+            .filter(r => !['T1', 'RT1', 'KM', 'PARKERING'].includes(r.produktkode))
+            .reduce((sum, r) => sum + r.belop, 0),
+          totalAmount: parsedInvoice.total,
+          evaticJobNumber: parsedInvoice.serviceNr || parsedInvoice.prosjektNr,
+          confidence: parsedInvoice.confidence
+        };
+      } catch (error) {
+        console.warn('Enhanced parser failed, falling back to regex patterns:', error);
+      }
+    }
+    
+    // Fallback to original regex-based parsing
+    console.log('Using fallback regex patterns...');
     const patterns = this.getInvoicePatterns();
 
     const data: ScannedInvoiceData = {
@@ -310,6 +400,12 @@ export class OCRService {
     console.log('OCR Text length:', text.length);
     console.log('OCR Text:', text);
 
-    return { text, confidence };
+    // Parse the invoice with enhanced detection
+    const parsedData = await this.parseVismaInvoice(text, file);
+
+    return { 
+      text, 
+      confidence: parsedData.confidence // Use our calculated confidence
+    };
   }
 }

@@ -30,11 +30,26 @@ export const ScannerResults: React.FC<ScannerResultsProps> = ({
             />
           </div>
         )}
-        <div className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success" />
-          <span className="text-sm">
-            Sikkerhet: {Math.round(extractedData.confidence * 100)}%
-          </span>
+        <div className={`p-3 rounded-lg ${
+          extractedData.confidence >= 90 ? 'bg-green-50 dark:bg-green-950' :
+          extractedData.confidence >= 70 ? 'bg-yellow-50 dark:bg-yellow-950' :
+          'bg-red-50 dark:bg-red-950'
+        }`}>
+          <div className="flex items-center gap-2">
+            <CheckCircle className={`h-4 w-4 ${
+              extractedData.confidence >= 90 ? 'text-green-600' :
+              extractedData.confidence >= 70 ? 'text-yellow-600' :
+              'text-red-600'
+            }`} />
+            <span className="text-sm font-medium">
+              Sikkerhet: {Math.round(extractedData.confidence)}%
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {extractedData.confidence >= 90 ? 'Høy sikkerhet - data ser bra ut' : 
+             extractedData.confidence >= 70 ? 'Middels sikkerhet' : 
+             'Lav sikkerhet - sjekk felter nøye'}
+          </div>
         </div>
       </div>
 
