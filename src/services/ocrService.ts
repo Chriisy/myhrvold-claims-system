@@ -145,7 +145,71 @@ export class OCRService {
   public static async parseVismaInvoice(text: string, file?: File): Promise<ScannedInvoiceData> {
     console.log('Parsing invoice with enhanced detection...');
     
-    // Check if this is a T. Myhrvold invoice
+    // Check if this is OpenAI JSON response
+    let openAIData: any = null;
+    try {
+      const jsonData = JSON.parse(text);
+      if (jsonData.invoiceNumber && jsonData.customerName) {
+        openAIData = jsonData;
+        console.log('Processing OpenAI JSON data:', openAIData);
+      }
+    } catch (e) {
+      // Not JSON, continue with text parsing
+    }
+    
+    // If we have OpenAI data, use it directly (already corrected for T. Myhrvold)
+    if (openAIData) {
+      return {
+        // Invoice details
+        invoiceNumber: openAIData.invoiceNumber || '',
+        invoiceDate: openAIData.invoiceDate || '',
+        
+        // Customer information
+        customerName: openAIData.customerName || '',
+        customerNumber: openAIData.customerNumber || '',
+        contactPerson: '',
+        email: '',
+        phone: '',
+        address: '',
+        customerOrgNumber: openAIData.customerOrgNumber || '',
+        
+        // Product information
+        productName: openAIData.productName || '',
+        productNumber: openAIData.serviceNumber || '',
+        productModel: '',
+        serialNumber: '',
+        msNumber: '',
+        shortDescription: openAIData.productName || '',
+        detailedDescription: '',
+        
+        // Work costs (corrected by post-processing)
+        technicianHours: openAIData.technicianHours || 0,
+        hourlyRate: openAIData.hourlyRate || 0,
+        workCost: openAIData.workCost || 0,
+        overtime50Hours: 0,
+        overtime50Cost: 0,
+        overtime100Hours: 0,
+        overtime100Cost: 0,
+        travelTimeHours: openAIData.travelTimeHours || 0,
+        travelTimeCost: openAIData.travelTimeCost || 0,
+        vehicleKm: openAIData.vehicleKm || 0,
+        krPerKm: 0,
+        vehicleCost: openAIData.vehicleCost || 0,
+        
+        // Technician details
+        technician: openAIData.technician || '',
+        department: '',
+        
+        // Legacy fields for compatibility
+        laborCost: openAIData.workCost || 0,
+        partsCost: openAIData.partsCost || 0,
+        totalAmount: openAIData.totalAmount || 0,
+        evaticJobNumber: openAIData.projectNumber || openAIData.serviceNumber || '',
+        confidence: openAIData.confidence || 85
+      };
+    }
+    
+    // Check if this is a T. Myhrvold invoice for text parsing
     const isMyhrvoldInvoice = text.includes('T. Myhrvold AS') || 
                              text.includes('Utstyr til næringsmiddelbransjen') ||
                              text.includes('Myhrvold');
@@ -410,7 +474,22 @@ export class OCRService {
       const extractedData = data.data;
       console.log('OpenAI extracted data:', extractedData);
       
-      // Return the raw JSON response as text for parsing
+      // 🎯 CRITICAL FIX: Correct OpenAI's work classification for T. Myhrvold invoices
+      if (extractedData.customerName === 'T. Myhrvold AS') {
+        // OpenAI often swaps labor and parts costs - fix this based on invoice structure
+        const totalWorkAndParts = (extractedData.workCost || 0) + (extractedData.partsCost || 0);
+        
+        // Heuristic: Labor (T1) is typically smaller amount than parts on service invoices
+        // If workCost > partsCost, they're likely swapped
+        if (extractedData.workCost > extractedData.partsCost && extractedData.workCost > 5000) {
+          console.log('🔄 Correcting swapped work/parts classification');
+          const tempWorkCost = extractedData.workCost;
+          extractedData.workCost = extractedData.partsCost;
+          extractedData.partsCost = tempWorkCost;
+        }
+      }
+      
+      // Return the corrected JSON response as text for parsing
       return {
         text: JSON.stringify(extractedData),
         confidence: (extractedData.confidence || 80) / 100 // Convert to 0-1 range
