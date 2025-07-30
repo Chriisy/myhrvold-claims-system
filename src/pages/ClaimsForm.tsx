@@ -810,12 +810,23 @@ const ClaimsForm = () => {
               <CardDescription>Last opp bilder, fakturaer eller andre relevante dokumenter</CardDescription>
             </CardHeader>
             <CardContent>
-              <DragDropZone
-                onFilesSelected={setFiles}
-                selectedFiles={files}
-                maxFiles={20}
-                accept={{ 'image/*': [], 'application/pdf': [] }}
-              />
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-gray-600">Dra og slipp filer her</p>
+                <p className="text-sm text-gray-500">eller klikk for å velge filer</p>
+                <p className="text-xs text-gray-400 mt-2">Maks 10MB per fil</p>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setFiles([...files, ...Array.from(e.target.files)]);
+                    }
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
 
