@@ -158,12 +158,10 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
               <span className="font-medium">{formatCurrency(data.expectedRefund)}</span>
             </div>
             
-            {data.actualRefund !== undefined && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Faktisk refusjon:</span>
-                <span className="font-medium">{formatCurrency(data.actualRefund)}</span>
-              </div>
-            )}
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total refundert:</span>
+              <span className="font-medium">{formatCurrency(data.totalRefunded || 0)}</span>
+            </div>
 
             {data.refundStatus && (
               <div className="flex justify-between items-center">
@@ -176,14 +174,12 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
               </div>
             )}
 
-            {data.netCost !== undefined && (
-              <div className="flex justify-between items-center font-semibold border-t pt-2">
-                <span>Netto kostnad:</span>
-                <span className={data.netCost > 0 ? 'text-red-600' : 'text-green-600'}>
-                  {formatCurrency(data.netCost)}
-                </span>
-              </div>
-            )}
+            <div className="flex justify-between items-center font-semibold border-t pt-2">
+              <span>Netto kostnad:</span>
+              <span className={data.netCost > 0 ? 'text-red-600' : 'text-green-600'}>
+                {formatCurrency(data.netCost)}
+              </span>
+            </div>
           </div>
         </div>
 
