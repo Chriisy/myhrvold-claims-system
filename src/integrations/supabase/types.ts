@@ -800,6 +800,7 @@ export type Database = {
         | "innlandet"
         | "vestfold"
         | "agder"
+        | "ekstern"
       issue_type:
         | "warranty"
         | "claim"
@@ -954,6 +955,7 @@ export const Constants = {
         "innlandet",
         "vestfold",
         "agder",
+        "ekstern",
       ],
       issue_type: [
         "warranty",
