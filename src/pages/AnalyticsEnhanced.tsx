@@ -588,7 +588,7 @@ const AnalyticsEnhanced = () => {
                       setBudgetFormData({
                         year: selectedBudgetYear,
                         target_amount: 0,
-                        department: '',
+                        department: 'all',
                         supplier_name: '',
                         notes: ''
                       });
@@ -709,7 +709,7 @@ const AnalyticsEnhanced = () => {
                                 setBudgetFormData({
                                   year: target.year,
                                   target_amount: target.target_amount,
-                                  department: target.department || '',
+                                  department: target.department || 'all',
                                   supplier_name: target.supplier_name || '',
                                   notes: target.notes || ''
                                 });
@@ -780,7 +780,7 @@ const AnalyticsEnhanced = () => {
                         notes: budgetFormData.notes || null,
                       };
 
-                      const departmentValue = budgetFormData.department && budgetFormData.department !== '' ? budgetFormData.department as any : null;
+                      const departmentValue = budgetFormData.department && budgetFormData.department !== '' && budgetFormData.department !== 'all' ? budgetFormData.department as any : null;
                       const supplierValue = budgetFormData.supplier_name && budgetFormData.supplier_name !== '' ? budgetFormData.supplier_name : null;
 
                       if (editingTarget) {
@@ -842,16 +842,16 @@ const AnalyticsEnhanced = () => {
                     </div>
 
                     <div>
-                      <Label htmlFor="budget_department">Avdeling (valgfritt)</Label>
+                      <Label htmlFor="budget_department">Avdeling</Label>
                       <Select
-                        value={budgetFormData.department}
-                        onValueChange={(value) => setBudgetFormData(prev => ({ ...prev, department: value }))}
+                        value={budgetFormData.department === '' ? 'all' : budgetFormData.department}
+                        onValueChange={(value) => setBudgetFormData(prev => ({ ...prev, department: value === 'all' ? '' : value }))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Velg avdeling eller la stå tom for generelt mål" />
+                          <SelectValue placeholder="Välj avdeling för specifikt mål" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Generelt mål (alle avdelinger)</SelectItem>
+                          <SelectItem value="all">Generelt mål (alle avdelinger)</SelectItem>
                           <SelectItem value="oslo">Oslo</SelectItem>
                           <SelectItem value="bergen">Bergen</SelectItem>
                           <SelectItem value="trondheim">Trondheim</SelectItem>
@@ -872,7 +872,7 @@ const AnalyticsEnhanced = () => {
                         id="budget_supplier_name"
                         value={budgetFormData.supplier_name}
                         onChange={(e) => setBudgetFormData(prev => ({ ...prev, supplier_name: e.target.value }))}
-                        placeholder="La stå tom for generelt mål eller spesifiser leverandør"
+                        placeholder="Specifiser leverandör för leverandörspecifikt mål"
                       />
                     </div>
 
