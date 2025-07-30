@@ -360,31 +360,35 @@ const ClaimsFormAdvanced = () => {
     // Technician Information
     if (ocrData.technician) updates.technician = ocrData.technician;
     
-    // Work Details - CRITICAL MAPPING FIX
+    // Work Details - CORRECT FIELD MAPPING
     if (ocrData.technicianHours > 0) {
-      updates.workHours = ocrData.technicianHours;
+      updates.technicianHours = ocrData.technicianHours; // Correct field name
     }
     if (ocrData.hourlyRate > 0) {
       updates.hourlyRate = ocrData.hourlyRate;
     }
     
-    // Cost Mapping - Use correct field names
-    const laborCost = ocrData.workCost || ocrData.laborCost || 0;
+    // Cost Mapping - Use all available cost data
+    const workCost = ocrData.workCost || 0;
     const partsCost = ocrData.partsCost || 0;
+    const travelTimeCost = ocrData.travelTimeCost || 0;
+    const vehicleCost = ocrData.vehicleCost || 0;
     const totalCost = ocrData.totalAmount || 0;
     
-    if (laborCost > 0) {
-      // If we have both hours and cost, verify they match
-      if (ocrData.technicianHours && ocrData.hourlyRate) {
-        const calculatedCost = ocrData.technicianHours * ocrData.hourlyRate;
-        if (Math.abs(calculatedCost - laborCost) > 50) {
-          console.warn('⚠️ Labor cost mismatch detected');
-        }
-      }
-      // Calculate work hours if not already extracted
-      if (!ocrData.technicianHours && ocrData.hourlyRate > 0) {
-        updates.workHours = Math.round((laborCost / ocrData.hourlyRate) * 100) / 100;
-      }
+    console.log('💰 Extracted costs from OCR:', {
+      workCost,
+      partsCost,
+      travelTimeCost,
+      vehicleCost,
+      totalCost
+    });
+    
+    // Apply all cost fields directly
+    if (workCost > 0) {
+      updates.workCost = workCost;
+    }
+    if (partsCost > 0) {
+      updates.partsCost = partsCost;
     }
     
     // Travel Costs
@@ -408,7 +412,7 @@ const ClaimsFormAdvanced = () => {
     
     // Calculate any missing travel costs if we have total
     if (totalCost > 0) {
-      const knownCosts = laborCost + partsCost + (ocrData.travelTimeCost || 0) + (ocrData.vehicleCost || 0);
+      const knownCosts = workCost + partsCost + travelTimeCost + vehicleCost;
       const remaining = totalCost - knownCosts;
       if (remaining > 0 && !ocrData.travelTimeCost && !ocrData.vehicleCost) {
         updates.travelCost = remaining;

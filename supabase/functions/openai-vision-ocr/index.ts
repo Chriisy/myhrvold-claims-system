@@ -8,16 +8,18 @@ const corsHeaders = {
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
-// Fast detection for Myhrvold invoices from base64 image
-function isMyhrvoldInternal(imageBase64: string): boolean {
-  // Simple heuristic: decode part of the base64 to check if it's likely a Myhrvold invoice
-  // This is a placeholder - in practice you'd need OCR or other detection
-  try {
-    const decoded = atob(imageBase64.substring(0, 1000));
-    return decoded.includes('T.MYHRVOLD') || decoded.includes('MYHRVOLD AS');
-  } catch {
-    return false;
-  }
+// Basic text extraction from image bytes (mock implementation)
+async function extractBasicText(bytes: Uint8Array): Promise<string> {
+  // For now, return empty string - in production you'd use a lightweight OCR
+  // or check image metadata/filename
+  return "";
+}
+
+// Direct Myhrvold parser (simplified for Edge Function)
+async function parseMyhrvoldDirectly(file: File): Promise<any> {
+  // Return null to force fallback to GPT-Vision for now
+  // This would implement the actual Myhrvold parsing logic
+  return null;
 }
 
 serve(async (req) => {
@@ -36,6 +38,44 @@ serve(async (req) => {
 
     console.log('Parsing request body...');
     const { imageBase64 } = await req.json();
+    
+    // 🎯 PRIORITY: Check if this is a Myhrvold invoice first
+    if (imageBase64) {
+      // Create temporary file for Myhrvold detection
+      try {
+        // Convert base64 to Uint8Array
+        const binaryString = atob(imageBase64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        // Create a basic text extraction for detection
+        const basicText = await extractBasicText(bytes);
+        
+        // Check if this is a Myhrvold invoice
+        if (basicText.includes('T. MYHRVOLD AS') || basicText.includes('T.MYHRVOLD AS')) {
+          console.log('🎯 Detected Myhrvold invoice - using enhanced parser');
+          
+          // Use Myhrvold parser instead of GPT-Vision
+          const mockFile = new File([bytes], 'invoice.pdf', { type: 'application/pdf' });
+          const parsedData = await parseMyhrvoldDirectly(mockFile);
+          
+          if (parsedData) {
+            console.log('✅ Myhrvold parser successful:', parsedData);
+            return new Response(JSON.stringify({
+              success: true,
+              data: parsedData,
+              source: 'myhrvoldParser'
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        }
+      } catch (myhrvoldError) {
+        console.log('⚠️ Myhrvold parser failed, falling back to GPT-Vision:', myhrvoldError);
+      }
+    }
     
     if (!imageBase64) {
       console.error('No image data provided');
