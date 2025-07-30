@@ -251,10 +251,13 @@ export const ClaimEconomics = () => {
                   <span className="font-medium">{formatCurrency(overtime100Cost)}</span>
                 </div>
               )}
-               <div className="flex justify-between text-sm">
-                 <span className="text-muted-foreground">Deler:</span>
-                 <span className="font-medium">{formatCurrency(partsCost)}</span>
-               </div>
+               {/* Only show parts_cost if no custom line items exist to avoid double counting */}
+               {customLineItemsArray.length === 0 && partsCost > 0 && (
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Deler:</span>
+                   <span className="font-medium">{formatCurrency(partsCost)}</span>
+                 </div>
+               )}
                {travelTimeCost > 0 && (
                  <div className="flex justify-between text-sm">
                    <span className="text-muted-foreground">Reisetid ({Number(claimData.travel_hours || 0)}t):</span>
