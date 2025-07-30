@@ -11,10 +11,10 @@ import { useBudgetTargets, useCreateBudgetTarget, useUpdateBudgetTarget, useDele
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,7 +32,6 @@ interface BudgetFormData {
 
 const AnalyticsEnhanced = () => {
   const { profile } = useAuth();
-  const { toast } = useToast();
   const [timeRange, setTimeRange] = useState("6m");
   const [exportingPdf, setExportingPdf] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -108,17 +107,10 @@ const AnalyticsEnhanced = () => {
       
       pdf.save(`analytics-rapport-${new Date().toISOString().split('T')[0]}.pdf`);
       
-      toast({
-        title: "PDF eksportert",
-        description: "Analyserapporten har blitt lastet ned som PDF",
-      });
+      toast.success("PDF eksportert - Analyserapporten har blitt lastet ned som PDF");
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      toast({
-        title: "Feil ved PDF-eksport",
-        description: "Det oppstod en feil ved eksport av PDF",
-        variant: "destructive",
-      });
+      toast.error("Feil ved PDF-eksport - Det oppstod en feil ved eksport av PDF");
     } finally {
       setExportingPdf(false);
     }
@@ -761,12 +753,18 @@ const AnalyticsEnhanced = () => {
 
               {/* Budget Form Dialog */}
               <Dialog open={isBudgetFormOpen} onOpenChange={setIsBudgetFormOpen}>
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="sm:max-w-[500px]" aria-describedby="budget-form-description">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                       <Target className="h-5 w-5" />
                       {editingTarget ? "Rediger budsjettmål" : "Opprett budsjettmål"}
                     </DialogTitle>
+                    <DialogDescription id="budget-form-description">
+                      {editingTarget 
+                        ? "Rediger eksisterende budsjettmål for din organisasjon."
+                        : "Opprett et nytt budsjettmål for å spore fremdrift mot dine økonomiske mål."
+                      }
+                    </DialogDescription>
                   </DialogHeader>
                   
                   <form onSubmit={async (e) => {
@@ -794,6 +792,18 @@ const AnalyticsEnhanced = () => {
                           },
                         });
                       } else {
+                        // Check if a similar target already exists
+                        const existingTargets = budgetTargets?.filter(target => 
+                          target.year === budgetFormData.year &&
+                          target.department === departmentValue &&
+                          target.supplier_name === supplierValue
+                        ) || [];
+
+                        if (existingTargets.length > 0) {
+                          toast.error("Et budsjettmål med samme år, avdeling og leverandør eksisterer allerede. Rediger det eksisterende målet i stedet.");
+                          return;
+                        }
+
                         await createBudgetMutation.mutateAsync({
                           ...baseData,
                           department: departmentValue,
@@ -811,8 +821,13 @@ const AnalyticsEnhanced = () => {
                         supplier_name: '',
                         notes: ''
                       });
-                    } catch (error) {
+                    } catch (error: any) {
                       console.error('Form submission error:', error);
+                      if (error?.code === '23505') {
+                        toast.error("Et budsjettmål med denne kombinasjonen eksisterer allerede. Prøv å rediger det eksisterende målet.");
+                      } else {
+                        toast.error("Kunne ikke lagre budsjettmålet. Prøv igjen.");
+                      }
                     }
                   }} className="space-y-4">
                     <div>
