@@ -743,13 +743,7 @@ const ClaimsFormAdvanced = () => {
           claimData: baseClaimData
         });
 
-        // Add timeline entry for update
-        await supabase.from('claim_timeline').insert([{
-          claim_id: claimId,
-          status: 'updated' as any,
-          changed_by: user.id,
-          notes: 'Reklamasjon oppdatert'
-        }]);
+        // Add timeline entry for update - don't add timeline entry as update status doesn't exist
 
         navigate(`/claims/${claimId}`);
       } else {
