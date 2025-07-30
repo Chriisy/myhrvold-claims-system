@@ -174,7 +174,7 @@ const ClaimsForm = () => {
     }));
   };
 
-  const handleScannerData = (scannedData: any) => {
+  const fillClaimForm = (scannedData: any) => {
     setFormData(prev => ({
       ...prev,
       customerName: scannedData.customerName || prev.customerName,
@@ -189,8 +189,13 @@ const ClaimsForm = () => {
       issueDescription: scannedData.shortDescription || prev.issueDescription,
       detailedDescription: scannedData.detailedDescription || prev.detailedDescription,
       technicianName: scannedData.technician || prev.technicianName,
+      workCost: scannedData.workCost || prev.workCost,
+      travelCost: scannedData.travelTimeCost || prev.travelCost,
+      partsCost: scannedData.partsCost || prev.partsCost,
       totalCost: scannedData.totalAmount || prev.totalCost,
-      evaticJobNumber: scannedData.evaticJobNumber || prev.evaticJobNumber
+      evaticJobNumber: scannedData.evaticJobNumber || prev.evaticJobNumber,
+      workHours: scannedData.technicianHours || prev.workHours,
+      hourlyRate: scannedData.hourlyRate || prev.hourlyRate
     }));
     
     toast({
@@ -198,6 +203,8 @@ const ClaimsForm = () => {
       description: "Data fra fakturaen er fylt inn i skjemaet. Kontroller og juster etter behov.",
     });
   };
+
+  const handleScannerData = fillClaimForm;
 
   const addUsedPart = () => {
     setUsedParts([...usedParts, {

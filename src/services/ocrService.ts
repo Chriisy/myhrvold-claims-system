@@ -1,6 +1,7 @@
 import { createWorker } from 'tesseract.js';
 import { ScannedInvoiceData } from '@/types/scanner';
 import { parseMyhrvold, validateMyhrvoldInvoice } from '@/utils/myhrvoldParser';
+import { mapAssistantDataToClaimForm } from '@/utils/assistantMapping';
 import { supabase } from '@/integrations/supabase/client';
 
 export class OCRService {
@@ -506,71 +507,36 @@ export class OCRService {
     return warnings;
   }
 
-  public static async processImageWithOpenAI(file: File): Promise<{ text: string; confidence: number }> {
-    console.log('🤖 Processing image with OpenAI Assistant API...');
+  public static async processImageWithOpenAI(file: File, fillClaimForm?: (data: ScannedInvoiceData) => void): Promise<ScannedInvoiceData | null> {
+    console.log('🤖 Starting OpenAI Assistant analysis...');
     
     try {
-      // Convert file to base64
       const arrayBuffer = await file.arrayBuffer();
       const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      
-      // Call OpenAI Assistant API via Edge Function
+
       const { data, error } = await supabase.functions.invoke('openai-vision-ocr', {
         body: { imageBase64: base64String }
       });
-      
-      console.log('OpenAI Assistant Edge Function response:', { data, error });
-      
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(`Edge Function error: ${error.message || JSON.stringify(error)}`);
+
+      if (error || !data?.success) {
+        // fallback som før
+        return this.processImageWithTesseract(file);
       }
-      
-      if (!data) {
-        throw new Error('No data returned from Edge Function');
+
+      // 🆕 map JSON → skjema
+      const mappedData = mapAssistantDataToClaimForm(data.data);
+      if (fillClaimForm) {
+        fillClaimForm(mappedData);
       }
-      
-      if (!data.success) {
-        console.error('OpenAI Assistant processing failed:', data);
-        throw new Error(data.error || 'Failed to process image with OpenAI Assistant');
-      }
-      
-      const extractedData = data.data;
-      console.log('✅ OpenAI Assistant extracted data:', extractedData);
-      console.log('📊 Processing source:', data.source); // 'assistant', 'vision_fallback', etc.
-      
-      // 🎯 CRITICAL FIX: Correct OpenAI's work classification for T. Myhrvold invoices
-      if (extractedData.customerName === 'T. Myhrvold AS') {
-        // OpenAI often swaps labor and parts costs - fix this based on invoice structure
-        const totalWorkAndParts = (extractedData.workCost || 0) + (extractedData.partsCost || 0);
-        
-        // Heuristic: Labor (T1) is typically smaller amount than parts on service invoices
-        // If workCost > partsCost, they're likely swapped
-        if (extractedData.workCost > extractedData.partsCost && extractedData.workCost > 5000) {
-          console.log('🔄 Correcting swapped work/parts classification');
-          const tempWorkCost = extractedData.workCost;
-          extractedData.workCost = extractedData.partsCost;
-          extractedData.partsCost = tempWorkCost;
-        }
-      }
-      
-      // Return the corrected JSON response as text for parsing
-      return {
-        text: JSON.stringify(extractedData),
-        confidence: (extractedData.confidence || 80) / 100 // Convert to 0-1 range
-      };
+      return mappedData;
       
     } catch (error) {
-      console.error('OpenAI Vision processing failed:', error);
-      throw error;
+      console.error('OpenAI Assistant processing failed:', error);
+      return this.processImageWithTesseract(file);
     }
   }
 
-  public static async processImage(file: File, useOpenAI: boolean = false): Promise<{ text: string; confidence: number }> {
-    if (useOpenAI) {
-      return this.processImageWithOpenAI(file);
-    }
-    
+  public static async processImageWithTesseract(file: File): Promise<ScannedInvoiceData | null> {
     // Process with Tesseract.js - optimized for Norwegian invoices
     const worker = await createWorker(['nor', 'eng'], 1, {
       logger: m => console.log(m)
@@ -591,10 +557,14 @@ export class OCRService {
 
     // Parse the invoice with enhanced detection
     const parsedData = await this.parseVismaInvoice(text, file);
+    return parsedData;
+  }
 
-    return { 
-      text, 
-      confidence: parsedData.confidence // Use our calculated confidence
-    };
+  public static async processImage(file: File, fillClaimForm?: (data: ScannedInvoiceData) => void, useOpenAI: boolean = true): Promise<ScannedInvoiceData | null> {
+    if (useOpenAI) {
+      return this.processImageWithOpenAI(file, fillClaimForm);
+    }
+    
+    return this.processImageWithTesseract(file);
   }
 }

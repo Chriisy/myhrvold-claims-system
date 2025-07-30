@@ -1,0 +1,14 @@
+{
+  "invoiceNumber": "2313028",
+  "invoiceDate": "15.11.2023",
+  "customerName": "T. Myhrvold AS",
+  "productName": "Service kjøleskap",
+  "technician": "John Doe",
+  "workCost": 1950,
+  "partsCost": 1125,
+  "totalAmount": 3075,
+  "confidence": 90,
+  "description": "Service kjøleskap - Touch screen display defekt",
+  "serviceNumber": "2313028",
+  "projectNumber": "EV-2023-028"
+}

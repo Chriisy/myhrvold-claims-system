@@ -48,28 +48,15 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
       reader.readAsDataURL(file);
 
       // Process with OCR service
-      const result = await OCRService.processImage(file, useOpenAI);
-      console.log('OCR result:', result);
+      const parsedData = await OCRService.processImage(file, undefined, useOpenAI);
+      console.log('OCR result:', parsedData);
 
-      // Parse the extracted text
-      let parsedData: ScannedInvoiceData;
-      
-      if (useOpenAI && result.text) {
-        try {
-          // OpenAI returns structured data directly in result.text
-          parsedData = JSON.parse(result.text);
-          parsedData.confidence = result.confidence; // Ensure confidence is set
-        } catch (e) {
-          console.warn('Failed to parse OpenAI JSON response, falling back to text parsing:', e);
-          parsedData = await OCRService.parseVismaInvoice(result.text, file);
-        }
+      if (parsedData) {
+        setExtractedData(parsedData);
+        validateExtractedData(parsedData);
       } else {
-        // Tesseract needs parsing
-        parsedData = await OCRService.parseVismaInvoice(result.text, file);
+        throw new Error('No data extracted from invoice');
       }
-      
-      setExtractedData(parsedData);
-      validateExtractedData(parsedData);
       showSuccess(
         'Faktura skannet!',
         `${Math.round((parsedData.confidence || 0) * 100)}% sikkerhet på gjenkjenning ${useOpenAI ? '(OpenAI)' : '(Tesseract)'}`

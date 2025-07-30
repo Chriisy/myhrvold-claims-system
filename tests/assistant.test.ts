@@ -3,6 +3,8 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { mapAssistantDataToClaimForm } from '@/utils/assistantMapping';
+import sampleData from './fixtures/2313028.json';
 
 // Mock file data for testing
 const createMockFile = (name: string, content: string): File => {
@@ -91,43 +93,25 @@ describe('OpenAI Assistant API Integration', () => {
   }, 35000);
 
   test('should validate extracted data structure', () => {
-    const mockExtractedData = {
-      invoiceNumber: '2313028',
-      invoiceDate: '15.11.2023',
-      customerName: 'T. Myhrvold AS',
-      productName: 'Service kjøleskap',
-      technician: 'John Doe',
-      workCost: 1950,
-      partsCost: 1125,
-      totalAmount: 3025,
-      confidence: 90
-    };
-
     // Verify structure matches expected Assistant API output
-    expect(mockExtractedData.invoiceNumber).toMatch(/^\d{7,8}$/);
-    expect(mockExtractedData.customerName).toBe('T. Myhrvold AS');
-    expect(mockExtractedData.workCost).toBeGreaterThan(0);
-    expect(mockExtractedData.partsCost).toBeGreaterThan(0);
-    expect(mockExtractedData.totalAmount).toBeGreaterThan(0);
-    expect(mockExtractedData.confidence).toBeGreaterThanOrEqual(0);
-    expect(mockExtractedData.confidence).toBeLessThanOrEqual(100);
+    expect(sampleData.invoiceNumber).toMatch(/^\d{7,8}$/);
+    expect(sampleData.customerName).toBe('T. Myhrvold AS');
+    expect(sampleData.workCost).toBeGreaterThan(0);
+    expect(sampleData.partsCost).toBeGreaterThan(0);
+    expect(sampleData.totalAmount).toBeGreaterThan(0);
+    expect(sampleData.confidence).toBeGreaterThanOrEqual(0);
+    expect(sampleData.confidence).toBeLessThanOrEqual(100);
+  });
 
-    // Test fillClaimForm mapping
-    const claimFormData = {
-      // Map Assistant API response to claim form fields
-      totals: {
-        labour: mockExtractedData.workCost,
-        travel: 0, // Would be extracted from travelTimeCost
-        parts: mockExtractedData.partsCost
-      },
-      description: mockExtractedData.productName,
-      invoiceNumber: mockExtractedData.invoiceNumber,
-      rows: [] // Would contain line items if available
-    };
-
-    expect(claimFormData.totals.labour).toBe(1950);
-    expect(claimFormData.totals.parts).toBe(1125);
-    expect(claimFormData.description).toBe('Service kjøleskap');
-    expect(claimFormData.invoiceNumber).toBe('2313028');
+  test('should map assistant data to claim form correctly', () => {
+    const mappedData = mapAssistantDataToClaimForm(sampleData);
+    
+    expect(mappedData.invoiceNumber).toBe('2313028');
+    expect(mappedData.customerName).toBe('T. Myhrvold AS');
+    expect(mappedData.workCost).toBe(1950);
+    expect(mappedData.partsCost).toBe(1125);
+    expect(mappedData.totalAmount).toBe(3075);
+    expect(mappedData.productName).toBe('Service kjøleskap');
+    expect(mappedData.evaticJobNumber).toBe('EV-2023-028');
   });
 });
