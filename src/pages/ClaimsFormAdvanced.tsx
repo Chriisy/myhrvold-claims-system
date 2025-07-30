@@ -688,7 +688,7 @@ const ClaimsFormAdvanced = () => {
         detailed_description: formData.detailedDescription,
         urgency_level: formData.urgencyLevel as 'low' | 'normal' | 'high' | 'critical',
         technician_name: formData.technicianName,
-        department: formData.department as 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet',
+        department: formData.department as 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet' | 'vestfold' | 'agder' | 'ekstern',
         evatic_job_number: formData.evaticJobNumber,
         ms_job_number: formData.msJobNumber,
         work_hours: formData.workHours,
@@ -1692,6 +1692,9 @@ const ClaimsFormAdvanced = () => {
                             <SelectItem value="kristiansand">Kristiansand</SelectItem>
                             <SelectItem value="nord_norge">Nord Norge</SelectItem>
                             <SelectItem value="innlandet">Innlandet</SelectItem>
+                            <SelectItem value="vestfold">Vestfold</SelectItem>
+                            <SelectItem value="agder">Agder</SelectItem>
+                            <SelectItem value="ekstern">Ekstern</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1721,6 +1724,9 @@ const ClaimsFormAdvanced = () => {
                             <SelectItem value="kristiansand">Kristiansand</SelectItem>
                             <SelectItem value="nord_norge">Nord Norge</SelectItem>
                             <SelectItem value="innlandet">Innlandet</SelectItem>
+                            <SelectItem value="vestfold">Vestfold</SelectItem>
+                            <SelectItem value="agder">Agder</SelectItem>
+                            <SelectItem value="ekstern">Ekstern</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

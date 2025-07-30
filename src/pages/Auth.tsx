@@ -248,6 +248,9 @@ const Auth = () => {
                         <SelectItem value="kristiansand">Kristiansand</SelectItem>
                         <SelectItem value="nord_norge">Nord Norge</SelectItem>
                         <SelectItem value="innlandet">Innlandet</SelectItem>
+                        <SelectItem value="vestfold">Vestfold</SelectItem>
+                        <SelectItem value="agder">Agder</SelectItem>
+                        <SelectItem value="ekstern">Ekstern</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

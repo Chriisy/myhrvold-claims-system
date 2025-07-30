@@ -44,7 +44,10 @@ export const ClaimsFilters: React.FC<ClaimsFiltersProps> = ({
     { value: 'stavanger', label: 'Stavanger' },
     { value: 'kristiansand', label: 'Kristiansand' },
     { value: 'nord_norge', label: 'Nord-Norge' },
-    { value: 'innlandet', label: 'Innlandet' }
+    { value: 'innlandet', label: 'Innlandet' },
+    { value: 'vestfold', label: 'Vestfold' },
+    { value: 'agder', label: 'Agder' },
+    { value: 'ekstern', label: 'Ekstern' }
   ];
 
   const hasActiveFilters = Object.values(filters).some(value => 
