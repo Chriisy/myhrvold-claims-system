@@ -23,8 +23,6 @@ const ClaimDetails = () => {
   const { data: claimData, isLoading, error } = useClaim(id);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
-  console.log('ClaimDetails Debug:', { id, claimData, isLoading, error });
-
   if (isLoading) {
     return <PageLoading text="Laster reklamasjon..." />;
   }

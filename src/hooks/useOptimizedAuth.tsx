@@ -132,10 +132,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const handleAuthChange = useCallback(async (event: string, session: Session | null) => {
     if (!mountedRef.current) return;
     
-    // Reduce console noise in production
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Auth state change:', event, session?.user?.id);
-    }
     
     // Clear any pending retries
     if (retryTimeoutRef.current) {

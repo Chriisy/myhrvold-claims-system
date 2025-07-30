@@ -13,8 +13,6 @@ export const CookieConsent = () => {
     // Show banner if no cookie consent has been given yet
     const cookieConsent = hasConsent('cookies');
     
-    console.log('Cookie consent check:', { cookieConsent, loading });
-    
     if (!loading && !cookieConsent) {
       setIsVisible(true);
     } else if (!loading && cookieConsent) {

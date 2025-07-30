@@ -606,13 +606,8 @@ const ClaimsFormAdvanced = () => {
     if (!user || !validateForm()) return;
     
      setLoading(true);
-     
-     // Debug logging for spare parts
-     console.log('DEBUG - Parts array:', parts);
-     console.log('DEBUG - CustomLineItems:', customLineItems);
-     console.log('DEBUG - CustomLineItems JSON:', JSON.stringify(customLineItems));
-     
-     try {
+      
+      try {
       const baseClaimData = {
         customer_name: formData.customerName,
         customer_number: formData.customerNumber,
@@ -1739,17 +1734,17 @@ const ClaimsFormAdvanced = () => {
                         </div>
                         <div className="text-sm text-blue-600">Total kostnad</div>
                       </div>
-                      <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-700">
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <div className="text-2xl font-bold text-accent">
                           {calculateTotalRefund().toFixed(2)} kr
                         </div>
-                        <div className="text-sm text-green-600">Total refusjon</div>
+                        <div className="text-sm text-accent-foreground">Total refusjon</div>
                       </div>
-                      <div className={`text-center p-4 rounded-lg ${calculateNetCost() < 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
-                        <div className={`text-2xl font-bold ${calculateNetCost() < 0 ? 'text-red-700' : 'text-gray-700'}`}>
+                      <div className={`text-center p-4 rounded-lg ${calculateNetCost() < 0 ? 'bg-destructive/10' : 'bg-muted'}`}>
+                        <div className={`text-2xl font-bold ${calculateNetCost() < 0 ? 'text-destructive' : 'text-foreground'}`}>
                           {calculateNetCost().toFixed(2)} kr
                         </div>
-                        <div className={`text-sm ${calculateNetCost() < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                        <div className={`text-sm ${calculateNetCost() < 0 ? 'text-destructive-foreground' : 'text-muted-foreground'}`}>
                           Netto kostnad
                         </div>
                       </div>

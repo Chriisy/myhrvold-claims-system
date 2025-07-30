@@ -737,7 +737,7 @@ const ClaimsForm = () => {
                             onChange={(e) => handleInputChange('refundWorkAmount', parseFloat(e.target.value) || 0)}
                             className="w-20"
                           />
-                          <span className="text-blue-600">kr</span>
+                          <span className="text-primary">kr</span>
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -753,7 +753,7 @@ const ClaimsForm = () => {
                             onChange={(e) => handleInputChange('refundPartsAmount', parseFloat(e.target.value) || 0)}
                             className="w-20"
                           />
-                          <span className="text-blue-600">kr</span>
+                          <span className="text-primary">kr</span>
                         </div>
                       </div>
                     </div>
@@ -839,7 +839,7 @@ const ClaimsForm = () => {
                       </div>
                       <div className="space-y-2">
                         <Label>Selgers avdeling</Label>
-                        <Select onValueChange={(value) => console.log('Seller department:', value)}>
+                        <Select onValueChange={(value) => handleInputChange('sellerDepartment', value)}>
                           <SelectTrigger>
                             <SelectValue placeholder="Velg avdeling" />
                           </SelectTrigger>
@@ -1424,7 +1424,7 @@ const ClaimsForm = () => {
                         </div>
                         <div className="space-y-2">
                           <Label>Selgers avdeling</Label>
-                          <Select onValueChange={(value) => console.log('Seller department:', value)}>
+                          <Select onValueChange={(value) => handleInputChange('sellerDepartment', value)}>
                             <SelectTrigger>
                               <SelectValue placeholder="Velg avdeling" />
                             </SelectTrigger>
