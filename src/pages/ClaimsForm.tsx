@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Upload, Plus, LogOut, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, Plus, LogOut, Trash2, Camera } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useOptimizedAuth";
@@ -16,6 +16,7 @@ import { DragDropZone } from "@/components/ui/drag-drop-zone";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { CustomerAutocomplete } from "@/components/ui/customer-autocomplete";
 import { PartAutocomplete } from "@/components/ui/part-autocomplete";
+import InvoiceScanner from "@/components/InvoiceScanner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UsedPart {
@@ -34,6 +35,7 @@ const ClaimsForm = () => {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [usedParts, setUsedParts] = useState<UsedPart[]>([]);
   const [activeTab, setActiveTab] = useState("customer");
+  const [scannerOpen, setScannerOpen] = useState(false);
   const isMobile = useIsMobile();
   
   // Form data
@@ -170,6 +172,31 @@ const ClaimsForm = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleScannerData = (scannedData: any) => {
+    setFormData(prev => ({
+      ...prev,
+      customerName: scannedData.customerName || prev.customerName,
+      customerNumber: scannedData.customerNumber || prev.customerNumber,
+      customerContact: scannedData.contactPerson || prev.customerContact,
+      customerEmail: scannedData.email || prev.customerEmail,
+      customerPhone: scannedData.phone || prev.customerPhone,
+      customerAddress: scannedData.address || prev.customerAddress,
+      productName: scannedData.productName || prev.productName,
+      productModel: scannedData.productModel || prev.productModel,
+      serialNumber: scannedData.serialNumber || prev.serialNumber,
+      issueDescription: scannedData.shortDescription || prev.issueDescription,
+      detailedDescription: scannedData.detailedDescription || prev.detailedDescription,
+      technicianName: scannedData.technician || prev.technicianName,
+      totalCost: scannedData.totalAmount || prev.totalCost,
+      evaticJobNumber: scannedData.evaticJobNumber || prev.evaticJobNumber
+    }));
+    
+    toast({
+      title: "Faktura skannet!",
+      description: "Data fra fakturaen er fylt inn i skjemaet. Kontroller og juster etter behov.",
+    });
   };
 
   const addUsedPart = () => {
@@ -1499,18 +1526,36 @@ const ClaimsForm = () => {
           )}
 
           <div className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/')}
-            >
-              Avbryt
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/')}
+              >
+                Avbryt
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setScannerOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <Camera className="h-4 w-4" />
+                Skann faktura
+              </Button>
+            </div>
             <Button type="submit" disabled={loading}>
               {loading ? 'Lagrer...' : 'Opprett reklamasjon'}
             </Button>
           </div>
         </form>
+
+        {/* Invoice Scanner Dialog */}
+        <InvoiceScanner
+          open={scannerOpen}
+          onOpenChange={setScannerOpen}
+          onDataExtracted={handleScannerData}
+        />
       </main>
     </div>
   );
