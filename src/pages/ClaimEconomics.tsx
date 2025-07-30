@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { useUpdateClaimStatus } from '@/hooks/useClaimMutations';
 import { useEnhancedToast } from '@/hooks/useEnhancedToast';
 import { supabase } from '@/integrations/supabase/client';
+import { ClaimAttachments } from '@/components/claim-details/ClaimAttachments';
 
 const ACCOUNT_CODES = [
   { code: '4506', description: 'Intern service reklamasjon + GW', type: 'service_callback' },
@@ -30,6 +31,12 @@ export const ClaimEconomics = () => {
     account_code: '',
     account_string: ''
   });
+
+  const handleFilesUpdate = async (updatedFiles: any[]) => {
+    // This will be called from ClaimAttachments component when files are updated
+    // The component handles the database update, so we just need to invalidate queries
+    // The useClaim hook will automatically refetch the updated data
+  };
 
   if (isLoading) {
     return <div>Laster...</div>;
@@ -391,6 +398,13 @@ export const ClaimEconomics = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Vedlegg */}
+      <ClaimAttachments 
+        claimId={id!} 
+        claimFiles={claimData.files || []} 
+        onFilesUpdate={handleFilesUpdate}
+      />
 
       {/* Kontokode referanse tabell */}
       <Card>
