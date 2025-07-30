@@ -10,6 +10,21 @@ import { Search, Package, Plus, Edit, Trash2, Building2, Tag } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Norwegian number formatting utility
+const parseNorwegianNumber = (value: string): number => {
+  if (!value || typeof value !== 'string') return 0;
+  // Replace Norwegian comma with dot for parsing
+  const normalizedValue = value.replace(',', '.');
+  const parsed = parseFloat(normalizedValue);
+  return isNaN(parsed) ? 0 : parsed;
+};
+
+const formatNorwegianNumber = (value: number): string => {
+  if (isNaN(value)) return '';
+  // Format with Norwegian comma as decimal separator
+  return value.toString().replace('.', ',');
+};
+
 interface Part {
   id: string;
   part_number: string;
@@ -84,11 +99,22 @@ const PartsManagement = ({ onStatsUpdate }: PartsManagementProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate price input
+    const price = parseNorwegianNumber(formData.unit_price);
+    if (isNaN(price) || price <= 0) {
+      toast({
+        title: "Ugyldig pris",
+        description: "Vennligst skriv inn en gyldig pris (f.eks. 148,53)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const partData = {
         part_number: formData.part_number,
         description: formData.description,
-        unit_price: parseFloat(formData.unit_price),
+        unit_price: price,
         supplier_name: formData.supplier_name && formData.supplier_name !== "none" ? formData.supplier_name : null,
         category: formData.category || null
       };
@@ -142,7 +168,7 @@ const PartsManagement = ({ onStatsUpdate }: PartsManagementProps) => {
     setFormData({
       part_number: part.part_number,
       description: part.description,
-      unit_price: part.unit_price.toString(),
+      unit_price: formatNorwegianNumber(part.unit_price),
       supplier_name: part.supplier_name || "",
       category: part.category || ""
     });
@@ -261,8 +287,8 @@ const PartsManagement = ({ onStatsUpdate }: PartsManagementProps) => {
                   <Label htmlFor="unit_price">Pris (NOK) *</Label>
                   <Input
                     id="unit_price"
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    placeholder="f.eks. 148,53"
                     value={formData.unit_price}
                     onChange={(e) => setFormData(prev => ({ ...prev, unit_price: e.target.value }))}
                     required
