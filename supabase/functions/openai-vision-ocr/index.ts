@@ -25,38 +25,41 @@ serve(async (req) => {
       throw new Error('No image data provided');
     }
 
-    // Prepare the prompt for Norwegian invoice parsing
+    // Prepare the enhanced prompt for Norwegian T. Myhrvold invoices
     const prompt = `
-Analyser denne fakturaen og trekk ut følgende informasjon. Returner kun gyldig JSON uten ekstra tekst:
+Du er ekspert på å analysere norske T. Myhrvold fakturaer. Analyser dette bildet nøye og trekk ut følgende informasjon. 
+
+VIKTIG: Returner kun gyldig JSON uten ekstra tekst eller formatering:
 
 {
-  "invoiceNumber": "fakturanummer",
-  "invoiceDate": "fakturadato (DD.MM.YYYY format)",
-  "customerName": "kunde navn",
-  "customerNumber": "kundenummer",
-  "customerOrgNumber": "organisasjonsnummer",
-  "productName": "produktnavn/beskrivelse",
-  "serviceNumber": "service nr",
-  "projectNumber": "prosjekt nr", 
-  "technician": "tekniker/montør",
-  "technicianHours": "tekniske timer (kun tall)",
-  "hourlyRate": "timesats (kun tall)",
-  "workCost": "arbeidskostnad (kun tall)",
-  "travelTimeHours": "reisetimer (kun tall)",
-  "travelTimeCost": "reisekostnad (kun tall)", 
-  "vehicleKm": "kjøretøy km (kun tall)",
-  "vehicleCost": "kjøretøy kostnad (kun tall)",
-  "partsCost": "delekostnad (kun tall)",
-  "totalAmount": "totalbeløp (kun tall)",
-  "confidence": "konfidens score 0-100"
+  "invoiceNumber": "7-8 siffer fakturanummer (finn nummer nærmest 'Faktura' eller øverst)",
+  "invoiceDate": "fakturadato i DD.MM.YYYY format",
+  "customerName": "T. Myhrvold AS (alltid dette for T. Myhrvold fakturaer)",
+  "customerNumber": "kundenummer hvis synlig",
+  "customerOrgNumber": "organisasjonsnummer (9 siffer) hvis synlig",
+  "productName": "produktnavn fra 'Oppdrag:' linjen eller første produktlinje",
+  "serviceNumber": "service nr hvis synlig",
+  "projectNumber": "prosjekt nr hvis synlig",
+  "technician": "tekniker/montør navn hvis synlig",
+  "technicianHours": "antall timer for 'T1' eller 'Time service' (kun tall)",
+  "hourlyRate": "timesats/pris per time for T1 (kun tall)",
+  "workCost": "total arbeidskostnad for T1/timer (kun tall)",
+  "travelTimeHours": "reisetimer hvis synlig (kun tall)",
+  "travelTimeCost": "reisekostnad hvis synlig (kun tall)",
+  "vehicleKm": "kjøretøy km hvis synlig (kun tall)",
+  "vehicleCost": "kjøretøy kostnad hvis synlig (kun tall)",
+  "partsCost": "sum av alle deler/materialer som IKKE er T1/RT1/KM (kun tall)",
+  "totalAmount": "totalbeløp/ordresum nederst på fakturaen (kun tall)",
+  "confidence": "din konfidens 0-100 basert på hvor klart teksten er"
 }
 
-Viktige regler:
-- Alle beløp skal være tall uten valutasymbol eller mellomrom
-- Datoer skal være i DD.MM.YYYY format
-- Hvis et felt ikke finnes, bruk null
-- Konfidens skal reflektere hvor sikker du er på dataene (0-100)
-`;
+KRITISKE REGLER:
+- Alle tall skal være rene tall uten 'kr', mellomrom eller komma som tusenskilletegn
+- Bruk punktum som desimalskilletegn (eks: 1234.50)
+- Hvis felt ikke finnes, bruk null
+- Totalbeløp er vanligvis nederst på fakturaen som "Ordresum" eller "Sum eks mva"
+- T1 = timeservice/arbeid, andre koder = deler/materialer
+- Vær spesielt nøye med totalbeløp og arbeidskostnader`;
 
     // Call OpenAI Vision API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
