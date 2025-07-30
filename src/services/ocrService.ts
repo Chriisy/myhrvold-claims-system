@@ -30,46 +30,48 @@ export class OCRService {
 
   private static getInvoicePatterns() {
     return {
-      // 🏢 KUNDEINFORMASJON (Kritisk - 30%)
-      customerName: /([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]{2,50}(?:\s+AS|\s+ASA|\s+DA|\s+BA|\s+ANS))|(?:Ordreadresse:|Lev\.adr:|til:|Kunde:)[\s\n]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]{2,50})/mi,
-      customerNumber: /(?:KN\d{6}|Kunde\s*nr\.?\s*(\d{4,8}))/i,
-      contactPerson: /(?:Kontakt:|Att:|Attn:|Ref:)[\s]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s\.-]{2,40})/i,
+      // 🏢 KUNDEINFORMASJON (Kritisk - 30%) - Enhanced for T.MYHRVOLD format
+      customerName: /(?:Ordreadresse:|Lev\.adr:|til:|Kunde:)[\s\n]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]{2,50}(?:\s+AS|\s+ASA|\s+DA|\s+BA|\s+ANS)?)|([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]{2,50}(?:\s+AS|\s+ASA|\s+DA|\s+BA|\s+ANS))/mi,
+      customerNumber: /(?:Kundenr\.?[:\s]*(\d{4,8})|KN\d{6}|Kunde\s*nr\.?\s*(\d{4,8}))/i,
+      contactPerson: /(?:Kontakt:|Att:|Attn:|Ref:|Innmeldt\s+av)[\s]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s\.-]{2,40})/i,
       email: /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i,
       phone: /((?:\+47\s?)?\d{2}\s?\d{2}\s?\d{2}\s?\d{3})/i,
-      address: /(?:Adresse:|Postadresse:)[\s]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s\d\.-]+\d{4}\s+[A-ZÆØÅ][a-zæøå]+)/i,
+      address: /(?:Adresse:|Postadresse:|Ordreadresse:)[\s]*([A-ZÆØÅ][A-Za-zæøåÆØÅ\s\d.,-]+(?:\d{4}\s+[A-ZÆØÅ][a-zæøå]+)?)/i,
       customerOrgNumber: /(?:Org\.?\s*nr\.?|Orgnr|Organisasjonsnummer)[:\s]*([NO]?\d{9}[A-Z]*)/i,
       
-      // 🔧 PRODUKTINFORMASJON (Kritisk - 25%)
-      productName: /(?:Kjøleskap|Model|Touch\s+screen|Display|Kompressor|Service|Reparasjon|Oppgradering)/i,
-      productModel: /(?:Model\s+([A-Z]\d{3,4})|Modell:\s*([A-Z0-9\-]+))/i,
-      productNumber: /(?:Prod\.?nr\.?\s*(\w+)|Art\.?nr\.?\s*(\w+))/i,
+      // 🔧 PRODUKTINFORMASJON (Kritisk - 25%) - Enhanced for service equipment
+      productName: /(?:Kjøleskap|Model|Touch\s+screen|Display|Kompressor|Service|Reparasjon|Oppgradering|Comenda|Sirman|pakkebord|maskin|bryter|pumpe)/i,
+      productModel: /(?:Model\s+([A-Z]\d{3,4})|Modell:\s*([A-Z0-9\-]+)|([A-Z]{3,15}\d{2,4}\-\d{2,4})|LOKRS\d{3}\-\d{3})/i,
+      productNumber: /(?:Prod\.?nr\.?\s*(\w+)|Art\.?nr\.?\s*(\w+)|([A-Z]{3,8}\d{2,4}\-\d{2,4}))/i,
       serialNumber: /(?:S\/?N\.?\s*([A-Z0-9]{6,12})|Serie:\s*([A-Z0-9]+))/i,
       purchaseDate: /(?:Kjøpt:|Dato:|Lev\.dato:).*?(\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4})/i,
       supplier: /([A-ZÆØÅ][A-Za-zæøåÆØÅ\s&\.-]+(?:\s+AS|\s+ASA|\s+DA|\s+BA))(?=.*leverandør|.*supplier)/i,
       
-      // 💰 ØKONOMISK INFORMASJON (Viktig - 20%)
-      technicianHours: /(?:Time.*?(\d{1,4})\s*kr|(\d{1,2})\s*timer?)/i,
-      hourlyRate: /(?:(\d{3,5})\s*kr\/time|Kr\s*per\s*time.*?(\d{3,5}))/i,
-      workCost: /(?:Arbeid.*?(\d+[.,]?\d*)\s*kr)/i,
+      // 💰 ØKONOMISK INFORMASJON (Viktig - 20%) - Enhanced for T.MYHRVOLD format
+      technicianHours: /(?:Time\s+service[^\d]*(\d+(?:[.,]\d+)?)\s*timer?|(\d+(?:[.,]\d+)?)\s*timer?|Time.*?(\d{1,4})\s*kr)/i,
+      hourlyRate: /(?:(\d{3,5})\s*kr\/time|Kr\s*per\s*time.*?(\d{3,5})|Time\s+service.*?(\d{3,4}))/i,
+      workCost: /(?:Arbeid.*?(\d+[.,]?\d*)\s*kr|Time\s+service.*?(\d{1,3}(?:\s\d{3})*(?:[.,]\d{2})?))/i,
       overtime50: /(?:Overtid.*50%.*?(\d+[.,]?\d*)\s*kr)/i,
       overtime100: /(?:Overtid.*100%.*?(\d+[.,]?\d*)\s*kr)/i,
-      travelTime: /(?:Reisetid.*?(\d+[.,]?\d*)\s*kr)/i,
+      travelTime: /(?:Reisetid.*?(\d+[.,]?\d*)\s*kr|Reise.*?(\d+[.,]?\d*)|Bil\s+[-–]\s+Sone.*?(\d+[.,]?\d*))/i,
       vehicleKm: /(?:Kjøretøy.*?(\d+)\s*km|Km.*?(\d+))/i,
       krPerKm: /(?:(\d+[.,]?\d*)\s*kr\/km)/i,
-      vehicleCost: /(?:Kjøring.*?(\d+[.,]?\d*)\s*kr)/i,
-      additionalCosts: /(?:Tillegg.*?(\d+[.,]?\d*)\s*kr)/i,
+      vehicleCost: /(?:Kjøring.*?(\d+[.,]?\d*)\s*kr|Bil.*?(\d+[.,]?\d*)|Parkering.*?(\d+[.,]?\d*))/i,
+      additionalCosts: /(?:Tillegg.*?(\d+[.,]?\d*)\s*kr|Servicemateriell.*?(\d+[.,]?\d*))/i,
       
-      // 📋 JOBBREFERANSE (Viktig - 15%)
+      // 📋 JOBBREFERANSE (Viktig - 15%) - Enhanced for T.MYHRVOLD format
       evaticJobNumber: /(?:(EV-\d{4}-\d{3})|Evatic.*?(\d{4}-\d{3}))/i,
       msNumber: /(?:(MS-\d{4}-\d{3})|MS.*?(\d{4}-\d{3}))/i,
-      projectNumber: /(?:Prosjekt.*?(\d{5,6})|P\.?nr\.?\s*(\d{5,6}))/i,
-      orderNumber: /(?:Ordre.*?(\d{6,8})|O\.?nr\.?\s*(\d{6,8}))/i,
+      projectNumber: /(?:Prosjekt\s*nr\.?[:\s]*(\d{5,6})|P\.?nr\.?\s*(\d{5,6}))/i,
+      orderNumber: /(?:Ordrenr\.?[:\s]*(\d{5,8})|Ordre.*?(\d{6,8})|O\.?nr\.?\s*(\d{6,8}))/i,
+      serviceNumber: /(?:Service\s*nr\.?[:\s]*(\d{5,6}))/i,
       
-      // ⚠️ PROBLEMBESKRIVELSE (Viktig - 10%)
-      issueType: /(?:Service|Reparasjon|Garanti|Reklamasjon|Vedlikehold)/i,
+      // ⚠️ PROBLEMBESKRIVELSE (Viktig - 10%) - Enhanced for T.MYHRVOLD format
+      issueType: /(?:Service|Reparasjon|Garanti|Reklamasjon|Vedlikehold|Bytte|defekt)/i,
       urgencyLevel: /(?:Normal|Akutt|Kritisk|Lav)/i,
-      shortDescription: /(?:Feil:|Problem:|Beskrivelse:|Årsak:)[\s]*([A-Za-zæøåÆØÅ\s\.\,\-\:]{5,100})/i,
-      symptoms: /(?:Virker\s+ikke|Stopper|Lyd|Temperatur|Display)/i,
+      shortDescription: /(?:Feil:|Problem:|Beskrivelse:|Årsak:|Oppdrag:|Innmeldt)[\s]*([A-Za-zæøåÆØÅ\s\.\,\-\:]{5,200})/i,
+      symptoms: /(?:Virker\s+ikke|Stopper|Lyd|Temperatur|Display|spyler\s+ikke|defekt|fungerer\s+ikke)/i,
+      workDescription: /(?:Oppdrag:|Jobb\s+utført:|Beskrivelse)[\s\n:]*([A-Za-zæøåÆØÅ\s\.\,\-\:\(\)]{10,300})/i,
       
       // 🎯 Garantivurdering
       warrantyPeriod: /(?:Garanti.*?(\d+)\s*(?:år|mnd|måned))/i,
@@ -81,15 +83,14 @@ export class OCRService {
       previousService: /(?:Tidligere.*service|Sist.*service.*?(\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}))/i,
       spareParts: /(?:Reservedel:|Del\s+nr:|Byttet.*del)[\s]*([A-Z0-9\-]+)/i,
       
-      // Legacy patterns for compatibility
-      invoiceNumber: /(?:Faktura[\s\n]*(\d{7,8})|(\d{7,8})(?=\s*Fakturadat)|^(\d{7,8})$)/mi,
-      totalAmount: /(?:Sum\s+avgiftsfritt|Ordresum|Sum\s+eks|Total)[\s\n]*(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
-      laborCost: /(?:Time\s+kjøring|Timer?)[\s\S]*?(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
-      partsCost: /(?:Touch\s+screen|Blase|Oppgradering|materiale)[\s\S]*?(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
+      // Legacy patterns for compatibility - Enhanced for T.MYHRVOLD format
+      invoiceNumber: /(?:Faktura[\s\n]*(\d{7,8})|(\d{7,8})(?=\s*Fakturadat)|^(\d{7,8})$|(?:Nr\.?\s*)?(\d{7,8})(?=\s*$))/mi,
+      totalAmount: /(?:Sum\s+avgiftsfritt|Ordresum|Sum\s+eks|Total\s+eks|Ordresum)[\s\n]*(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
+      laborCost: /(?:Time\s+service|Timer?|T1)[\s\S]*?(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
+      partsCost: /(?:Touch\s+screen|Blase|Oppgradering|materiale|LOKRS|bryter|R1|S1)[\s\S]*?(\d{1,3}(?:[\s,]\d{3})*(?:[,\.]\d{2})?)/i,
       invoiceDate: /(?:Fakturadato|dato)[:\s]*(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/i,
       kidNumber: /KID[:\s]*(\d{8,10})/i,
-      technicianName: /(?:Tekniker[:\s]+)([A-ZÆØÅ][A-Za-zæøåÆØÅ\s]+)/i,
-      workDescription: /(?:Beskrivelse[:\s]*)([A-Za-zæøåÆØÅ\s\.\,\-\:]{10,200})/i
+      technicianName: /(?:Tekniker[:\s]+)([A-ZÆØÅ][A-Za-zæøåÆØÅ\s]+)/i
     };
   }
 
@@ -189,7 +190,7 @@ export class OCRService {
       laborCost: this.extractAmount(text, patterns.laborCost),
       partsCost: this.extractAmount(text, patterns.partsCost),
       totalAmount: this.extractAmount(text, patterns.totalAmount),
-      evaticJobNumber: this.extractValue(text, patterns.evaticJobNumber),
+      evaticJobNumber: this.extractValue(text, patterns.evaticJobNumber) || this.extractValue(text, patterns.serviceNumber) || this.extractValue(text, patterns.projectNumber),
       confidence: 0
     };
 
