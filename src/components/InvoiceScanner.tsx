@@ -48,17 +48,24 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({
       reader.readAsDataURL(file);
 
       // Process with OCR service
-      const { text } = await OCRService.processImage(file, useOpenAI);
+      const result = await OCRService.processImage(file, useOpenAI);
+      console.log('OCR result:', result);
 
       // Parse the extracted text
       let parsedData: ScannedInvoiceData;
       
-      if (useOpenAI) {
-        // OpenAI returns structured data directly
-        parsedData = JSON.parse(text);
+      if (useOpenAI && result.text) {
+        try {
+          // OpenAI returns structured data directly in result.text
+          parsedData = JSON.parse(result.text);
+          parsedData.confidence = result.confidence; // Ensure confidence is set
+        } catch (e) {
+          console.warn('Failed to parse OpenAI JSON response, falling back to text parsing:', e);
+          parsedData = await OCRService.parseVismaInvoice(result.text, file);
+        }
       } else {
         // Tesseract needs parsing
-        parsedData = await OCRService.parseVismaInvoice(text, file);
+        parsedData = await OCRService.parseVismaInvoice(result.text, file);
       }
       
       setExtractedData(parsedData);

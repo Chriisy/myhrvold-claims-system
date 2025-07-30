@@ -395,20 +395,29 @@ export class OCRService {
         body: { imageBase64: base64String }
       });
       
+      console.log('OpenAI Edge Function response:', { data, error });
+      
       if (error) {
-        throw new Error(error.message || 'OpenAI Vision API error');
+        console.error('Supabase function error:', error);
+        throw new Error(`Edge Function error: ${error.message || JSON.stringify(error)}`);
+      }
+      
+      if (!data) {
+        throw new Error('No data returned from Edge Function');
       }
       
       if (!data.success) {
-        throw new Error(data.error || 'Failed to process image');
+        console.error('OpenAI processing failed:', data);
+        throw new Error(data.error || 'Failed to process image with OpenAI');
       }
       
       const extractedData = data.data;
       console.log('OpenAI extracted data:', extractedData);
       
+      // Return the raw JSON response as text for parsing
       return {
-        text: data.rawText,
-        confidence: extractedData.confidence / 100 // Convert to 0-1 range
+        text: JSON.stringify(extractedData),
+        confidence: (extractedData.confidence || 80) / 100 // Convert to 0-1 range
       };
       
     } catch (error) {
