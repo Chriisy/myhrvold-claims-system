@@ -12,6 +12,7 @@ import { useUpdateClaimStatus } from '@/hooks/useClaimMutations';
 import { useEnhancedToast } from '@/hooks/useEnhancedToast';
 import { supabase } from '@/integrations/supabase/client';
 import { ClaimAttachments } from '@/components/claim-details/ClaimAttachments';
+import { currencyService, Currency } from '@/services/currencyService';
 
 const ACCOUNT_CODES = [
   { code: '4506', description: 'Intern service reklamasjon + GW', type: 'service_callback' },
@@ -93,17 +94,15 @@ export const ClaimEconomics = () => {
     }
   };
 
-  const formatCurrency = (amount: number | undefined | null) => {
-    if (!amount) return "0 kr";
-    return new Intl.NumberFormat('no-NO', {
-      style: 'currency',
-      currency: 'NOK',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+  const formatCurrency = (amount: number | undefined | null, inputCurrency: Currency = 'NOK') => {
+    if (!amount && amount !== 0) return "0 kr";
+    
+    // Always display final amounts in NOK
+    return currencyService.formatWithConversion(amount, inputCurrency);
   };
 
   const claimData = claim as any; // Temporary fix for type mismatch
+  const inputCurrency = (claimData.currency as Currency) || 'NOK';
   
   const workCost = Number(claimData.work_hours || 0) * Number(claimData.hourly_rate || 0);
   const overtime50Cost = Number(claimData.overtime_50_hours || 0) * Number(claimData.hourly_rate || 0) * 1.5;
@@ -230,61 +229,68 @@ export const ClaimEconomics = () => {
       {/* Kostnadsoversikt */}
       <Card>
         <CardHeader>
-          <CardTitle>Kostnadsoversikt</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Kostnadsoversikt</span>
+            {inputCurrency === 'EUR' && (
+              <Badge variant="outline" className="text-xs">
+                Kostnader oppgitt i EUR
+              </Badge>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Arbeid ({Number(claimData.work_hours || 0)}t):</span>
-                <span className="font-medium">{formatCurrency(workCost)}</span>
+                <span className="font-medium">{formatCurrency(workCost, inputCurrency)}</span>
               </div>
               {overtime50Cost > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Overtid 50% ({Number(claimData.overtime_50_hours || 0)}t):</span>
-                  <span className="font-medium">{formatCurrency(overtime50Cost)}</span>
+                  <span className="font-medium">{formatCurrency(overtime50Cost, inputCurrency)}</span>
                 </div>
               )}
               {overtime100Cost > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Overtid 100% ({Number(claimData.overtime_100_hours || 0)}t):</span>
-                  <span className="font-medium">{formatCurrency(overtime100Cost)}</span>
+                  <span className="font-medium">{formatCurrency(overtime100Cost, inputCurrency)}</span>
                 </div>
               )}
                {/* Only show parts_cost if no custom line items exist to avoid double counting */}
                {customLineItemsArray.length === 0 && partsCost > 0 && (
                  <div className="flex justify-between text-sm">
                    <span className="text-muted-foreground">Deler:</span>
-                   <span className="font-medium">{formatCurrency(partsCost)}</span>
+                   <span className="font-medium">{formatCurrency(partsCost, inputCurrency)}</span>
                  </div>
                )}
                {travelTimeCost > 0 && (
                  <div className="flex justify-between text-sm">
                    <span className="text-muted-foreground">Reisetid ({Number(claimData.travel_hours || 0)}t):</span>
-                   <span className="font-medium">{formatCurrency(travelTimeCost)}</span>
+                   <span className="font-medium">{formatCurrency(travelTimeCost, inputCurrency)}</span>
                  </div>
                )}
                {vehicleCost > 0 && (
                  <div className="flex justify-between text-sm">
                    <span className="text-muted-foreground">Kjøretøy ({Number(claimData.travel_distance_km || 0)} km):</span>
-                   <span className="font-medium">{formatCurrency(vehicleCost)}</span>
+                   <span className="font-medium">{formatCurrency(vehicleCost, inputCurrency)}</span>
                  </div>
                )}
                {travelCost > 0 && (
                  <div className="flex justify-between text-sm">
                    <span className="text-muted-foreground">Andre reiseutgifter:</span>
-                   <span className="font-medium">{formatCurrency(travelCost)}</span>
+                   <span className="font-medium">{formatCurrency(travelCost, inputCurrency)}</span>
                  </div>
                )}
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Forbruksmateriell:</span>
-                <span className="font-medium">{formatCurrency(consumablesCost)}</span>
+                <span className="font-medium">{formatCurrency(consumablesCost, inputCurrency)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Ekstern service:</span>
-                <span className="font-medium">{formatCurrency(externalServicesCost)}</span>
+                <span className="font-medium">{formatCurrency(externalServicesCost, inputCurrency)}</span>
               </div>
               {customLineItemsArray.length > 0 && (
                 <div className="space-y-2">
@@ -296,19 +302,19 @@ export const ClaimEconomics = () => {
                         {item.quantity && ` (${item.quantity} stk)`}
                       </span>
                       <span className="font-medium">
-                        {formatCurrency(Number(item.quantity || 1) * Number(item.unitPrice || 0))}
+                        {formatCurrency(Number(item.quantity || 1) * Number(item.unitPrice || 0), inputCurrency)}
                       </span>
                     </div>
                   ))}
                   <div className="flex justify-between text-sm font-medium border-t pt-1">
                     <span className="text-muted-foreground">Total reservedeler:</span>
-                    <span className="font-medium">{formatCurrency(customLineItemsTotal)}</span>
+                    <span className="font-medium">{formatCurrency(customLineItemsTotal, inputCurrency)}</span>
                   </div>
                 </div>
               )}
               <div className="flex justify-between text-sm font-semibold border-t pt-2">
                 <span>Total kostnad:</span>
-                <span>{formatCurrency(totalCost)}</span>
+                <span>{formatCurrency(totalCost, inputCurrency)}</span>
               </div>
             </div>
           </div>

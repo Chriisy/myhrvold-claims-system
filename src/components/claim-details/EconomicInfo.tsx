@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calculator, TrendingUp, DollarSign } from "lucide-react";
+import { currencyService, Currency } from "@/services/currencyService";
 
 interface CustomLineItem {
   id: string;
@@ -13,6 +14,7 @@ interface CustomLineItem {
 interface EconomicData {
   workHours: number;
   hourlyRate: number;
+  currency?: Currency;
   overtime50Hours?: number;
   overtime100Hours?: number;
   travelHours?: number;
@@ -41,14 +43,17 @@ interface EconomicInfoProps {
 }
 
 export const EconomicInfo = ({ data }: EconomicInfoProps) => {
-  const formatCurrency = (amount: number | undefined | null) => {
-    if (!amount) return "0 kr";
-    return new Intl.NumberFormat('no-NO', {
-      style: 'currency',
-      currency: 'NOK',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+  const inputCurrency = data.currency || 'NOK';
+  
+  const formatCurrency = (amount: number | undefined | null, showInputCurrency: boolean = false) => {
+    if (!amount && amount !== 0) return "0 kr";
+    
+    if (showInputCurrency && inputCurrency === 'EUR') {
+      return `${currencyService.format(amount, 'EUR')} (${currencyService.formatWithConversion(amount, 'EUR')})`;
+    }
+    
+    // Always show NOK equivalent for final display
+    return currencyService.formatWithConversion(amount, inputCurrency);
   };
 
   const getRefundStatusColor = (status?: string) => {
@@ -70,9 +75,16 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="h-5 w-5" />
-          Økonomisk informasjon
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calculator className="h-5 w-5" />
+            Økonomisk informasjon
+          </div>
+          {inputCurrency === 'EUR' && (
+            <Badge variant="outline" className="text-xs">
+              Kostnader oppgitt i EUR
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

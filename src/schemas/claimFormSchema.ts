@@ -81,6 +81,7 @@ export const costBreakdownSchema = z.object({
     .min(0, "Timelønn kan ikke være negativ")
     .max(5000, "Timelønn kan ikke overstige 5000 NOK")
     .default(1250),
+  currency: z.enum(["NOK", "EUR"]).default("NOK"),
   overtime50Hours: z.number()
     .min(0, "Overtid 50% timer kan ikke være negative")
     .max(50, "Overtid 50% timer kan ikke overstige 50")
@@ -241,6 +242,7 @@ export const getDefaultClaimFormValues = (): ClaimFormData => ({
   // Cost breakdown
   workHours: 0,
   hourlyRate: 1250,
+  currency: "NOK" as const,
   overtime50Hours: 0,
   overtime100Hours: 0,
   customLineItems: [],
