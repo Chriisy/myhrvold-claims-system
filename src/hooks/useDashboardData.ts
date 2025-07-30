@@ -186,11 +186,11 @@ export const useCostAnalytics = (timeRange: string = '6m') => {
 
       // Calculate total costs with null safety
       const totalCosts = {
-        totalClaimCost: claims.reduce((sum, c) => sum + (c.total_cost || 0), 0),
-        totalRefunded: claims.reduce((sum, c) => sum + (c.total_refunded || 0), 0),
-        expectedRefunds: claims.reduce((sum, c) => sum + (c.expected_refund || 0), 0),
-        actualRefunds: claims.reduce((sum, c) => sum + (c.actual_refund || 0), 0),
-        netCost: claims.reduce((sum, c) => sum + ((c.total_cost || 0) - (c.total_refunded || 0)), 0)
+        totalClaimCost: claims.reduce((sum, c) => sum + (Number(c.total_cost) || 0), 0),
+        totalRefunded: claims.reduce((sum, c) => sum + (Number(c.total_refunded) || 0), 0),
+        expectedRefunds: claims.reduce((sum, c) => sum + (Number(c.expected_refund) || 0), 0),
+        actualRefunds: claims.reduce((sum, c) => sum + (Number(c.actual_refund) || 0), 0),
+        netCost: claims.reduce((sum, c) => sum + (Number(c.net_cost) || (Number(c.total_cost) || 0) - (Number(c.total_refunded) || 0)), 0)
       };
 
       // Cost by supplier
@@ -235,8 +235,8 @@ const calculateSupplierCosts = (claims: any[]) => {
     }
     
     const supplier = supplierMap.get(supplierName);
-    supplier.totalCost += claim.total_cost || 0;
-    supplier.totalRefunded += claim.total_refunded || 0;
+    supplier.totalCost += Number(claim.total_cost) || 0;
+    supplier.totalRefunded += Number(claim.total_refunded) || 0;
     supplier.claimCount += 1;
   });
 
@@ -269,8 +269,8 @@ const calculateProductCosts = (claims: any[]) => {
     }
     
     const product = productMap.get(key);
-    product.totalCost += claim.total_cost || 0;
-    product.totalRefunded += claim.total_refunded || 0;
+    product.totalCost += Number(claim.total_cost) || 0;
+    product.totalRefunded += Number(claim.total_refunded) || 0;
     product.claimCount += 1;
   });
 
@@ -347,9 +347,9 @@ const calculateCostTrends = (claims: any[]) => {
     }
     
     const month = monthMap.get(monthKey);
-    month.totalCosts += claim.total_cost || 0;
-    month.totalRefunds += claim.total_refunded || 0;
-    month.netCosts += claim.net_cost || 0;
+    month.totalCosts += Number(claim.total_cost) || 0;
+    month.totalRefunds += Number(claim.total_refunded) || 0;
+    month.netCosts += Number(claim.net_cost) || (Number(claim.total_cost) || 0) - (Number(claim.total_refunded) || 0);
     month.claimCount += 1;
   });
 

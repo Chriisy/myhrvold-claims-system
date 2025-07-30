@@ -263,11 +263,15 @@ const AnalyticsEnhanced = () => {
                             <Line type="monotone" dataKey="netCosts" stroke="hsl(var(--accent))" strokeWidth={2} />
                           </LineChart>
                         </ResponsiveContainer>
-                      ) : (
-                        <div className="flex items-center justify-center h-[400px] text-muted-foreground">
-                          <p>Ingen trenddata tilgjengelig</p>
-                        </div>
-                      )}
+                       ) : (
+                         <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                           <div className="text-center">
+                             <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                             <p>Ingen trenddata tilgjengelig for valgt periode</p>
+                             <p className="text-sm mt-1">Prøv en lengre tidsperiode eller sjekk at det finnes registrerte krav</p>
+                           </div>
+                         </div>
+                       )}
                     </ChartContainer>
                   </CardContent>
                 </Card>
