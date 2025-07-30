@@ -6,23 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Upload, Plus, LogOut, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft, Upload, Plus, LogOut, Info, Calculator, Save } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropZone } from "@/components/ui/drag-drop-zone";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { CustomerAutocomplete } from "@/components/ui/customer-autocomplete";
-import { PartAutocomplete } from "@/components/ui/part-autocomplete";
-
-interface UsedPart {
-  partNumber: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-}
 
 const ClaimsForm = () => {
   const navigate = useNavigate();
@@ -30,7 +21,7 @@ const ClaimsForm = () => {
   const { user, profile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [usedParts, setUsedParts] = useState<UsedPart[]>([]);
+  const [supplierProfiles, setSupplierProfiles] = useState<any[]>([]);
   
   // Form data
   const [formData, setFormData] = useState({
@@ -55,38 +46,41 @@ const ClaimsForm = () => {
     issueDescription: "",
     detailedDescription: "",
     solutionDescription: "",
+    solutionText: "",
     urgencyLevel: "normal",
     
     // Business fields
     technicianName: profile?.full_name || "",
     department: profile?.department || "",
-    salesperson: "",
     evaticJobNumber: "",
     msJobNumber: "",
     
     // Cost breakdown
     workHours: 0,
-    hourlyRate: 1250,
-    workCost: 0,
-    overtimeCost50: 0,
-    overtimeCost100: 0,
+    hourlyRate: 1250, // Default Norwegian rate
     travelHours: 0,
-    travelCost: 0,
-    vehicleKm: 0,
-    vehicleCostPerKm: 7.5,
-    vehicleCost: 0,
+    travelDistanceKm: 0,
+    vehicleCostPerKm: 7.5, // Norwegian standard
     partsCost: 0,
-    totalCost: 0,
+    consumablesCost: 0,
+    externalServicesCost: 0,
+    travelCost: 0,
     
     // Refund breakdown
-    refundedWork: false,
-    refundedParts: false,
-    refundWorkAmount: 0,
-    refundPartsAmount: 0,
+    refundedWorkCost: 0,
+    refundedTravelCost: 0,
+    refundedVehicleCost: 0,
+    refundedPartsCost: 0,
+    refundedOtherCost: 0,
     creditNoteNumber: "",
-    refundDate: "",
-    totalRefund: 0,
-    netCost: 0,
+    refundDateReceived: "",
+    
+    // Refund status checkboxes
+    workCostRefunded: false,
+    travelCostRefunded: false,
+    vehicleCostRefunded: false,
+    partsCostRefunded: false,
+    otherCostRefunded: false,
     
     // Notes
     internalNotes: "",
@@ -95,7 +89,7 @@ const ClaimsForm = () => {
   
   const [files, setFiles] = useState<File[]>([]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts for this form
   const shortcuts = [
     {
       key: 's',
@@ -123,29 +117,6 @@ const ClaimsForm = () => {
     }
   }, [profile]);
 
-  // Auto-calculate costs
-  useEffect(() => {
-    const workCost = formData.workHours * formData.hourlyRate;
-    const vehicleCost = formData.vehicleKm * formData.vehicleCostPerKm;
-    const usedPartsTotal = usedParts.reduce((sum, part) => sum + part.totalPrice, 0);
-    const totalCost = workCost + formData.overtimeCost50 + formData.overtimeCost100 + 
-                     formData.travelCost + vehicleCost + usedPartsTotal;
-    const totalRefund = formData.refundWorkAmount + formData.refundPartsAmount;
-    const netCost = totalCost - totalRefund;
-
-    setFormData(prev => ({
-      ...prev,
-      workCost,
-      vehicleCost,
-      partsCost: usedPartsTotal,
-      totalCost,
-      totalRefund,
-      netCost
-    }));
-  }, [formData.workHours, formData.hourlyRate, formData.overtimeCost50, formData.overtimeCost100, 
-      formData.travelCost, formData.vehicleKm, formData.vehicleCostPerKm, 
-      formData.refundWorkAmount, formData.refundPartsAmount, usedParts]);
-
   const fetchSuppliers = async () => {
     try {
       const { data, error } = await supabase
@@ -168,29 +139,18 @@ const ClaimsForm = () => {
     }));
   };
 
-  const addUsedPart = () => {
-    setUsedParts([...usedParts, {
-      partNumber: '',
-      description: '',
-      quantity: 1,
-      unitPrice: 0,
-      totalPrice: 0
-    }]);
+  const calculateTotalCost = () => {
+    return formData.workHours * formData.hourlyRate + formData.partsCost + formData.travelCost;
   };
 
-  const removeUsedPart = (index: number) => {
-    setUsedParts(usedParts.filter((_, i) => i !== index));
-  };
-
-  const updateUsedPart = (index: number, field: keyof UsedPart, value: string | number) => {
-    const newParts = [...usedParts];
-    newParts[index] = { ...newParts[index], [field]: value };
-    
-    if (field === 'quantity' || field === 'unitPrice') {
-      newParts[index].totalPrice = newParts[index].quantity * newParts[index].unitPrice;
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setFiles([...files, ...Array.from(event.target.files)]);
     }
-    
-    setUsedParts(newParts);
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
   };
 
   const validateForm = () => {
@@ -221,6 +181,7 @@ const ClaimsForm = () => {
     
     setLoading(true);
     try {
+      // Validate required fields
       const errors = validateForm();
       if (errors.length > 0) {
         toast({
@@ -232,8 +193,9 @@ const ClaimsForm = () => {
         return;
       }
 
+      // Create claim record
       const claimData = {
-        claim_number: '',
+        claim_number: '', // Will be auto-generated by trigger
         customer_name: formData.customerName,
         customer_contact: formData.customerContact || null,
         customer_email: formData.customerEmail || null,
@@ -250,6 +212,7 @@ const ClaimsForm = () => {
         issue_description: formData.issueDescription,
         detailed_description: formData.detailedDescription || null,
         solution_description: formData.solutionDescription || null,
+        solution_text: formData.solutionText || null,
         urgency_level: formData.urgencyLevel as 'low' | 'normal' | 'high' | 'critical',
         technician_name: formData.technicianName,
         department: formData.department as 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet',
@@ -259,6 +222,11 @@ const ClaimsForm = () => {
         hourly_rate: formData.hourlyRate || 0,
         parts_cost: formData.partsCost || 0,
         travel_cost: formData.travelCost || 0,
+        travel_hours: formData.travelHours || 0,
+        travel_distance_km: formData.travelDistanceKm || 0,
+        vehicle_cost_per_km: formData.vehicleCostPerKm || 7.5,
+        consumables_cost: formData.consumablesCost || 0,
+        external_services_cost: formData.externalServicesCost || 0,
         internal_notes: formData.internalNotes || null,
         customer_notes: formData.customerNotes || null,
         created_by: user.id,
@@ -272,6 +240,7 @@ const ClaimsForm = () => {
 
       if (claimError) throw claimError;
 
+      // Create timeline entry
       await supabase.from('claim_timeline').insert([{
         claim_id: claimResult.id,
         status: 'new',
@@ -281,7 +250,7 @@ const ClaimsForm = () => {
 
       toast({
         title: "Reklamasjon opprettet",
-        description: `Reklamasjon ${claimResult.claim_number} er opprettet.`,
+        description: `Reklamasjon ${claimResult.claim_number} er opprettet. Du kan fylle ut resten av informasjonen senere.`,
       });
 
       navigate(`/claims/${claimResult.id}`);
@@ -327,7 +296,7 @@ const ClaimsForm = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
+      <main className="container mx-auto px-4 py-6 max-w-4xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Customer Information */}
           <Card>
@@ -337,58 +306,54 @@ const ClaimsForm = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="customerName">Kunde navn *</Label>
-                  <Input
+                  <Input 
+                    id="customerName" 
                     value={formData.customerName}
                     onChange={(e) => handleInputChange('customerName', e.target.value)}
-                    placeholder="Meny Øya"
+                    placeholder="Rema 1000 Stavanger"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="customerNumber">Kundenummer</Label>
-                  <Input
-                    value={formData.customerNumber}
-                    onChange={(e) => handleInputChange('customerNumber', e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="contactPerson">Kontaktperson</Label>
-                  <Input
+                  <Input 
+                    id="contactPerson" 
                     value={formData.customerContact}
                     onChange={(e) => handleInputChange('customerContact', e.target.value)}
-                    placeholder="Ola Nordmann"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefon</Label>
-                  <Input
-                    value={formData.customerPhone}
-                    onChange={(e) => handleInputChange('customerPhone', e.target.value)}
-                    placeholder="+47 123 45 678"
+                    placeholder="Ola Nordmann" 
                   />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="email">E-post</Label>
-                  <Input
-                    type="email"
+                  <Input 
+                    id="email" 
+                    type="email" 
                     value={formData.customerEmail}
                     onChange={(e) => handleInputChange('customerEmail', e.target.value)}
-                    placeholder="kontakt@rema1000.no"
+                    placeholder="kontakt@rema1000.no" 
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Adresse</Label>
-                  <Input
-                    value={formData.customerAddress}
-                    onChange={(e) => handleInputChange('customerAddress', e.target.value)}
-                    placeholder="Storgata 1, 4001 Stavanger"
+                <div>
+                  <Label htmlFor="phone">Telefon</Label>
+                  <Input 
+                    id="phone" 
+                    value={formData.customerPhone}
+                    onChange={(e) => handleInputChange('customerPhone', e.target.value)}
+                    placeholder="+47 123 45 678" 
                   />
                 </div>
+              </div>
+              <div>
+                <Label htmlFor="address">Adresse</Label>
+                <Input 
+                  id="address" 
+                  value={formData.customerAddress}
+                  onChange={(e) => handleInputChange('customerAddress', e.target.value)}
+                  placeholder="Storgata 1, 4001 Stavanger" 
+                />
               </div>
             </CardContent>
           </Card>
@@ -401,97 +366,88 @@ const ClaimsForm = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="productName">Produktnavn *</Label>
-                  <Input
+                  <Input 
+                    id="productName" 
                     value={formData.productName}
                     onChange={(e) => handleInputChange('productName', e.target.value)}
-                    placeholder="UBERT varmeslapp DCUCUT1 Cube (nette glass)"
+                    placeholder="Kjøleskap Model X200"
                   />
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="productModel">Produktmodell</Label>
-                  <Input
+                  <Input 
+                    id="productModel" 
                     value={formData.productModel}
                     onChange={(e) => handleInputChange('productModel', e.target.value)}
-                    placeholder="Model X200"
+                    placeholder="Model X200" 
                   />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="serialNumber">Serienummer</Label>
-                  <Input
+                  <Input 
+                    id="serialNumber" 
                     value={formData.serialNumber}
                     onChange={(e) => handleInputChange('serialNumber', e.target.value)}
-                    placeholder="71-0324-120"
+                    placeholder="SN123456789" 
                   />
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="purchaseDate">Kjøpsdato</Label>
-                  <Input
-                    type="date"
+                  <Input 
+                    id="purchaseDate" 
+                    type="date" 
                     value={formData.purchaseDate}
                     onChange={(e) => handleInputChange('purchaseDate', e.target.value)}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="warranty">Garantiperiode</Label>
-                  <Input
-                    value={formData.warrantyPeriod}
-                    onChange={(e) => handleInputChange('warrantyPeriod', e.target.value)}
-                    placeholder="1 år"
-                  />
+                  <Select value={formData.warrantyPeriod} onValueChange={(value) => handleInputChange('warrantyPeriod', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Velg garantiperiode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1year">1 år</SelectItem>
+                      <SelectItem value="2years">2 år</SelectItem>
+                      <SelectItem value="3years">3 år</SelectItem>
+                      <SelectItem value="5years">5 år</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="supplier">Leverandør *</Label>
-                  <Input
-                    value={formData.supplier}
-                    onChange={(e) => handleInputChange('supplier', e.target.value)}
-                    placeholder="Velg leverandør"
-                  />
+                  <Select value={formData.supplier} onValueChange={(value) => handleInputChange('supplier', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Velg leverandør" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suppliers.map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.name}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Job Reference */}
+          {/* Issue Description */}
           <Card>
             <CardHeader>
-              <CardTitle>Jobbreferanse</CardTitle>
-              <CardDescription>Evakic jobbnummer (hvis tilgjengelig) eller MS-nummer</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="evaticJobNumber">Evakic jobbnummer</Label>
-                <Input
-                  value={formData.evaticJobNumber}
-                  onChange={(e) => handleInputChange('evaticJobNumber', e.target.value)}
-                  placeholder="EV-2024-001"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="msJobNumber">MS-nummer</Label>
-                <Input
-                  value={formData.msJobNumber}
-                  onChange={(e) => handleInputChange('msJobNumber', e.target.value)}
-                  placeholder="538430"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Problem Description */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Problembeskrivelse</CardTitle>
+              <CardTitle>Problembesk­rivelse</CardTitle>
               <CardDescription>Beskriv feilen eller problemet i detalj</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="issueType">Sakstype *</Label>
                   <Select value={formData.issueType} onValueChange={(value) => handleInputChange('issueType', value)}>
                     <SelectTrigger>
@@ -499,13 +455,14 @@ const ClaimsForm = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="warranty">Garanti</SelectItem>
-                      <SelectItem value="repair">Reparasjon</SelectItem>
-                      <SelectItem value="maintenance">Vedlikehold</SelectItem>
+                      <SelectItem value="claim">Reklamasjon</SelectItem>
+                      <SelectItem value="service_callback">Service tilbakekall</SelectItem>
+                      <SelectItem value="extended_warranty">Utvidet garanti</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="urgencyLevel">Hastighetsgrad</Label>
+                <div>
+                  <Label htmlFor="urgency">Hastighetsgrad</Label>
                   <Select value={formData.urgencyLevel} onValueChange={(value) => handleInputChange('urgencyLevel', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Velg hastighetsgrad" />
@@ -519,328 +476,232 @@ const ClaimsForm = () => {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="issueDescription">Kort beskrivelse *</Label>
-                <Input
+                <Input 
+                  id="issueDescription" 
                   value={formData.issueDescription}
                   onChange={(e) => handleInputChange('issueDescription', e.target.value)}
-                  placeholder="Temperature controller defective"
+                  placeholder="Kort beskrivelse av problemet"
                 />
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="detailedDescription">Detaljert beskrivelse</Label>
-                <Textarea
+                <Textarea 
+                  id="detailedDescription" 
                   value={formData.detailedDescription}
                   onChange={(e) => handleInputChange('detailedDescription', e.target.value)}
-                  placeholder="Replaced the controller as it was not supplying power to the lower heating element. The unit was not programmed from the factory"
-                  className="min-h-[100px]"
+                  placeholder="Beskriv problemet i detalj..."
+                  className="min-h-[120px]"
                 />
               </div>
-
-              {/* Used Parts Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">+ Reservedeler brukt</h4>
-                  <Button type="button" variant="outline" size="sm" onClick={addUsedPart}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Legg til ny reservedel
-                  </Button>
+              <div>
+                <Label htmlFor="solutionDescription">Løsning på problemet</Label>
+                <Input 
+                  id="solutionDescription" 
+                  value={formData.solutionDescription}
+                  onChange={(e) => handleInputChange('solutionDescription', e.target.value)}
+                  placeholder="Kort beskrivelse av løsningen"
+                />
+              </div>
+              <div>
+                <Label htmlFor="solutionText">Fri tekst - beskrivelse av løsning</Label>
+                <Textarea 
+                  id="solutionText" 
+                  value={formData.solutionText}
+                  onChange={(e) => handleInputChange('solutionText', e.target.value)}
+                  placeholder="Detaljert beskrivelse av hvordan problemet ble løst..."
+                  className="min-h-[120px]"
+                />
+              </div>
+              
+              {/* Organizational Information moved here */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                <div>
+                  <Label htmlFor="technicianName">Tekniker</Label>
+                  <Input 
+                    id="technicianName" 
+                    value={formData.technicianName}
+                    onChange={(e) => handleInputChange('technicianName', e.target.value)}
+                    readOnly={profile?.role === 'technician'}
+                    className={profile?.role === 'technician' ? "bg-muted" : ""}
+                  />
                 </div>
-                <p className="text-sm text-muted-foreground">Logg til alle reservedeler som ble brukt i reparasjonen</p>
-
-                {usedParts.map((part, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg">
-                    <div className="space-y-2">
-                      <Label>Delnummer</Label>
-                      <Input
-                        value={part.partNumber}
-                        onChange={(e) => updateUsedPart(index, 'partNumber', e.target.value)}
-                        placeholder="Ube342916"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Pris (kr)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={part.unitPrice}
-                        onChange={(e) => updateUsedPart(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Beskrivelse</Label>
-                      <Input
-                        value={part.description}
-                        onChange={(e) => updateUsedPart(index, 'description', e.target.value)}
-                        placeholder="Temperature controller with Ubert logo"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Antall</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={part.quantity}
-                        onChange={(e) => updateUsedPart(index, 'quantity', parseInt(e.target.value) || 1)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Enhetspris (kr)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={part.totalPrice.toFixed(2)}
-                        readOnly
-                        className="bg-muted"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeUsedPart(index)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Slett
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {usedParts.length > 0 && (
-                  <div className="text-right">
-                    <p className="font-semibold">Total reservedeler: {usedParts.reduce((sum, part) => sum + part.totalPrice, 0).toFixed(2)} kr</p>
-                  </div>
-                )}
+                <div>
+                  <Label htmlFor="department">Avdeling</Label>
+                  <Select 
+                    value={formData.department} 
+                    onValueChange={(value) => handleInputChange('department', value)}
+                    disabled={profile?.role === 'technician'}
+                  >
+                    <SelectTrigger className={profile?.role === 'technician' ? "bg-muted" : ""}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="oslo">Oslo</SelectItem>
+                      <SelectItem value="bergen">Bergen</SelectItem>
+                      <SelectItem value="trondheim">Trondheim</SelectItem>
+                      <SelectItem value="stavanger">Stavanger</SelectItem>
+                      <SelectItem value="kristiansand">Kristiansand</SelectItem>
+                      <SelectItem value="nord_norge">Nord Norge</SelectItem>
+                      <SelectItem value="innlandet">Innlandet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Notes moved here */}
+              <div className="space-y-4 pt-4">
+                <div>
+                  <Label htmlFor="internalNotes">Interne notater</Label>
+                  <Textarea 
+                    id="internalNotes" 
+                    value={formData.internalNotes}
+                    onChange={(e) => handleInputChange('internalNotes', e.target.value)}
+                    placeholder="Interne notater som ikke er synlige for kunden..."
+                    className="min-h-[80px]"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="customerNotes">Kundenotater</Label>
+                  <Textarea 
+                    id="customerNotes" 
+                    value={formData.customerNotes}
+                    onChange={(e) => handleInputChange('customerNotes', e.target.value)}
+                    placeholder="Notater som kan deles med kunden..."
+                    className="min-h-[80px]"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Economic Information */}
+          {/* Business/Economic Information */}
           <Card>
             <CardHeader>
               <CardTitle>Økonomisk informasjon</CardTitle>
-              <CardDescription>Detaljert kostnadsoversikt med automatisk beregning</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-semibold mb-4">Arbeidskostnader</h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label>Tekniske timer</Label>
-                    <Input
-                      type="number"
-                      step="0.5"
-                      value={formData.workHours}
-                      onChange={(e) => handleInputChange('workHours', parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Timesats (kr/time)</Label>
-                    <Input
-                      type="number"
-                      value={formData.hourlyRate}
-                      onChange={(e) => handleInputChange('hourlyRate', parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Arbeidskostnad (kr)</Label>
-                    <Input
-                      type="number"
-                      value={formData.workCost.toFixed(2)}
-                      readOnly
-                      className="bg-muted"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Overtid 50% timer</Label>
-                    <Input type="number" step="0.5" defaultValue="0" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h4 className="font-semibold text-lg mb-2">TOTAL KOSTNAD</h4>
-                <p className="text-2xl font-bold">{formData.totalCost.toFixed(2)} kr</p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-4">Refusjon fra leverandør</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={formData.refundedWork}
-                        onCheckedChange={(checked) => handleInputChange('refundedWork', checked)}
-                      />
-                      <span>Refundert arbeid</span>
-                      <Input
-                        type="number"
-                        value={formData.refundWorkAmount}
-                        onChange={(e) => handleInputChange('refundWorkAmount', parseFloat(e.target.value) || 0)}
-                        className="w-20"
-                      />
-                      <span className="text-blue-600">kr</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={formData.refundedParts}
-                        onCheckedChange={(checked) => handleInputChange('refundedParts', checked)}
-                      />
-                      <span>Refunderte deler</span>
-                      <Input
-                        type="number"
-                        value={formData.refundPartsAmount}
-                        onChange={(e) => handleInputChange('refundPartsAmount', parseFloat(e.target.value) || 0)}
-                        className="w-20"
-                      />
-                      <span className="text-blue-600">kr</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-2">
-                    <Label>Kreditnota nummer</Label>
-                    <Input
-                      value={formData.creditNoteNumber}
-                      onChange={(e) => handleInputChange('creditNoteNumber', e.target.value)}
-                      placeholder="CN-2024-001"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Refusjon mottatt dato</Label>
-                    <Input
-                      type="date"
-                      value={formData.refundDate}
-                      onChange={(e) => handleInputChange('refundDate', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 p-4 bg-muted rounded-lg">
-                  <div>
-                    <p className="font-semibold text-green-600">TOTAL REFUSJON</p>
-                    <p className="text-xl font-bold text-green-600">{formData.totalRefund.toFixed(2)} kr</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">NETTO KOSTNAD</p>
-                    <p className="text-xl font-bold">{formData.netCost.toFixed(2)} kr</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">STATUS</p>
-                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                      Delvis refundert
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Organization Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Organisasjonsinformasjon</CardTitle>
-              <CardDescription>Ansvarlige personer og avdelinger</CardDescription>
+              <CardDescription>Kostnader og refusjonsforventninger</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-4">Ansvarlige</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Tekniker</Label>
-                    <Input
-                      value={formData.technicianName}
-                      onChange={(e) => handleInputChange('technicianName', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Avdeling</Label>
-                    <Input
-                      value={formData.department}
-                      onChange={(e) => handleInputChange('department', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Selger/Salgsperson</Label>
-                    <Input
-                      value={formData.salesperson}
-                      onChange={(e) => handleInputChange('salesperson', e.target.value)}
-                      placeholder="Navn på selger"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Selgers avdeling</Label>
-                    <Input placeholder="Velg avdeling" />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="workHours">Arbeidstimer</Label>
+                  <Input 
+                    id="workHours" 
+                    type="number" 
+                    step="0.25"
+                    value={formData.workHours}
+                    onChange={(e) => handleInputChange('workHours', parseFloat(e.target.value) || 0)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="hourlyRate">Timesats (kr/time)</Label>
+                  <Input 
+                    id="hourlyRate" 
+                    type="number"
+                    value={formData.hourlyRate}
+                    onChange={(e) => handleInputChange('hourlyRate', parseFloat(e.target.value) || 0)}
+                    placeholder="1250"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="partsCost">Reservedelskostnad (kr)</Label>
+                  <Input 
+                    id="partsCost" 
+                    type="number"
+                    value={formData.partsCost}
+                    onChange={(e) => handleInputChange('partsCost', parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                  />
                 </div>
               </div>
-
-              <div>
-                <h4 className="font-semibold mb-4">Notater</h4>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Interne notater</Label>
-                    <Textarea
-                      value={formData.internalNotes}
-                      onChange={(e) => handleInputChange('internalNotes', e.target.value)}
-                      placeholder="Interne notater som ikke er synlige for kunden..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Kundenotater</Label>
-                    <Textarea
-                      value={formData.customerNotes}
-                      onChange={(e) => handleInputChange('customerNotes', e.target.value)}
-                      placeholder="Notater som kan deles med kunden..."
-                    />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="travelCost">Reiseutgifter (kr)</Label>
+                  <Input 
+                    id="travelCost" 
+                    type="number"
+                    value={formData.travelCost}
+                    onChange={(e) => handleInputChange('travelCost', parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="totalCost">Total kostnad (kr)</Label>
+                  <Input 
+                    id="totalCost" 
+                    type="number"
+                    value={calculateTotalCost().toFixed(2)}
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="netCost">Netto kostnad (kr)</Label>
+                  <Input 
+                    id="netCost" 
+                    type="number"
+                    value={calculateTotalCost().toFixed(2)}
+                    readOnly
+                    className="bg-muted font-bold"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="evaticJobNumber">Evatic jobbnummer</Label>
+                  <Input 
+                    id="evaticJobNumber" 
+                    value={formData.evaticJobNumber}
+                    onChange={(e) => handleInputChange('evaticJobNumber', e.target.value)}
+                    placeholder="EV-2024-001"
+                  />
+                </div>
+                <div>
+                  <Label>Kontokode (genereres automatisk)</Label>
+                  <div className="p-2 bg-muted rounded text-sm">
+                    {formData.issueType && formData.productName && formData.customerName
+                      ? `${formData.issueType === 'service_callback' ? '4506' : 
+                          formData.issueType === 'warranty' ? '7550' : 
+                          formData.issueType === 'claim' ? '7555' : '7566'};${formData.productName};${formData.customerName}`
+                      : 'Vil genereres ved lagring'}
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Attachments */}
+
+          {/* File Upload */}
           <Card>
             <CardHeader>
               <CardTitle>Vedlegg</CardTitle>
               <CardDescription>Last opp bilder, fakturaer eller andre relevante dokumenter</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-gray-600">Dra og slipp filer her</p>
-                <p className="text-sm text-gray-500">eller klikk for å velge filer</p>
-                <p className="text-xs text-gray-400 mt-2">Maks 10MB per fil</p>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,application/pdf"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      setFiles([...files, ...Array.from(e.target.files)]);
-                    }
-                  }}
-                />
-              </div>
+              <DragDropZone
+                onFilesAdded={(newFiles) => setFiles([...files, ...newFiles])}
+                files={files}
+                onFileRemove={removeFile}
+                accept="image/*,.pdf,.doc,.docx"
+                maxSize={10}
+                maxFiles={20}
+              />
             </CardContent>
           </Card>
 
-          <div className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/')}
-            >
-              Avbryt
+          {/* Submit Buttons */}
+          <div className="flex gap-4 pt-6">
+            <Button type="submit" className="flex-1" disabled={loading}>
+              <Plus className="mr-2 h-4 w-4" />
+              {loading ? "Oppretter..." : "Opprett reklamasjon"}
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Lagrer...' : 'Opprett reklamasjon'}
-            </Button>
+            <Link to="/" className="flex-1">
+              <Button type="button" variant="outline" className="w-full">
+                Avbryt
+              </Button>
+            </Link>
           </div>
         </form>
       </main>
