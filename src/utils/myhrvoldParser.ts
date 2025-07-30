@@ -1,5 +1,11 @@
 import { createWorker, PSM, type Worker } from 'tesseract.js';
 
+// Fast detection function for Myhrvold invoices
+export function isMyhrvoldInternal(text: string): boolean {
+  return /T\.?\s?MYHRVOLD\s+AS/i.test(text) &&
+         (/Ordresum|Sum avgiftsfritt/i.test(text) || /Service\s*nr/i.test(text));
+}
+
 interface InvoiceRow {
   produktkode: string;
   beskrivelse: string;
@@ -9,6 +15,7 @@ interface InvoiceRow {
 }
 
 interface ParsedInvoice {
+  source: 'myhrvoldParser';
   fakturaNr: string;
   fakturaDato: string;
   serviceNr: string;
@@ -19,12 +26,13 @@ interface ParsedInvoice {
   oppdrag: string;
   beskrivelseUtfort: string;
   tekniker: string;
-  total: number;
   rows: InvoiceRow[];
-  // Enhanced work classification
-  arbeidskostnad: number;
-  delekostnad: number;
-  reisekostnad: number;
+  totals: {
+    workCost: number;
+    partsCost: number;
+    travelCost: number;
+    grandTotal: number;
+  };
   confidence: number;
 }
 
@@ -166,7 +174,7 @@ function calculateConfidence(invoice: ParsedInvoice): number {
   if (invoice.fakturaDato && invoice.fakturaDato.match(/\d{2}\.\d{2}\.\d{4}/)) score += 15;
   maxScore += 15;
   
-  if (invoice.total > 0) score += 15;
+  if (invoice.totals.grandTotal > 0) score += 15;
   maxScore += 15;
   
   // Supporting fields (medium weight)
@@ -272,6 +280,7 @@ export async function parseMyhrvold(file: File): Promise<ParsedInvoice> {
     });
     
     const invoice: ParsedInvoice = {
+      source: 'myhrvoldParser',
       fakturaNr,
       fakturaDato,
       serviceNr,
@@ -282,11 +291,13 @@ export async function parseMyhrvold(file: File): Promise<ParsedInvoice> {
       oppdrag,
       beskrivelseUtfort,
       tekniker,
-      total,
       rows,
-      arbeidskostnad,
-      delekostnad,
-      reisekostnad,
+      totals: {
+        workCost: arbeidskostnad,
+        partsCost: delekostnad,
+        travelCost: reisekostnad,
+        grandTotal: total
+      },
       confidence: 0 // Will be calculated below
     };
     
@@ -295,7 +306,7 @@ export async function parseMyhrvold(file: File): Promise<ParsedInvoice> {
     
     console.log('Parsed invoice:', {
       fakturaNr: invoice.fakturaNr,
-      total: invoice.total,
+      total: invoice.totals.grandTotal,
       rowCount: invoice.rows.length,
       confidence: invoice.confidence
     });
@@ -314,8 +325,8 @@ export function validateMyhrvoldInvoice(invoice: ParsedInvoice): string[] {
   
   // Plausibility checks
   const calculatedTotal = invoice.rows.reduce((sum, row) => sum + row.belop, 0);
-  if (Math.abs(calculatedTotal - invoice.total) > 1) {
-    warnings.push(`Total stemmer ikke: ${invoice.total} vs beregnet ${calculatedTotal}`);
+  if (Math.abs(calculatedTotal - invoice.totals.grandTotal) > 1) {
+    warnings.push(`Total stemmer ikke: ${invoice.totals.grandTotal} vs beregnet ${calculatedTotal}`);
   }
   
   // Date validation
@@ -329,7 +340,7 @@ export function validateMyhrvoldInvoice(invoice: ParsedInvoice): string[] {
   
   // Critical fields
   if (!invoice.fakturaNr) warnings.push('Fakturanummer mangler');
-  if (!invoice.total || invoice.total <= 0) warnings.push('Totalbeløp mangler eller ugyldig');
+  if (!invoice.totals.grandTotal || invoice.totals.grandTotal <= 0) warnings.push('Totalbeløp mangler eller ugyldig');
   if (!invoice.tekniker) warnings.push('Tekniker mangler');
   
   // Project number validation

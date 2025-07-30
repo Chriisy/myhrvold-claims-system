@@ -8,6 +8,18 @@ const corsHeaders = {
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
+// Fast detection for Myhrvold invoices from base64 image
+function isMyhrvoldInternal(imageBase64: string): boolean {
+  // Simple heuristic: decode part of the base64 to check if it's likely a Myhrvold invoice
+  // This is a placeholder - in practice you'd need OCR or other detection
+  try {
+    const decoded = atob(imageBase64.substring(0, 1000));
+    return decoded.includes('T.MYHRVOLD') || decoded.includes('MYHRVOLD AS');
+  } catch {
+    return false;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {

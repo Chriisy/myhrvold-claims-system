@@ -145,6 +145,70 @@ export class OCRService {
   public static async parseVismaInvoice(text: string, file?: File): Promise<ScannedInvoiceData> {
     console.log('Parsing invoice with enhanced detection...');
     
+    // First check if this is a Myhrvold invoice and use enhanced parser
+    if (file && text.includes('T. Myhrvold AS')) {
+      try {
+        const { parseMyhrvold, isMyhrvoldInternal } = await import('@/utils/myhrvoldParser');
+        
+        // Use fast detection
+        if (isMyhrvoldInternal(text)) {
+          console.log('🎯 Using enhanced Myhrvold parser...');
+          const parsedInvoice = await parseMyhrvold(file);
+          
+          return {
+            // Invoice details
+            invoiceNumber: parsedInvoice.fakturaNr,
+            invoiceDate: parsedInvoice.fakturaDato,
+            
+            // Customer information
+            customerName: 'T. Myhrvold AS', // Always fixed for Myhrvold
+            customerNumber: '10053', // Always fixed for Myhrvold
+            contactPerson: '',
+            email: '',
+            phone: '',
+            address: '',
+            customerOrgNumber: parsedInvoice.kundeNr,
+            
+            // Product information
+            productName: parsedInvoice.oppdrag || (parsedInvoice.rows[0]?.beskrivelse || ''),
+            productNumber: parsedInvoice.serviceNr,
+            productModel: '',
+            serialNumber: '',
+            msNumber: parsedInvoice.serviceNr,
+            shortDescription: parsedInvoice.oppdrag || '',
+            detailedDescription: parsedInvoice.beskrivelseUtfort,
+            
+            // Work costs
+            technicianHours: parsedInvoice.totals.workCost / 650 || 0, // Estimate hours
+            hourlyRate: 650, // Standard Myhrvold rate
+            workCost: parsedInvoice.totals.workCost,
+            overtime50Hours: 0,
+            overtime50Cost: 0,
+            overtime100Hours: 0,
+            overtime100Cost: 0,
+            travelTimeHours: parsedInvoice.totals.travelCost / 1170 || 0, // Estimate travel hours
+            travelTimeCost: parsedInvoice.totals.travelCost,
+            vehicleKm: 0,
+            krPerKm: 0,
+            vehicleCost: 0,
+            
+            // Technician details
+            technician: parsedInvoice.tekniker,
+            department: '',
+            
+            // Legacy fields for compatibility
+            laborCost: parsedInvoice.totals.workCost,
+            partsCost: parsedInvoice.totals.partsCost,
+            totalAmount: parsedInvoice.totals.grandTotal,
+            evaticJobNumber: parsedInvoice.prosjektNr || parsedInvoice.serviceNr,
+            confidence: parsedInvoice.confidence / 100 // Convert to 0-1 range
+          };
+        }
+      } catch (error) {
+        console.warn('Enhanced Myhrvold parser failed, falling back to OpenAI/regex:', error);
+      }
+    }
+    
     // Check if this is OpenAI JSON response
     let openAIData: any = null;
     try {
@@ -281,9 +345,9 @@ export class OCRService {
           department: '',
           
           // Legacy fields for compatibility - using enhanced classification
-          laborCost: parsedInvoice.arbeidskostnad,
-          partsCost: parsedInvoice.delekostnad,
-          totalAmount: parsedInvoice.total,
+          laborCost: parsedInvoice.totals.workCost,
+          partsCost: parsedInvoice.totals.partsCost,
+          totalAmount: parsedInvoice.totals.grandTotal,
           evaticJobNumber: parsedInvoice.serviceNr || parsedInvoice.prosjektNr,
           confidence: parsedInvoice.confidence
         };
