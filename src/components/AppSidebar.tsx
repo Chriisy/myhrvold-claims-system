@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Home, FileText, BarChart3, Users, Settings, Award, Building, Shield } from "lucide-react";
+import { Home, FileText, BarChart3, Users, Settings, Award, Building, Shield, Target } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import {
@@ -26,6 +26,7 @@ const navigationItems: NavigationItem[] = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Reklamasjoner", url: "/claims", icon: FileText },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Budsjett", url: "/budget", icon: Target },
   { title: "Leverandører", url: "/suppliers", icon: Building },
   { title: "Scorecard", url: "/suppliers/scorecard", icon: Award, adminOnly: true },
   { title: "Administrasjon", url: "/admin", icon: Settings, adminOnly: true },

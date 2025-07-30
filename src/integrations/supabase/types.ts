@@ -53,6 +53,45 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_targets: {
+        Row: {
+          created_at: string
+          created_by: string
+          department: Database["public"]["Enums"]["department"] | null
+          id: string
+          notes: string | null
+          supplier_name: string | null
+          target_amount: number
+          updated_at: string
+          updated_by: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          department?: Database["public"]["Enums"]["department"] | null
+          id?: string
+          notes?: string | null
+          supplier_name?: string | null
+          target_amount?: number
+          updated_at?: string
+          updated_by?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          department?: Database["public"]["Enums"]["department"] | null
+          id?: string
+          notes?: string | null
+          supplier_name?: string | null
+          target_amount?: number
+          updated_at?: string
+          updated_by?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       claim_timeline: {
         Row: {
           changed_by: string
@@ -765,6 +804,19 @@ export type Database = {
       generate_claim_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_budget_progress: {
+        Args: {
+          p_year: number
+          p_department?: Database["public"]["Enums"]["department"]
+          p_supplier_name?: string
+        }
+        Returns: {
+          target_amount: number
+          actual_refunded: number
+          progress_percentage: number
+          remaining_amount: number
+        }[]
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>

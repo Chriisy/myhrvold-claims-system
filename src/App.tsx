@@ -13,6 +13,7 @@ import { useGlobalShortcuts } from "./hooks/useKeyboardShortcuts";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/AnalyticsEnhanced";
+import Budget from "./pages/Budget";
 import ClaimsFormAdvanced from "./pages/ClaimsFormAdvanced";
 import ClaimsForm from "./pages/ClaimsForm";
 import ClaimsList from "./pages/ClaimsList";
@@ -51,6 +52,7 @@ function AppRoutes() {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+      <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
       <Route path="/claims" element={<ProtectedRoute><ClaimsList /></ProtectedRoute>} />
       <Route path="/claims/new" element={<ProtectedRoute><ClaimsForm /></ProtectedRoute>} />
       <Route path="/claims/new-advanced" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
