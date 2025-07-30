@@ -80,9 +80,12 @@ const ClaimDetails = () => {
   const consumablesCost = Number(claimData.consumables_cost || 0);
   const externalServicesCost = Number(claimData.external_services_cost || 0);
   
-  // Use calculated total cost for consistency
+  // Avoid double counting: if custom line items exist, use them instead of parts_cost
+  const actualPartsCost = customLineItemsTotal > 0 ? customLineItemsTotal : partsCost;
+  
+  // Use calculated total cost for consistency - avoid double counting parts
   const calculatedTotalCost = workCost + overtime50Cost + overtime100Cost + travelTimeCost + vehicleCost + 
-                              partsCost + travelCost + consumablesCost + externalServicesCost + customLineItemsTotal;
+                              actualPartsCost + travelCost + consumablesCost + externalServicesCost;
   const totalRefunded = Number(claimData.refunded_work_cost || 0) + Number(claimData.refunded_parts_cost || 0) + 
                         Number(claimData.refunded_travel_cost || 0) + Number(claimData.refunded_vehicle_cost || 0) + 
                         Number(claimData.refunded_other_cost || 0);

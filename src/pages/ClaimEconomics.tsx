@@ -124,8 +124,11 @@ export const ClaimEconomics = () => {
   const consumablesCost = Number(claimData.consumables_cost || 0);
   const externalServicesCost = Number(claimData.external_services_cost || 0);
   
+  // Avoid double counting: if custom line items exist, use them instead of parts_cost
+  const actualPartsCost = customLineItemsTotal > 0 ? customLineItemsTotal : partsCost;
+  
   const totalCost = workCost + overtime50Cost + overtime100Cost + travelTimeCost + vehicleCost + 
-                   partsCost + travelCost + consumablesCost + externalServicesCost + customLineItemsTotal;
+                   actualPartsCost + travelCost + consumablesCost + externalServicesCost;
   const totalRefunded = Number(claimData.refunded_work_cost || 0) + Number(claimData.refunded_parts_cost || 0) + 
                        Number(claimData.refunded_travel_cost || 0) + Number(claimData.refunded_vehicle_cost || 0) + 
                        Number(claimData.refunded_other_cost || 0);
