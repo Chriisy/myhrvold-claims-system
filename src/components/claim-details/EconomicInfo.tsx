@@ -240,40 +240,78 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
           </div>
         )}
 
-        {/* Custom Line Items Details */}
+        {/* Custom Line Items Details with Refund Info */}
         {data.customLineItems && data.customLineItems.length > 0 && (
           <div>
             <h4 className="font-medium mb-3">Tilpassede poster</h4>
             <div className="space-y-3">
-              {data.customLineItems.map((item, index) => (
-                <div key={item.id} className="border rounded-lg p-3 bg-muted/30">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                    <div>
-                      <span className="font-medium text-muted-foreground">Delenr:</span>
-                      <div>{item.partNumber || 'N/A'}</div>
+              {data.customLineItems.map((item, index) => {
+                const itemTotal = item.quantity * item.unitPrice;
+                // Calculate potential refund for this item (proportional to total refunded parts cost)
+                const itemRefund = data.refundedPartsCost && customLineItemsTotal > 0 ? 
+                  (itemTotal / customLineItemsTotal) * data.refundedPartsCost : 0;
+                const itemNetCost = itemTotal - itemRefund;
+                
+                return (
+                  <div key={item.id} className="border rounded-lg p-4 bg-muted/30">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-3">
+                      <div>
+                        <span className="font-medium text-muted-foreground">Delenr:</span>
+                        <div className="font-medium">{item.partNumber || 'N/A'}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Beskrivelse:</span>
+                        <div className="font-medium">{item.description || 'N/A'}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Antall:</span>
+                        <div className="font-medium">{item.quantity}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Enhetspris:</span>
+                        <div className="font-medium">{formatCurrency(item.unitPrice, true)}</div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Beskrivelse:</span>
-                      <div>{item.description || 'N/A'}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Antall:</span>
-                      <div>{item.quantity}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Pris:</span>
-                      <div>{formatCurrency(item.unitPrice)}</div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t">
+                      <div className="text-center p-2 bg-blue-50 rounded">
+                        <div className="text-xs text-muted-foreground mb-1">Total kostnad</div>
+                        <div className="font-semibold text-blue-700">{formatCurrency(itemTotal)}</div>
+                      </div>
+                      
+                      {itemRefund > 0 && (
+                        <div className="text-center p-2 bg-green-50 rounded">
+                          <div className="text-xs text-muted-foreground mb-1">Refundert</div>
+                          <div className="font-semibold text-green-700">
+                            -{formatCurrency(itemRefund, true)}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="text-center p-2 bg-red-50 rounded">
+                        <div className="text-xs text-muted-foreground mb-1">Netto kostnad</div>
+                        <div className="font-semibold text-red-700">{formatCurrency(itemNetCost)}</div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                    <span className="text-sm text-muted-foreground">Totalt for denne delen:</span>
-                    <span className="font-medium">{formatCurrency(item.quantity * item.unitPrice)}</span>
+                );
+              })}
+              
+              <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                <div className="flex justify-between items-center font-semibold">
+                  <span>Total tilpassede poster:</span>
+                  <div className="text-right">
+                    <div className="text-lg">{formatCurrency(customLineItemsTotal)}</div>
+                    {data.refundedPartsCost > 0 && (
+                      <div className="text-sm text-green-600">
+                        - {formatCurrency(data.refundedPartsCost)} refundert
+                      </div>
+                    )}
+                    <div className="text-sm font-bold text-red-600">
+                      = {formatCurrency(customLineItemsTotal - (data.refundedPartsCost || 0))} netto
+                    </div>
                   </div>
                 </div>
-              ))}
-              <div className="flex justify-between font-medium border-t pt-2">
-                <span>Total tilpassede poster:</span>
-                <span>{formatCurrency(customLineItemsTotal)}</span>
               </div>
             </div>
           </div>
