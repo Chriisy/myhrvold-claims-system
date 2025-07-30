@@ -15,15 +15,22 @@ serve(async (req) => {
   }
 
   try {
+    console.log('OpenAI Vision OCR request started');
+    
     if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is not configured');
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
+    console.log('Parsing request body...');
     const { imageBase64 } = await req.json();
     
     if (!imageBase64) {
+      console.error('No image data provided');
       throw new Error('No image data provided');
     }
+    
+    console.log('Image data received, length:', imageBase64.length);
 
     // Prepare the enhanced prompt for Norwegian T. Myhrvold invoices
     const prompt = `
@@ -61,6 +68,7 @@ KRITISKE REGLER:
 - T1 = timeservice/arbeid, andre koder = deler/materialer
 - Vær spesielt nøye med totalbeløp og arbeidskostnader`;
 
+    console.log('Calling OpenAI Vision API...');
     // Call OpenAI Vision API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -90,13 +98,18 @@ KRITISKE REGLER:
       })
     });
 
+    console.log('OpenAI response status:', response.status);
+
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`OpenAI API error: ${error}`);
+      console.error('OpenAI API error:', error);
+      throw new Error(`OpenAI API error (${response.status}): ${error}`);
     }
 
+    console.log('Parsing OpenAI response...');
     const result = await response.json();
     const extractedText = result.choices[0].message.content;
+    console.log('OpenAI extracted text:', extractedText.substring(0, 200) + '...');
 
     // Parse JSON response
     let extractedData;
