@@ -4,68 +4,104 @@
 
 import { ScannedInvoiceData } from '@/types/scanner';
 
-/**
- * Maps OpenAI Assistant extracted data to ScannedInvoiceData format
- */
-export function mapAssistantDataToClaimForm(assistantData: any): ScannedInvoiceData {
-  console.log('🗺️ Mapping Assistant data to claim form:', assistantData);
+// Invoice JSON structure from Assistant API
+export interface InvoiceJSON {
+  invoiceNumber?: string;
+  shortDesc?: string;
+  longDesc?: string;
+  technician?: string;
+  totals?: {
+    labour?: number;
+    travel?: number;
+    parts?: number;
+    grandTotal?: number;
+  };
+  rows?: Array<{
+    code?: string;
+    description?: string;
+    quantity?: number;
+    unitPrice?: number;
+    totalPrice?: number;
+  }>;
+  // Additional fields for compatibility
+  customerName?: string;
+  invoiceDate?: string;
+  serviceNo?: string;
+  projectNo?: string;
+  confidence?: number;
+}
 
-  // fillClaimForm mapping as specified in requirements
+/**
+ * Maps InvoiceJSON structure to ClaimForm (ScannedInvoiceData)
+ */
+export function map(json: InvoiceJSON): ScannedInvoiceData {
+  console.log('🗺️ Mapping InvoiceJSON to ClaimForm:', json);
+
+  // Fallback check - throw ASSIST_FAIL if totals are missing
+  if (!json.totals) {
+    console.error('❌ ASSIST_FAIL: Missing totals in InvoiceJSON');
+    throw new Error('ASSIST_FAIL: Missing required totals data');
+  }
+
   const mappedData: ScannedInvoiceData = {
     // Invoice details
-    invoiceNumber: assistantData.invoiceNumber || '',
-    invoiceDate: assistantData.invoiceDate || '',
+    invoiceNumber: json.invoiceNumber || '',
+    invoiceDate: json.invoiceDate || '',
     
-    // Customer information
-    customerName: assistantData.customerName || 'T. Myhrvold AS',
-    customerNumber: assistantData.customerNumber || '',
-    contactPerson: assistantData.contactPerson || '',
-    email: assistantData.email || '',
-    phone: assistantData.phone || '',
-    address: assistantData.address || '',
-    customerOrgNumber: assistantData.customerOrgNumber || '',
+    // Customer information (defaults for T. Myhrvold)
+    customerName: json.customerName || 'T. Myhrvold AS',
+    customerNumber: '',
+    contactPerson: '',
+    email: '',
+    phone: '',
+    address: '',
+    customerOrgNumber: '',
     
     // Product information
-    productName: assistantData.productName || '',
-    productNumber: assistantData.productNumber || assistantData.serviceNumber || '',
-    productModel: assistantData.productModel || '',
-    serialNumber: assistantData.serialNumber || '',
-    msNumber: assistantData.msNumber || assistantData.serviceNumber || '',
-    shortDescription: assistantData.productName || '',
-    detailedDescription: assistantData.workDescription || assistantData.description || assistantData.productName || '',
+    productName: '',
+    productNumber: json.serviceNo || '',
+    productModel: '',
+    serialNumber: '',
+    msNumber: json.serviceNo || '',
+    shortDescription: json.shortDesc || '',
+    detailedDescription: json.longDesc || '',
     
-    // Work costs - mapping from Assistant API
-    technicianHours: Number(assistantData.technicianHours || 0),
-    hourlyRate: Number(assistantData.hourlyRate || 0),
-    workCost: Number(assistantData.workCost || 0), // totals.labour mapping
+    // Work costs - mapped from totals.labour
+    workCost: Number(json.totals.labour || 0),
+    technicianHours: 0, // Will be calculated if hourlyRate is available
+    hourlyRate: 0,
     
     // Overtime costs (usually not in T. Myhrvold invoices)
-    overtime50Hours: Number(assistantData.overtime50Hours || 0),
-    overtime50Cost: Number(assistantData.overtime50Cost || 0),
-    overtime100Hours: Number(assistantData.overtime100Hours || 0),
-    overtime100Cost: Number(assistantData.overtime100Cost || 0),
+    overtime50Hours: 0,
+    overtime50Cost: 0,
+    overtime100Hours: 0,
+    overtime100Cost: 0,
     
-    // Travel costs - mapping from Assistant API
-    travelTimeHours: Number(assistantData.travelTimeHours || 0),
-    travelTimeCost: Number(assistantData.travelTimeCost || 0), // totals.travel mapping
+    // Travel costs - mapped from totals.travel
+    travelTimeHours: 0, // Will be calculated if needed
+    travelTimeCost: Number(json.totals.travel || 0),
     
     // Vehicle costs
-    vehicleKm: Number(assistantData.vehicleKm || 0),
-    krPerKm: Number(assistantData.krPerKm || 0),
-    vehicleCost: Number(assistantData.vehicleCost || 0),
+    vehicleKm: 0,
+    krPerKm: 0,
+    vehicleCost: 0,
+    
+    // Parts cost - mapped from totals.parts
+    partsCost: Number(json.totals.parts || 0),
     
     // Technician details
-    technician: assistantData.technician || '',
-    department: assistantData.department || '',
+    technician: json.technician || '',
+    department: '',
+    
+    // Total amount
+    totalAmount: Number(json.totals.grandTotal || 0),
     
     // Legacy fields for compatibility
-    laborCost: Number(assistantData.workCost || 0),
-    partsCost: Number(assistantData.partsCost || 0), // totals.parts mapping
-    totalAmount: Number(assistantData.totalAmount || 0),
+    laborCost: Number(json.totals.labour || 0),
     
     // Additional fields
-    evaticJobNumber: assistantData.serviceNumber || assistantData.projectNumber || '',
-    confidence: Number(assistantData.confidence || 85)
+    evaticJobNumber: json.serviceNo || json.projectNo || '',
+    confidence: Number(json.confidence || 85)
   };
 
   // Validate total calculation (±2 kr tolerance as specified)
@@ -76,12 +112,10 @@ export function mapAssistantDataToClaimForm(assistantData: any): ScannedInvoiceD
   const totalDiff = Math.abs(calculatedTotal - mappedData.totalAmount);
   
   if (totalDiff > 2) {
-    console.warn(`⚠️ Total validation failed for Assistant data. Calculated: ${calculatedTotal}, Extracted: ${mappedData.totalAmount}, Diff: ${totalDiff}`);
-    
-    // Adjust confidence based on validation failure
+    console.warn(`⚠️ Total validation failed. Calculated: ${calculatedTotal}, Extracted: ${mappedData.totalAmount}, Diff: ${totalDiff}`);
     mappedData.confidence = Math.max(50, mappedData.confidence - 20);
   } else {
-    console.log('✅ Total validation passed for Assistant data');
+    console.log('✅ Total validation passed for mapped data');
   }
 
   console.log('🎯 Mapped data:', mappedData);
@@ -89,15 +123,17 @@ export function mapAssistantDataToClaimForm(assistantData: any): ScannedInvoiceD
 }
 
 /**
- * Validates Assistant API response structure
+ * Validates InvoiceJSON response structure
  */
-export function validateAssistantResponse(data: any): boolean {
+export function validateInvoiceJSON(data: InvoiceJSON): boolean {
   if (!data) return false;
   
   // Check required fields for T. Myhrvold invoices
   const hasRequiredFields = data.invoiceNumber && 
-                           data.customerName &&
-                           (data.workCost !== undefined || data.partsCost !== undefined);
+                           data.totals &&
+                           (data.totals.labour !== undefined || 
+                            data.totals.travel !== undefined || 
+                            data.totals.parts !== undefined);
   
   // Check that it's a T. Myhrvold invoice
   const isMyhrvoldInvoice = data.customerName === 'T. Myhrvold AS' ||
@@ -107,20 +143,86 @@ export function validateAssistantResponse(data: any): boolean {
 }
 
 /**
- * Creates line items from Assistant API rows data
+ * Legacy validation function for backwards compatibility
+ * @deprecated Use validateInvoiceJSON() instead
  */
-export function mapAssistantRowsToLineItems(rows: any[]): any[] {
+export function validateAssistantResponse(data: any): boolean {
+  console.log('⚠️ Using deprecated validateAssistantResponse. Consider using validateInvoiceJSON() instead.');
+  return validateInvoiceJSON(data);
+}
+
+/**
+ * Legacy function for backwards compatibility
+ * Maps OpenAI Assistant extracted data to ScannedInvoiceData format
+ * @deprecated Use map() function with InvoiceJSON instead
+ */
+export function mapAssistantDataToClaimForm(assistantData: any): ScannedInvoiceData {
+  console.log('⚠️ Using deprecated mapAssistantDataToClaimForm. Consider using map() instead.');
+  
+  // Convert legacy format to InvoiceJSON format
+  const invoiceJSON: InvoiceJSON = {
+    invoiceNumber: assistantData.invoiceNumber,
+    shortDesc: assistantData.productName || assistantData.description,
+    longDesc: assistantData.workDescription || assistantData.detailedDescription,
+    technician: assistantData.technician,
+    totals: {
+      labour: assistantData.workCost || assistantData.laborCost,
+      travel: assistantData.travelTimeCost || assistantData.travelCost,
+      parts: assistantData.partsCost,
+      grandTotal: assistantData.totalAmount
+    },
+    customerName: assistantData.customerName,
+    invoiceDate: assistantData.invoiceDate,
+    serviceNo: assistantData.serviceNumber || assistantData.evaticJobNumber,
+    projectNo: assistantData.projectNumber,
+    confidence: assistantData.confidence
+  };
+  
+  return map(invoiceJSON);
+}
+
+/**
+ * Creates line items from InvoiceJSON rows data
+ * Filters out non-parts rows (rows where code != labor/travel codes)
+ */
+export function mapInvoiceRowsToLineItems(rows: any[]): any[] {
   if (!Array.isArray(rows)) return [];
   
-  return rows.map((row, index) => ({
+  // Filter out labor/travel rows, keep only parts
+  const partsRows = rows.filter(row => 
+    row.code && 
+    !['T1', 'RT1', 'KM'].includes(row.code.toUpperCase())
+  );
+  
+  return partsRows.map((row, index) => ({
     id: index + 1,
     description: row.description || '',
     quantity: Number(row.quantity || 1),
     unitPrice: Number(row.unitPrice || 0),
     totalPrice: Number(row.totalPrice || 0),
     code: row.code || '',
-    category: row.code === 'T1' ? 'labor' : 
-              row.code === 'RT1' ? 'travel' :
-              row.code === 'KM' ? 'vehicle' : 'parts'
+    category: 'parts'
   }));
+}
+
+/**
+ * Legacy function for backwards compatibility
+ * @deprecated Use mapInvoiceRowsToLineItems() instead
+ */
+export function mapAssistantRowsToLineItems(rows: any[]): any[] {
+  console.log('⚠️ Using deprecated mapAssistantRowsToLineItems. Consider using mapInvoiceRowsToLineItems() instead.');
+  return mapInvoiceRowsToLineItems(rows);
+}
+
+/**
+ * Trims OCR text before sending to Assistant API
+ */
+export function trimOCRText(ocrText: string): string {
+  if (!ocrText) return '';
+  
+  return ocrText
+    .trim()
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(/\n\s*\n/g, '\n') // Remove empty lines
+    .slice(0, 8000); // Limit to reasonable length for API
 }
