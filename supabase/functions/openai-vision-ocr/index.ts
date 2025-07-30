@@ -112,11 +112,25 @@ KRITISKE REGLER:
     console.log('OpenAI extracted text:', extractedText.substring(0, 200) + '...');
 
     // Parse JSON response
+    console.log('Parsing JSON from OpenAI response...');
     let extractedData;
     try {
-      extractedData = JSON.parse(extractedText);
+      // Clean the response text - remove any markdown formatting
+      let cleanText = extractedText.trim();
+      if (cleanText.startsWith('```json')) {
+        cleanText = cleanText.replace(/```json\n?/, '').replace(/\n?```$/, '');
+      }
+      if (cleanText.startsWith('```')) {
+        cleanText = cleanText.replace(/```\n?/, '').replace(/\n?```$/, '');
+      }
+      
+      console.log('Cleaned text for parsing:', cleanText.substring(0, 200));
+      extractedData = JSON.parse(cleanText);
+      console.log('Successfully parsed JSON:', extractedData);
     } catch (e) {
-      throw new Error('Failed to parse OpenAI response as JSON');
+      console.error('JSON parsing failed:', e);
+      console.error('Raw OpenAI response:', extractedText);
+      throw new Error(`Failed to parse OpenAI response as JSON: ${e.message}`);
     }
 
     return new Response(
