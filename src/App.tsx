@@ -19,6 +19,7 @@ import ClaimsList from "./pages/ClaimsList";
 import ClaimDetails from "./pages/ClaimDetails";
 import { ClaimEconomics } from "./pages/ClaimEconomics";
 import SupplierManagement from "./pages/SupplierManagement";
+import SupplierScorecard from "./pages/SupplierScorecard";
 import AdminSettings from "./pages/AdminSettings";
 import Auth from "./pages/Auth";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -53,6 +54,7 @@ function AppRoutes() {
       <Route path="/claims/:id/edit" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
       <Route path="/claims/:id/economics" element={<ProtectedRoute><ClaimEconomics /></ProtectedRoute>} />
       <Route path="/suppliers" element={<ProtectedRoute><SupplierManagement /></ProtectedRoute>} />
+      <Route path="/suppliers/scorecard" element={<ProtectedRoute><SupplierScorecard /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />

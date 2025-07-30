@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp, BarChart3, Loader2, RefreshCw, AlertCircle } from "lucide-react";
+import { Plus, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp, BarChart3, Loader2, RefreshCw, AlertCircle, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { useDashboardStats, useRecentClaims } from "@/hooks/useDashboardData";
@@ -118,6 +118,15 @@ const Dashboard = () => {
                   <span className="sm:hidden">Rapporter</span>
                 </Button>
               </Link>
+              {profile?.role === 'admin' && (
+                <Link to="/suppliers/scorecard" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <Award className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Leverandører</span>
+                    <span className="sm:hidden">Scorecard</span>
+                  </Button>
+                </Link>
+              )}
               <Link to="/claims/new" className="w-full sm:w-auto">
                 <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                   <Plus className="mr-2 h-4 w-4" />

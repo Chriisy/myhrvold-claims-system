@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings, Shield } from "lucide-react";
+import { User, LogOut, Settings, Shield, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,6 +135,12 @@ const UserNav = () => {
         
         {profile.role === 'admin' && (
           <>
+            <DropdownMenuItem asChild>
+              <Link to="/suppliers/scorecard" className="flex items-center gap-2 w-full">
+                <TrendingUp className="h-4 w-4" />
+                Leverandør-scorecard
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/admin" className="flex items-center gap-2 w-full">
                 <Settings className="h-4 w-4" />

@@ -717,6 +717,20 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
+      calculate_supplier_scorecards: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          supplier_name: string
+          total_claims: number
+          active_claims: number
+          resolved_claims: number
+          avg_response_time_days: number
+          total_cost: number
+          total_refunded: number
+          refund_rate: number
+          score: number
+        }[]
+      }
       check_overdue_claims: {
         Args: Record<PropertyKey, never>
         Returns: undefined
