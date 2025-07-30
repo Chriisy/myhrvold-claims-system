@@ -3,16 +3,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, TrendingUp, DollarSign, Package, Building2, FileDown, Loader2 } from "lucide-react";
+import { ArrowLeft, TrendingUp, DollarSign, Package, Building2, FileDown, Loader2, Target, Plus, Edit, Trash2, Calendar, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { useCostAnalytics } from "@/hooks/useDashboardData";
+import { useBudgetTargets, useCreateBudgetTarget, useUpdateBudgetTarget, useDeleteBudgetTarget, useBudgetProgress, useAvailableYears } from "@/hooks/useBudget";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
+import type { BudgetTarget } from "@/services/budgetService";
+
+interface BudgetFormData {
+  year: number;
+  target_amount: number;
+  department?: string;
+  supplier_name?: string;
+  notes?: string;
+}
 
 const AnalyticsEnhanced = () => {
   const { profile } = useAuth();
@@ -21,7 +37,29 @@ const AnalyticsEnhanced = () => {
   const [exportingPdf, setExportingPdf] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   
+  // Budget state
+  const [selectedBudgetYear, setSelectedBudgetYear] = useState(new Date().getFullYear());
+  const [isBudgetFormOpen, setIsBudgetFormOpen] = useState(false);
+  const [editingTarget, setEditingTarget] = useState<BudgetTarget | null>(null);
+  const [budgetFormData, setBudgetFormData] = useState<BudgetFormData>({
+    year: new Date().getFullYear(),
+    target_amount: 0,
+    department: '',
+    supplier_name: '',
+    notes: ''
+  });
+  
   const { data: costData, isLoading: costLoading } = useCostAnalytics(timeRange);
+
+  // Budget hooks
+  const { user } = useAuth();
+  const isAdmin = profile?.role === 'admin';
+  const { data: availableBudgetYears } = useAvailableYears();
+  const { data: budgetTargets } = useBudgetTargets();
+  const { data: budgetProgress } = useBudgetProgress(selectedBudgetYear);
+  const createBudgetMutation = useCreateBudgetTarget();
+  const updateBudgetMutation = useUpdateBudgetTarget();
+  const deleteBudgetMutation = useDeleteBudgetTarget();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nb-NO', {
@@ -171,7 +209,7 @@ const AnalyticsEnhanced = () => {
 
       <main className="container mx-auto px-4 py-6" ref={contentRef}>
         <Tabs defaultValue="total-costs" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
             <TabsTrigger value="total-costs" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Total Kostnader</span>
               <span className="sm:hidden">Total</span>
@@ -187,6 +225,10 @@ const AnalyticsEnhanced = () => {
             <TabsTrigger value="products" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Per Produkt</span>
               <span className="sm:hidden">Produkt</span>
+            </TabsTrigger>
+            <TabsTrigger value="budget" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Budsjettsporing</span>
+              <span className="sm:hidden">Budsjett</span>
             </TabsTrigger>
           </TabsList>
 
@@ -506,6 +548,363 @@ const AnalyticsEnhanced = () => {
                 </Card>
               </div>
             ) : null}
+          </TabsContent>
+
+          {/* Budget Tab */}
+          <TabsContent value="budget" className="space-y-6">
+            <div className="space-y-6">
+              {/* Budget Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <Target className="h-6 w-6 text-primary" />
+                    Budsjettsporing {selectedBudgetYear}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Spor fremgang mot årlige refundmål fra leverandører
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Select
+                    value={selectedBudgetYear.toString()}
+                    onValueChange={(value) => setSelectedBudgetYear(parseInt(value))}
+                  >
+                    <SelectTrigger className="w-32">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableBudgetYears?.map(year => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {isAdmin && (
+                    <Button onClick={() => {
+                      setBudgetFormData({
+                        year: selectedBudgetYear,
+                        target_amount: 0,
+                        department: '',
+                        supplier_name: '',
+                        notes: ''
+                      });
+                      setEditingTarget(null);
+                      setIsBudgetFormOpen(true);
+                    }} className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      <span className="hidden sm:inline">Nytt budsjettmål</span>
+                      <span className="sm:hidden">Nytt mål</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Overall Progress Card */}
+              {budgetProgress && (
+                <Card className="animate-fade-in hover-scale">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-primary" />
+                      Totalt budsjett {selectedBudgetYear}
+                    </CardTitle>
+                    <CardDescription>
+                      {budgetProgress.progress_percentage >= 100 ? "🎉 Mål nådd!" 
+                       : budgetProgress.progress_percentage >= 90 ? "🔥 Nesten i mål!"
+                       : budgetProgress.progress_percentage >= 70 ? "📈 På god vei"
+                       : budgetProgress.progress_percentage >= 50 ? "⚡ Halvveis"
+                       : "🚀 I gang"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Progresjon</span>
+                        <span className="font-medium">{budgetProgress.progress_percentage}%</span>
+                      </div>
+                      <Progress 
+                        value={budgetProgress.progress_percentage} 
+                        className="h-3"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <DollarSign className="h-3 w-3" />
+                          Mål
+                        </div>
+                        <p className="text-lg font-semibold">
+                          {formatCurrency(budgetProgress.target_amount)}
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <TrendingUp className="h-3 w-3" />
+                          Refundert
+                        </div>
+                        <p className="text-lg font-semibold text-success">
+                          {formatCurrency(budgetProgress.actual_refunded)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          Gjenstår
+                        </div>
+                        <p className="text-sm font-medium">
+                          {formatCurrency(budgetProgress.remaining_amount)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Budget Targets List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Budsjettmål för {selectedBudgetYear}</CardTitle>
+                  <CardDescription>Alle fastsatte budsjettmål för året</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {budgetTargets?.filter(t => t.year === selectedBudgetYear).map(target => (
+                      <div key={target.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Target className="h-4 w-4" />
+                            <span className="font-medium">
+                              {target.department 
+                                ? `${target.department.charAt(0).toUpperCase() + target.department.slice(1)} avdeling`
+                                : target.supplier_name 
+                                ? `Leverandør: ${target.supplier_name}`
+                                : "Generelt mål"
+                              }
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Målbeløp: {formatCurrency(target.target_amount)}
+                          </p>
+                          {target.notes && (
+                            <p className="text-xs text-muted-foreground">
+                              {target.notes}
+                            </p>
+                          )}
+                        </div>
+                        {isAdmin && (
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setEditingTarget(target);
+                                setBudgetFormData({
+                                  year: target.year,
+                                  target_amount: target.target_amount,
+                                  department: target.department || '',
+                                  supplier_name: target.supplier_name || '',
+                                  notes: target.notes || ''
+                                });
+                                setIsBudgetFormOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Slett budsjettmål</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Er du sikker på at du vil slette dette budsjettmålet? Dette kan ikke angres.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteBudgetMutation.mutate(target.id)}>
+                                    Slett
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
+                      </div>
+                    )) || []}
+
+                    {(!budgetTargets?.filter(t => t.year === selectedBudgetYear).length) && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>Ingen budsjettmål satt for {selectedBudgetYear}</p>
+                        {isAdmin && (
+                          <p className="text-sm mt-1">
+                            Opprett ditt første budsjettmål for å komme i gang
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Budget Form Dialog */}
+              <Dialog open={isBudgetFormOpen} onOpenChange={setIsBudgetFormOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      {editingTarget ? "Rediger budsjettmål" : "Opprett budsjettmål"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!user) return;
+
+                    try {
+                      const baseData = {
+                        year: budgetFormData.year,
+                        target_amount: budgetFormData.target_amount,
+                        notes: budgetFormData.notes || null,
+                      };
+
+                      const departmentValue = budgetFormData.department && budgetFormData.department !== '' ? budgetFormData.department as any : null;
+                      const supplierValue = budgetFormData.supplier_name && budgetFormData.supplier_name !== '' ? budgetFormData.supplier_name : null;
+
+                      if (editingTarget) {
+                        await updateBudgetMutation.mutateAsync({
+                          id: editingTarget.id,
+                          updates: { 
+                            ...baseData, 
+                            department: departmentValue,
+                            supplier_name: supplierValue,
+                            updated_by: user.id 
+                          },
+                        });
+                      } else {
+                        await createBudgetMutation.mutateAsync({
+                          ...baseData,
+                          department: departmentValue,
+                          supplier_name: supplierValue,
+                          created_by: user.id,
+                        });
+                      }
+
+                      setIsBudgetFormOpen(false);
+                      setEditingTarget(null);
+                      setBudgetFormData({
+                        year: new Date().getFullYear(),
+                        target_amount: 0,
+                        department: '',
+                        supplier_name: '',
+                        notes: ''
+                      });
+                    } catch (error) {
+                      console.error('Form submission error:', error);
+                    }
+                  }} className="space-y-4">
+                    <div>
+                      <Label htmlFor="budget_year">År</Label>
+                      <Input
+                        id="budget_year"
+                        type="number"
+                        value={budgetFormData.year}
+                        onChange={(e) => setBudgetFormData(prev => ({ ...prev, year: parseInt(e.target.value) }))}
+                        min="2020"
+                        max="2050"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="budget_target_amount">Målbeløp (NOK)</Label>
+                      <Input
+                        id="budget_target_amount"
+                        type="number"
+                        value={budgetFormData.target_amount}
+                        onChange={(e) => setBudgetFormData(prev => ({ ...prev, target_amount: parseFloat(e.target.value) || 0 }))}
+                        step="0.01"
+                        min="0"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="budget_department">Avdeling (valgfritt)</Label>
+                      <Select
+                        value={budgetFormData.department}
+                        onValueChange={(value) => setBudgetFormData(prev => ({ ...prev, department: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Velg avdeling eller la stå tom for generelt mål" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Generelt mål (alle avdelinger)</SelectItem>
+                          <SelectItem value="oslo">Oslo</SelectItem>
+                          <SelectItem value="bergen">Bergen</SelectItem>
+                          <SelectItem value="trondheim">Trondheim</SelectItem>
+                          <SelectItem value="stavanger">Stavanger</SelectItem>
+                          <SelectItem value="kristiansand">Kristiansand</SelectItem>
+                          <SelectItem value="nord_norge">Nord-Norge</SelectItem>
+                          <SelectItem value="innlandet">Innlandet</SelectItem>
+                          <SelectItem value="vestfold">Vestfold</SelectItem>
+                          <SelectItem value="agder">Agder</SelectItem>
+                          <SelectItem value="ekstern">Ekstern</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="budget_supplier_name">Leverandør (valgfritt)</Label>
+                      <Input
+                        id="budget_supplier_name"
+                        value={budgetFormData.supplier_name}
+                        onChange={(e) => setBudgetFormData(prev => ({ ...prev, supplier_name: e.target.value }))}
+                        placeholder="La stå tom for generelt mål eller spesifiser leverandør"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="budget_notes">Notater</Label>
+                      <Textarea
+                        id="budget_notes"
+                        value={budgetFormData.notes}
+                        onChange={(e) => setBudgetFormData(prev => ({ ...prev, notes: e.target.value }))}
+                        placeholder="Tilleggsnotater om budsjettmålet..."
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsBudgetFormOpen(false)}
+                      >
+                        Avbryt
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={createBudgetMutation.isPending || updateBudgetMutation.isPending}
+                      >
+                        {editingTarget ? "Oppdater" : "Opprett"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
