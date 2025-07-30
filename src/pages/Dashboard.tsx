@@ -264,8 +264,12 @@ const Dashboard = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stats.departmentStats.map((dept) => (
-                  <div key={dept.department} className="p-4 border rounded-lg">
-                    <h4 className="font-medium capitalize mb-2">{dept.department.replace('_', ' ')}</h4>
+                   <div key={dept.department} className="p-4 border rounded-lg">
+                     <h4 className="font-medium capitalize mb-2">
+                       {dept.department === 'nord_norge' ? 'Nord Norge' : 
+                        dept.department === 'kristiansand' ? 'Kristiansand' :
+                        dept.department.charAt(0).toUpperCase() + dept.department.slice(1)}
+                     </h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>Totalt:</span>

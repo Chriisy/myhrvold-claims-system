@@ -93,13 +93,20 @@ export const useRecentClaims = (limit: number = 10) => {
 const calculateDepartmentStats = (claims: any[]) => {
   const departments = ['oslo', 'bergen', 'trondheim', 'stavanger', 'kristiansand', 'nord_norge', 'innlandet'];
   
-  return departments.map(dept => ({
-    department: dept,
-    total: claims.filter(c => c.department === dept).length,
-    pending: claims.filter(c => c.department === dept && c.status === 'pending_approval').length,
-    resolved: claims.filter(c => c.department === dept && c.status === 'resolved').length,
-    avgCost: calculateAvgCost(claims.filter(c => c.department === dept)),
-  }));
+  console.log('Claims departments found:', [...new Set(claims.map(c => c.department))]);
+  
+  return departments.map(dept => {
+    const deptClaims = claims.filter(c => c.department === dept);
+    console.log(`Department ${dept}: ${deptClaims.length} claims`);
+    
+    return {
+      department: dept,
+      total: deptClaims.length,
+      pending: deptClaims.filter(c => c.status === 'pending_approval').length,
+      resolved: deptClaims.filter(c => c.status === 'resolved').length,
+      avgCost: calculateAvgCost(deptClaims),
+    };
+  });
 };
 
 const calculateAverageResolutionTime = (claims: any[]): number => {
