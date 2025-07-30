@@ -17,7 +17,9 @@ import InvoiceScanner from "@/components/InvoiceScanner";
 import { useUpdateClaim } from '@/hooks/useClaimMutations';
 import { PartAutocomplete } from '@/components/ui/part-autocomplete';
 import { CustomerAutocomplete } from '@/components/ui/customer-autocomplete';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Part, Customer } from '@/services/autocompleteService';
+import { Currency } from '@/services/currencyService';
 
 const ClaimsFormAdvanced = () => {
   const navigate = useNavigate();
@@ -77,6 +79,7 @@ const ClaimsFormAdvanced = () => {
     consumablesCost: 0,
     externalServicesCost: 0,
     travelCost: 0,
+    inputCurrency: 'NOK' as Currency,
     
     // Refund breakdown
     refundedWorkCost: 0,
@@ -229,8 +232,9 @@ const ClaimsFormAdvanced = () => {
                vehicleCostRefunded: data.vehicle_cost_refunded || false,
                partsCostRefunded: data.parts_cost_refunded || false,
                otherCostRefunded: data.other_cost_refunded || false,
-               internalNotes: data.internal_notes || "",
-               customerNotes: data.customer_notes || ""
+                internalNotes: data.internal_notes || "",
+                customerNotes: data.customer_notes || "",
+                inputCurrency: 'NOK' as Currency
              });
 
               // Load custom line items and convert to parts
@@ -1332,12 +1336,15 @@ const ClaimsFormAdvanced = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="hourlyRate">Timesats (kr/time)</Label>
-                        <Input 
-                          id="hourlyRate" 
-                          type="number"
+                        <CurrencyInput
+                          label="Timesats"
                           value={formData.hourlyRate}
-                          onChange={(e) => handleInputChange('hourlyRate', parseFloat(e.target.value) || 0)}
+                          currency={formData.inputCurrency}
+                          onChange={(value, currency) => {
+                            handleInputChange('hourlyRate', value);
+                            handleInputChange('inputCurrency', currency);
+                          }}
+                          showConversion={true}
                           placeholder="1250"
                         />
                       </div>
@@ -1476,26 +1483,28 @@ const ClaimsFormAdvanced = () => {
                               placeholder="1"
                             />
                           </div>
-                          <div>
-                            <Label>Enhetspris (kr)</Label>
-                            <div className="flex gap-2">
-                              <Input 
-                                type="number"
-                                step="0.01"
-                                value={item.unitPrice}
-                                onChange={(e) => updateCustomLineItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                placeholder="0.00"
-                              />
-                              <Button 
-                                type="button" 
-                                variant="destructive" 
-                                size="sm"
-                                onClick={() => removeCustomLineItem(item.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
+                           <div>
+                             <div className="flex gap-2 items-end">
+                               <div className="flex-1">
+                                 <CurrencyInput
+                                   label="Enhetspris"
+                                   value={item.unitPrice}
+                                   currency={formData.inputCurrency}
+                                   onChange={(value) => updateCustomLineItem(item.id, 'unitPrice', value)}
+                                   showConversion={true}
+                                   placeholder="0.00"
+                                 />
+                               </div>
+                               <Button 
+                                 type="button" 
+                                 variant="destructive" 
+                                 size="sm"
+                                 onClick={() => removeCustomLineItem(item.id)}
+                               >
+                                 <Trash2 className="h-4 w-4" />
+                               </Button>
+                             </div>
+                           </div>
                         </div>
                         <div className="mt-2 flex justify-end">
                           <span className="text-sm font-semibold">
@@ -1560,15 +1569,16 @@ const ClaimsFormAdvanced = () => {
                           checked={formData.workCostRefunded}
                           onCheckedChange={(checked) => handleInputChange('workCostRefunded', checked)}
                         />
-                        <Label htmlFor="workCostRefunded">Refundert arbeid</Label>
-                        <Input 
-                          type="number"
-                          value={formData.refundedWorkCost}
-                          onChange={(e) => handleInputChange('refundedWorkCost', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                          className="flex-1"
-                        />
-                        <span className="text-sm text-muted-foreground">kr</span>
+                         <Label htmlFor="workCostRefunded">Refundert arbeid</Label>
+                         <div className="flex-1">
+                           <CurrencyInput
+                             value={formData.refundedWorkCost}
+                             currency={formData.inputCurrency}
+                             onChange={(value) => handleInputChange('refundedWorkCost', value)}
+                             showConversion={false}
+                             placeholder="0"
+                           />
+                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Checkbox 
@@ -1576,15 +1586,16 @@ const ClaimsFormAdvanced = () => {
                           checked={formData.partsCostRefunded}
                           onCheckedChange={(checked) => handleInputChange('partsCostRefunded', checked)}
                         />
-                        <Label htmlFor="partsCostRefunded">Refunderte deler</Label>
-                        <Input 
-                          type="number"
-                          value={formData.refundedPartsCost}
-                          onChange={(e) => handleInputChange('refundedPartsCost', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                          className="flex-1"
-                        />
-                        <span className="text-sm text-muted-foreground">kr</span>
+                         <Label htmlFor="partsCostRefunded">Refunderte deler</Label>
+                         <div className="flex-1">
+                           <CurrencyInput
+                             value={formData.refundedPartsCost}
+                             currency={formData.inputCurrency}
+                             onChange={(value) => handleInputChange('refundedPartsCost', value)}
+                             showConversion={false}
+                             placeholder="0"
+                           />
+                         </div>
                       </div>
                     </div>
                   </div>
