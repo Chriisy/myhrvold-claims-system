@@ -339,34 +339,92 @@ const ClaimsFormAdvanced = () => {
 
   // Handle OCR data extraction
   const handleOCRDataExtracted = (ocrData: any) => {
-    // Map OCR data to form fields
+    console.log('🔍 OCR Data received:', ocrData);
+    
+    // Map OCR data to form fields with corrected field mapping
     const updates: any = {};
     
+    // Customer & Product Information
     if (ocrData.customerName) updates.customerName = ocrData.customerName;
-    if (ocrData.customerOrgNumber) updates.customerNumber = ocrData.customerOrgNumber;
+    if (ocrData.customerNumber) updates.customerNumber = ocrData.customerNumber;
+    if (ocrData.customerOrgNumber) updates.customerOrgNumber = ocrData.customerOrgNumber;
     if (ocrData.productName) updates.productName = ocrData.productName;
     if (ocrData.productModel) updates.productModel = ocrData.productModel;
+    if (ocrData.serialNumber) updates.serialNumber = ocrData.serialNumber;
+    
+    // Job Numbers and References
     if (ocrData.evaticJobNumber) updates.evaticJobNumber = ocrData.evaticJobNumber;
     if (ocrData.invoiceNumber) updates.msJobNumber = ocrData.invoiceNumber;
+    if (ocrData.productNumber) updates.msNumber = ocrData.productNumber;
     
-    // Map costs
-    if (ocrData.laborCost > 0) {
-      const workHours = Math.round((ocrData.laborCost / formData.hourlyRate) * 100) / 100;
-      updates.workHours = workHours;
+    // Technician Information
+    if (ocrData.technician) updates.technician = ocrData.technician;
+    
+    // Work Details - CRITICAL MAPPING FIX
+    if (ocrData.technicianHours > 0) {
+      updates.workHours = ocrData.technicianHours;
     }
-    if (ocrData.partsCost > 0) updates.partsCost = ocrData.partsCost;
-    if (ocrData.totalAmount > 0) {
-      // Calculate travel cost as difference if not already set
-      const workCost = ocrData.laborCost || 0;
-      const partsCost = ocrData.partsCost || 0;
-      const remaining = ocrData.totalAmount - workCost - partsCost;
-      if (remaining > 0) updates.travelCost = remaining;
+    if (ocrData.hourlyRate > 0) {
+      updates.hourlyRate = ocrData.hourlyRate;
+    }
+    
+    // Cost Mapping - Use correct field names
+    const laborCost = ocrData.workCost || ocrData.laborCost || 0;
+    const partsCost = ocrData.partsCost || 0;
+    const totalCost = ocrData.totalAmount || 0;
+    
+    if (laborCost > 0) {
+      // If we have both hours and cost, verify they match
+      if (ocrData.technicianHours && ocrData.hourlyRate) {
+        const calculatedCost = ocrData.technicianHours * ocrData.hourlyRate;
+        if (Math.abs(calculatedCost - laborCost) > 50) {
+          console.warn('⚠️ Labor cost mismatch detected');
+        }
+      }
+      // Calculate work hours if not already extracted
+      if (!ocrData.technicianHours && ocrData.hourlyRate > 0) {
+        updates.workHours = Math.round((laborCost / ocrData.hourlyRate) * 100) / 100;
+      }
+    }
+    
+    // Travel Costs
+    if (ocrData.travelTimeHours > 0) {
+      updates.travelTimeHours = ocrData.travelTimeHours;
+    }
+    if (ocrData.travelTimeCost > 0) {
+      updates.travelCost = ocrData.travelTimeCost;
+    }
+    if (ocrData.vehicleKm > 0) {
+      updates.vehicleKm = ocrData.vehicleKm;
+    }
+    if (ocrData.vehicleCost > 0) {
+      updates.vehicleCost = ocrData.vehicleCost;
+    }
+    
+    // Parts Cost
+    if (partsCost > 0) {
+      updates.partsCost = partsCost;
+    }
+    
+    // Calculate any missing travel costs if we have total
+    if (totalCost > 0) {
+      const knownCosts = laborCost + partsCost + (ocrData.travelTimeCost || 0) + (ocrData.vehicleCost || 0);
+      const remaining = totalCost - knownCosts;
+      if (remaining > 0 && !ocrData.travelTimeCost && !ocrData.vehicleCost) {
+        updates.travelCost = remaining;
+      }
     }
 
     // Update invoice date if available
     if (ocrData.invoiceDate) {
       try {
-        const date = new Date(ocrData.invoiceDate);
+        // Handle Norwegian date format (DD.MM.YYYY)
+        let dateStr = ocrData.invoiceDate;
+        if (dateStr.includes('.')) {
+          const [day, month, year] = dateStr.split('.');
+          dateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        const date = new Date(dateStr);
         if (!isNaN(date.getTime())) {
           updates.purchaseDate = date.toISOString().split('T')[0];
         }
@@ -375,7 +433,17 @@ const ClaimsFormAdvanced = () => {
       }
     }
 
-    // Apply all updates
+    console.log('📝 Form updates to apply:', updates);
+    
+    // Apply all updates to form data
+    setFormData(prev => ({
+      ...prev,
+      ...updates
+    }));
+    
+    // Show summary of what was extracted
+    const extractedFields = Object.keys(updates).length;
+    console.log(`✅ Applied ${extractedFields} field updates from OCR`);
     setFormData(prev => ({ ...prev, ...updates }));
 
     toast({
