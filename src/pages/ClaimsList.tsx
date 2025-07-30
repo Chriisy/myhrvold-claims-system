@@ -4,17 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Filter, ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { useClaimsPaginated } from "@/hooks/useClaimsPaginated";
+import { useBulkOperations } from "@/hooks/useBulkOperations";
+import { BulkActions } from "@/components/claims/BulkActions";
 import UserNav from "@/components/UserNav";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ClaimsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  
+  const {
+    selectedItems,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    isSelected,
+    isAllSelected,
+    isSomeSelected,
+    selectionCount
+  } = useBulkOperations();
 
   // Use the new paginated hook
   const filters = useMemo(() => ({
@@ -30,8 +46,12 @@ const ClaimsList = () => {
     pagination,
     goToPage,
     hasNextPage,
-    hasPreviousPage
+    hasPreviousPage,
+    refetch
   } = useClaimsPaginated(filters);
+
+  const claimIds = claims?.map(claim => claim.id) || [];
+  const hasSelection = selectionCount > 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {

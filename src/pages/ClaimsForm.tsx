@@ -7,11 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Upload, Plus, LogOut, Info, Calculator } from "lucide-react";
+import { ArrowLeft, Upload, Plus, LogOut, Info, Calculator, Save } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useOptimizedAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { DragDropZone } from "@/components/ui/drag-drop-zone";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 const ClaimsForm = () => {
   const navigate = useNavigate();
@@ -86,6 +88,23 @@ const ClaimsForm = () => {
   });
   
   const [files, setFiles] = useState<File[]>([]);
+
+  // Keyboard shortcuts for this form
+  const shortcuts = [
+    {
+      key: 's',
+      ctrl: true,
+      action: () => {
+        const form = document.querySelector('form') as HTMLFormElement;
+        if (form) {
+          form.requestSubmit();
+        }
+      },
+      description: 'Lagre skjema (Ctrl+S)'
+    }
+  ];
+
+  useKeyboardShortcuts({ shortcuts });
 
   useEffect(() => {
     fetchSuppliers();
@@ -661,46 +680,14 @@ const ClaimsForm = () => {
               <CardDescription>Last opp bilder, fakturaer eller andre relevante dokumenter</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                      <p className="mb-2 text-sm text-muted-foreground">
-                        <span className="font-semibold">Klikk for å laste opp</span> eller dra og slipp
-                      </p>
-                      <p className="text-xs text-muted-foreground">PNG, JPG, PDF (MAKS. 10MB)</p>
-                    </div>
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      onChange={handleFileUpload}
-                      multiple
-                      accept="image/*,.pdf"
-                    />
-                  </label>
-                </div>
-
-                {/* File List */}
-                {files.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Opplastede filer:</Label>
-                    {files.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 border rounded">
-                        <span className="text-sm">{file.name}</span>
-                        <Button 
-                          type="button" 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => removeFile(index)}
-                        >
-                          Fjern
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <DragDropZone
+                onFilesAdded={(newFiles) => setFiles([...files, ...newFiles])}
+                files={files}
+                onFileRemove={removeFile}
+                accept="image/*,.pdf,.doc,.docx"
+                maxSize={10}
+                maxFiles={20}
+              />
             </CardContent>
           </Card>
 

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useAuth } from "@/hooks/useOptimizedAuth";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface NavHeaderProps {
   title: string;
@@ -49,6 +50,7 @@ const NavHeader = ({ title, subtitle, children }: NavHeaderProps) => {
                 {getRoleName(profile?.role || '')} • {getDepartmentName(profile?.department || '')}
               </div>
             </div>
+            <ThemeToggle />
             <Button variant="outline" onClick={signOut} size="sm">
               <LogOut className="h-4 w-4 mr-2" />
               Logg ut
