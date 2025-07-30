@@ -56,7 +56,7 @@ serve(async (req) => {
     // Initialize OpenAI client with timeout
     const openai = new OpenAI({ 
       apiKey: OPENAI_API_KEY,
-      timeout: 30000 // 30 second timeout
+      timeout: 30_000 // 30 second timeout moved to client constructor
     });
 
     try {
@@ -94,22 +94,12 @@ serve(async (req) => {
 
       console.log('Thread created:', thread.id);
 
-      // 3. Create and poll run
+      // 3. Create and poll run (timeout is now handled by client)
       console.log('Creating run with assistant...');
-      const runPromise = openai.beta.threads.runs.createAndPoll(
-        thread.id,
-        { 
-          assistant_id: ASSISTANT_ID
-        }
-      );
-
-      // Add timeout wrapper
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Assistant timeout after 30 seconds')), 30000);
-      });
-
       console.log('Waiting for assistant response...');
-      const run = await Promise.race([runPromise, timeoutPromise]);
+      const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+        assistant_id: ASSISTANT_ID
+      });
 
       if (run.status !== 'completed') {
         throw new Error(`Assistant run failed with status: ${run.status}`);
