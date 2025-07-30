@@ -18,12 +18,16 @@ import ClaimsForm from "./pages/ClaimsForm";
 import ClaimsList from "./pages/ClaimsList";
 import ClaimDetails from "./pages/ClaimDetails";
 import { ClaimEconomics } from "./pages/ClaimEconomics";
-import SupplierManagement from "./pages/SupplierManagement";
-import SupplierScorecard from "./pages/SupplierScorecard";
-import AdminSettings from "./pages/AdminSettings";
 import Auth from "./pages/Auth";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
+import { Suspense, lazy } from "react";
+import { LoadingSpinner } from "./components/ui/loading";
+
+// Lazy load admin components for better performance
+const SupplierManagement = lazy(() => import("./pages/SupplierManagement"));
+const SupplierScorecard = lazy(() => import("./pages/SupplierScorecard"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,9 +57,27 @@ function AppRoutes() {
       <Route path="/claims/:id" element={<ProtectedRoute><ErrorBoundary><ClaimDetails /></ErrorBoundary></ProtectedRoute>} />
       <Route path="/claims/:id/edit" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
       <Route path="/claims/:id/economics" element={<ProtectedRoute><ClaimEconomics /></ProtectedRoute>} />
-      <Route path="/suppliers" element={<ProtectedRoute><SupplierManagement /></ProtectedRoute>} />
-      <Route path="/suppliers/scorecard" element={<ProtectedRoute><SupplierScorecard /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+      <Route path="/suppliers" element={
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner size="lg" />}>
+            <SupplierManagement />
+          </Suspense>
+        </ProtectedRoute>
+      } />
+      <Route path="/suppliers/scorecard" element={
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner size="lg" />}>
+            <SupplierScorecard />
+          </Suspense>
+        </ProtectedRoute>
+      } />
+      <Route path="/admin" element={
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner size="lg" />}>
+            <AdminSettings />
+          </Suspense>
+        </ProtectedRoute>
+      } />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

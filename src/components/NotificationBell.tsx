@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -11,16 +11,16 @@ import { Link } from "react-router-dom";
 
 interface Notification {
   id: string;
-  type: string;
   title: string;
   message: string;
+  type: string;
   is_read: boolean;
   created_at: string;
   claim_id?: string;
-  metadata?: any;
+  metadata?: any; // Keep as any for Supabase Json compatibility
 }
 
-const NotificationBell = () => {
+const NotificationBell = memo(() => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -244,7 +244,9 @@ const NotificationBell = () => {
       </PopoverContent>
     </Popover>
   );
-};
+});
+
+NotificationBell.displayName = 'NotificationBell';
 
 const NotificationContent = ({ 
   notification, 

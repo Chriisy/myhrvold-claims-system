@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,7 @@ interface ClaimAttachmentsProps {
   onFilesUpdate: (files: any[]) => void;
 }
 
-export function ClaimAttachments({ claimId, claimFiles, onFilesUpdate }: ClaimAttachmentsProps) {
+const ClaimAttachments = memo(({ claimId, claimFiles, onFilesUpdate }: ClaimAttachmentsProps) => {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileType, setFileType] = useState<'credit_note' | 'invoice' | 'other'>('credit_note');
@@ -346,5 +346,9 @@ export function ClaimAttachments({ claimId, claimFiles, onFilesUpdate }: ClaimAt
         )}
       </CardContent>
     </Card>
-  );
-}
+   );
+});
+
+ClaimAttachments.displayName = 'ClaimAttachments';
+
+export { ClaimAttachments };
