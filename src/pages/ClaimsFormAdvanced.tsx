@@ -237,7 +237,7 @@ const ClaimsFormAdvanced = () => {
                 inputCurrency: 'NOK' as Currency
              });
 
-              // Load custom line items and convert to parts
+              // Load custom line items and separate parts from custom items
               const customLineItems = data.custom_line_items;
               if (customLineItems) {
                 try {
@@ -248,21 +248,24 @@ const ClaimsFormAdvanced = () => {
                     parsedItems = JSON.parse(customLineItems);
                   }
                   
-                  // Ensure all items have partNumber field
-                  const itemsWithPartNumber = parsedItems.map(item => ({
+                  // Separate parts from custom line items
+                  const partsItems = parsedItems.filter(item => item.category === 'parts');
+                  const customItems = parsedItems.filter(item => item.category !== 'parts');
+                  
+                  // Set custom line items (non-parts)
+                  const itemsWithPartNumber = customItems.map(item => ({
                     id: item.id || Date.now().toString(),
-                    partNumber: item.partNumber || "",  // Don't auto-fill from description
+                    partNumber: item.partNumber || "",
                     description: item.description || "",
                     quantity: item.quantity || 1,
                     unitPrice: item.unitPrice || 0
                   }));
-                  
                   setCustomLineItems(itemsWithPartNumber);
                   
-                  // Convert customLineItems to parts format for UI
-                  const partsFromItems = parsedItems.map(item => ({
+                  // Set parts from saved parts items
+                  const partsFromItems = partsItems.map(item => ({
                     id: item.id || Date.now().toString(),
-                    partNumber: item.partNumber || "",  // Don't auto-fill from description
+                    partNumber: item.partNumber || "",
                     description: item.description || "",
                     price: item.unitPrice || 0,
                     refundRequested: false,
@@ -598,16 +601,6 @@ const ClaimsFormAdvanced = () => {
     const refundedTotal = calculateRefundedPartsTotal();
     handleInputChange('refundedPartsCost', refundedTotal);
     handleInputChange('partsCostRefunded', refundedTotal > 0);
-    
-    // Sync parts with customLineItems for database storage
-    const lineItems = parts.map(part => ({
-      id: part.id,
-      partNumber: part.partNumber || "",
-      description: part.description || "",  // Keep description separate from partNumber
-      quantity: 1,
-      unitPrice: part.price || 0
-    }));
-    setCustomLineItems(lineItems);
   }, [parts]);
 
   // Tab validation functions
@@ -702,7 +695,17 @@ const ClaimsFormAdvanced = () => {
         hourly_rate: formData.hourlyRate,
         overtime_50_hours: formData.overtime50Hours,
         overtime_100_hours: formData.overtime100Hours,
-         custom_line_items: JSON.stringify(customLineItems),
+         custom_line_items: JSON.stringify([
+           ...customLineItems,
+           ...parts.map(part => ({
+             id: part.id,
+             partNumber: part.partNumber || "",
+             description: part.description || "",
+             quantity: 1,
+             unitPrice: part.price || 0,
+             category: 'parts' as const
+           }))
+         ]),
         travel_hours: formData.travelHours,
         travel_distance_km: formData.travelDistanceKm,
         vehicle_cost_per_km: formData.vehicleCostPerKm,
