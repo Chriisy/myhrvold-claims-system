@@ -52,7 +52,7 @@ export const issueDescriptionSchema = z.object({
 export const businessFieldsSchema = z.object({
   technicianName: z.string()
     .min(1, "Tekniker navn er påkrevd"),
-  department: z.enum(["oslo", "bergen", "trondheim", "stavanger", "kristiansand", "nord_norge", "innlandet"]),
+  department: z.enum(["oslo", "bergen", "trondheim", "stavanger", "kristiansand", "nord_norge", "innlandet", "vestfold", "agder", "ekstern"]),
   evaticJobNumber: z.string().optional(),
   msJobNumber: z.string().optional(),
 });

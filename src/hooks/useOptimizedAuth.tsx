@@ -8,7 +8,7 @@ interface Profile {
   full_name: string;
   phone?: string;
   role: 'technician' | 'admin';
-  department: 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet';
+  department: 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet' | 'vestfold' | 'agder' | 'ekstern';
   is_active: boolean;
   created_date: string;
   last_login?: string;

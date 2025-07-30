@@ -91,7 +91,7 @@ export const useRecentClaims = (limit: number = 10) => {
 
 // Helper functions
 const calculateDepartmentStats = (claims: any[]) => {
-  const departments = ['oslo', 'bergen', 'trondheim', 'stavanger', 'kristiansand', 'nord_norge', 'innlandet'];
+  const departments = ['oslo', 'bergen', 'trondheim', 'stavanger', 'kristiansand', 'nord_norge', 'innlandet', 'vestfold', 'agder', 'ekstern'];
   
   console.log('Claims departments found:', [...new Set(claims.map(c => c.department))]);
   

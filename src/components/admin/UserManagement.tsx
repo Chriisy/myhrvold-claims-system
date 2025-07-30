@@ -17,7 +17,7 @@ interface User {
   email: string;
   full_name: string;
   role: 'admin' | 'technician';
-  department: 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet';
+  department: 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet' | 'vestfold' | 'agder' | 'ekstern';
   phone?: string;
   is_active: boolean;
   created_date: string;
@@ -35,7 +35,10 @@ const departments = [
   { value: 'stavanger', label: 'Stavanger' },
   { value: 'kristiansand', label: 'Kristiansand' },
   { value: 'nord_norge', label: 'Nord-Norge' },
-  { value: 'innlandet', label: 'Innlandet' }
+  { value: 'innlandet', label: 'Innlandet' },
+  { value: 'vestfold', label: 'Vestfold' },
+  { value: 'agder', label: 'Agder' },
+  { value: 'ekstern', label: 'Ekstern' }
 ];
 
 const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
@@ -48,7 +51,7 @@ const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
     email: "",
     full_name: "",
     role: "technician" as "admin" | "technician",
-    department: "oslo" as "oslo" | "bergen" | "trondheim" | "stavanger" | "kristiansand" | "nord_norge" | "innlandet",
+    department: "oslo" as "oslo" | "bergen" | "trondheim" | "stavanger" | "kristiansand" | "nord_norge" | "innlandet" | "vestfold" | "agder" | "ekstern",
     phone: "",
     is_active: true,
     password: ""
@@ -282,7 +285,7 @@ const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
                 </div>
                 <div>
                   <Label htmlFor="department">Avdeling *</Label>
-                  <Select value={formData.department} onValueChange={(value: "oslo" | "bergen" | "trondheim" | "stavanger" | "kristiansand" | "nord_norge" | "innlandet") => setFormData(prev => ({ ...prev, department: value }))}>
+                  <Select value={formData.department} onValueChange={(value: "oslo" | "bergen" | "trondheim" | "stavanger" | "kristiansand" | "nord_norge" | "innlandet" | "vestfold" | "agder" | "ekstern") => setFormData(prev => ({ ...prev, department: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Velg avdeling" />
                     </SelectTrigger>

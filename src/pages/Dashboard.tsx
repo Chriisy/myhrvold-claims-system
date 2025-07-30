@@ -266,10 +266,13 @@ const Dashboard = () => {
                 {stats.departmentStats.map((dept) => (
                    <div key={dept.department} className="p-4 border rounded-lg">
                      <h4 className="font-medium capitalize mb-2">
-                       {dept.department === 'nord_norge' ? 'Nord Norge' : 
-                        dept.department === 'kristiansand' ? 'Kristiansand' :
-                        dept.department.charAt(0).toUpperCase() + dept.department.slice(1)}
-                     </h4>
+                        {dept.department === 'nord_norge' ? 'Nord Norge' : 
+                         dept.department === 'kristiansand' ? 'Kristiansand' :
+                         dept.department === 'vestfold' ? 'Vestfold' :
+                         dept.department === 'agder' ? 'Agder' :
+                         dept.department === 'ekstern' ? 'Ekstern' :
+                         dept.department.charAt(0).toUpperCase() + dept.department.slice(1)}
+                      </h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>Totalt:</span>
