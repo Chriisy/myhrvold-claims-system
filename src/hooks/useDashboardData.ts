@@ -184,13 +184,13 @@ export const useCostAnalytics = (timeRange: string = '6m') => {
         created_date_gte: startDate.toISOString()
       });
 
-      // Calculate total costs
+      // Calculate total costs with null safety
       const totalCosts = {
         totalClaimCost: claims.reduce((sum, c) => sum + (c.total_cost || 0), 0),
         totalRefunded: claims.reduce((sum, c) => sum + (c.total_refunded || 0), 0),
         expectedRefunds: claims.reduce((sum, c) => sum + (c.expected_refund || 0), 0),
         actualRefunds: claims.reduce((sum, c) => sum + (c.actual_refund || 0), 0),
-        netCost: claims.reduce((sum, c) => sum + (c.net_cost || 0), 0)
+        netCost: claims.reduce((sum, c) => sum + ((c.total_cost || 0) - (c.total_refunded || 0)), 0)
       };
 
       // Cost by supplier
@@ -222,9 +222,11 @@ const calculateSupplierCosts = (claims: any[]) => {
   const supplierMap = new Map();
   
   claims.forEach(claim => {
-    if (!supplierMap.has(claim.supplier)) {
-      supplierMap.set(claim.supplier, {
-        supplier: claim.supplier,
+    const supplierName = claim.supplier || 'Ukjent leverandør';
+    
+    if (!supplierMap.has(supplierName)) {
+      supplierMap.set(supplierName, {
+        supplier: supplierName,
         totalCost: 0,
         totalRefunded: 0,
         claimCount: 0,
@@ -232,7 +234,7 @@ const calculateSupplierCosts = (claims: any[]) => {
       });
     }
     
-    const supplier = supplierMap.get(claim.supplier);
+    const supplier = supplierMap.get(supplierName);
     supplier.totalCost += claim.total_cost || 0;
     supplier.totalRefunded += claim.total_refunded || 0;
     supplier.claimCount += 1;
@@ -241,21 +243,25 @@ const calculateSupplierCosts = (claims: any[]) => {
   return Array.from(supplierMap.values())
     .map(s => ({
       ...s,
-      avgCost: s.totalCost / s.claimCount,
+      avgCost: s.claimCount > 0 ? s.totalCost / s.claimCount : 0,
       netCost: s.totalCost - s.totalRefunded
     }))
-    .sort((a, b) => b.totalCost - a.totalCost);
+    .sort((a, b) => b.totalCost - a.totalCost)
+    .filter(s => s.claimCount > 0); // Filter out empty suppliers
 };
 
 const calculateProductCosts = (claims: any[]) => {
   const productMap = new Map();
   
   claims.forEach(claim => {
-    const key = `${claim.product_name}-${claim.product_model || 'N/A'}`;
+    const productName = claim.product_name || 'Ukjent produkt';
+    const productModel = claim.product_model || 'Ingen modell';
+    const key = `${productName}-${productModel}`;
+    
     if (!productMap.has(key)) {
       productMap.set(key, {
-        productName: claim.product_name,
-        productModel: claim.product_model || 'N/A',
+        productName,
+        productModel,
         totalCost: 0,
         totalRefunded: 0,
         claimCount: 0
@@ -271,10 +277,11 @@ const calculateProductCosts = (claims: any[]) => {
   return Array.from(productMap.values())
     .map(p => ({
       ...p,
-      avgCost: p.totalCost / p.claimCount,
+      avgCost: p.claimCount > 0 ? p.totalCost / p.claimCount : 0,
       netCost: p.totalCost - p.totalRefunded
     }))
-    .sort((a, b) => b.totalCost - a.totalCost);
+    .sort((a, b) => b.totalCost - a.totalCost)
+    .filter(p => p.claimCount > 0); // Filter out empty products
 };
 
 const calculateRefundAnalysis = (claims: any[]) => {
@@ -290,19 +297,21 @@ const calculateRefundAnalysis = (claims: any[]) => {
     refundStats.refundRate = (refundStats.totalReceived / refundStats.totalExpected) * 100;
   }
 
-  // Refunds by supplier
+  // Refunds by supplier with null safety
   const supplierRefunds = new Map();
   claims.forEach(claim => {
-    if (!supplierRefunds.has(claim.supplier)) {
-      supplierRefunds.set(claim.supplier, {
-        supplier: claim.supplier,
+    const supplierName = claim.supplier || 'Ukjent leverandør';
+    
+    if (!supplierRefunds.has(supplierName)) {
+      supplierRefunds.set(supplierName, {
+        supplier: supplierName,
         expectedRefunds: 0,
         actualRefunds: 0,
         refundRate: 0
       });
     }
     
-    const supplier = supplierRefunds.get(claim.supplier);
+    const supplier = supplierRefunds.get(supplierName);
     supplier.expectedRefunds += claim.expected_refund || 0;
     supplier.actualRefunds += claim.actual_refund || 0;
   });

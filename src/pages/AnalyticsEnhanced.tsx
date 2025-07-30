@@ -251,17 +251,23 @@ const AnalyticsEnhanced = () => {
                       totalRefunds: { label: "Refunderinger", color: "hsl(var(--secondary))" },
                       netCosts: { label: "Netto kostnader", color: "hsl(var(--accent))" }
                     }}>
-                      <ResponsiveContainer width="100%" height={400}>
-                        <LineChart data={costData.costTrends}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Line type="monotone" dataKey="totalCosts" stroke="hsl(var(--primary))" strokeWidth={2} />
-                          <Line type="monotone" dataKey="totalRefunds" stroke="hsl(var(--secondary))" strokeWidth={2} />
-                          <Line type="monotone" dataKey="netCosts" stroke="hsl(var(--accent))" strokeWidth={2} />
-                        </LineChart>
-                      </ResponsiveContainer>
+                      {costData.costTrends?.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={400}>
+                          <LineChart data={costData.costTrends}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Line type="monotone" dataKey="totalCosts" stroke="hsl(var(--primary))" strokeWidth={2} />
+                            <Line type="monotone" dataKey="totalRefunds" stroke="hsl(var(--secondary))" strokeWidth={2} />
+                            <Line type="monotone" dataKey="netCosts" stroke="hsl(var(--accent))" strokeWidth={2} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                          <p>Ingen trenddata tilgjengelig</p>
+                        </div>
+                      )}
                     </ChartContainer>
                   </CardContent>
                 </Card>
@@ -320,22 +326,28 @@ const AnalyticsEnhanced = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {costData.refundAnalysis.refundsBySupplier.slice(0, 6).map((supplier, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{supplier.supplier}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatCurrency(supplier.expectedRefunds)} forventet
-                            </p>
+                      {costData.refundAnalysis.refundsBySupplier?.length > 0 ? (
+                        costData.refundAnalysis.refundsBySupplier.slice(0, 6).map((supplier, index) => (
+                          <div key={supplier.supplier || index} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <p className="font-medium">{supplier.supplier || 'Ukjent leverandør'}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatCurrency(supplier.expectedRefunds || 0)} forventet
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">{(supplier.refundRate || 0).toFixed(1)}%</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatCurrency(supplier.actualRefunds || 0)}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{supplier.refundRate.toFixed(1)}%</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatCurrency(supplier.actualRefunds)}
-                            </p>
-                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>Ingen refunderingsdata tilgjengelig</p>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -361,15 +373,21 @@ const AnalyticsEnhanced = () => {
                     <ChartContainer config={{
                       totalCost: { label: "Total kostnad", color: "hsl(var(--primary))" }
                     }}>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={costData.supplierCosts.slice(0, 8)}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="supplier" tick={{ fontSize: 12 }} />
-                          <YAxis />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="totalCost" fill="hsl(var(--primary))" />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      {costData.supplierCosts?.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={costData.supplierCosts.slice(0, 8)}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="supplier" tick={{ fontSize: 12 }} />
+                            <YAxis />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Bar dataKey="totalCost" fill="hsl(var(--primary))" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                          <p>Ingen leverandørdata tilgjengelig</p>
+                        </div>
+                      )}
                     </ChartContainer>
                   </CardContent>
                 </Card>
@@ -381,26 +399,32 @@ const AnalyticsEnhanced = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {costData.supplierCosts.slice(0, 6).map((supplier, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{supplier.supplier}</p>
-                            <p className="text-sm text-muted-foreground">{supplier.claimCount} reklamasjoner</p>
-                            <p className="text-sm text-muted-foreground">
-                              Ø {formatCurrency(supplier.avgCost)} per krav
-                            </p>
+                      {costData.supplierCosts?.length > 0 ? (
+                        costData.supplierCosts.slice(0, 6).map((supplier, index) => (
+                          <div key={supplier.supplier || index} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <p className="font-medium">{supplier.supplier || 'Ukjent leverandør'}</p>
+                              <p className="text-sm text-muted-foreground">{supplier.claimCount || 0} reklamasjoner</p>
+                              <p className="text-sm text-muted-foreground">
+                                Ø {formatCurrency(supplier.avgCost || 0)} per krav
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">{formatCurrency(supplier.totalCost || 0)}</p>
+                              <p className="text-sm text-muted-foreground">
+                                -{formatCurrency(supplier.totalRefunded || 0)}
+                              </p>
+                              <p className="text-sm font-medium">
+                                = {formatCurrency(supplier.netCost || 0)}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{formatCurrency(supplier.totalCost)}</p>
-                            <p className="text-sm text-muted-foreground">
-                              -{formatCurrency(supplier.totalRefunded)}
-                            </p>
-                            <p className="text-sm font-medium">
-                              = {formatCurrency(supplier.netCost)}
-                            </p>
-                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>Ingen leverandørdata tilgjengelig</p>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -426,15 +450,21 @@ const AnalyticsEnhanced = () => {
                     <ChartContainer config={{
                       totalCost: { label: "Total kostnad", color: "hsl(var(--secondary))" }
                     }}>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={costData.productCosts.slice(0, 8)} layout="horizontal">
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis type="number" />
-                          <YAxis dataKey="productName" type="category" tick={{ fontSize: 10 }} width={100} />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="totalCost" fill="hsl(var(--secondary))" />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      {costData.productCosts?.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={costData.productCosts.slice(0, 8)} layout="horizontal">
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" />
+                            <YAxis dataKey="productName" type="category" tick={{ fontSize: 10 }} width={100} />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Bar dataKey="totalCost" fill="hsl(var(--secondary))" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                          <p>Ingen produktdata tilgjengelig</p>
+                        </div>
+                      )}
                     </ChartContainer>
                   </CardContent>
                 </Card>
@@ -446,21 +476,27 @@ const AnalyticsEnhanced = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {costData.productCosts.slice(0, 6).map((product, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{product.productName}</p>
-                            <p className="text-sm text-muted-foreground">{product.productModel}</p>
-                            <p className="text-sm text-muted-foreground">{product.claimCount} reklamasjoner</p>
+                      {costData.productCosts?.length > 0 ? (
+                        costData.productCosts.slice(0, 6).map((product, index) => (
+                          <div key={`${product.productName}-${product.productModel}` || index} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <p className="font-medium">{product.productName || 'Ukjent produkt'}</p>
+                              <p className="text-sm text-muted-foreground">{product.productModel || 'Ingen modell'}</p>
+                              <p className="text-sm text-muted-foreground">{product.claimCount || 0} reklamasjoner</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">{formatCurrency(product.totalCost || 0)}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Ø {formatCurrency(product.avgCost || 0)}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{formatCurrency(product.totalCost)}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Ø {formatCurrency(product.avgCost)}
-                            </p>
-                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>Ingen produktdata tilgjengelig</p>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </CardContent>
                 </Card>
