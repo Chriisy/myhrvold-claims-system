@@ -203,6 +203,20 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
 
   yPosition += 18;
 
+  // Contact information for return correspondence
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Return correspondence to:', 20, yPosition);
+  yPosition += 4;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 41, 59);
+  doc.text('Christopher Strøm', 20, yPosition);
+  yPosition += 4;
+  doc.setFont('helvetica', 'normal');
+  doc.text('christopher.strom@myhrvold.no', 20, yPosition);
+  yPosition += 12;
+
   // Product Information
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
