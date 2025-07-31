@@ -42,9 +42,16 @@ export const partsService = {
         created_by: (await supabase.auth.getUser()).data.user?.id
       }])
       .select()
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      throw new Error(`Feil ved opprettelse av del: ${error.message}`);
+    }
+    
+    if (!data) {
+      throw new Error('Ingen data returnert ved opprettelse av del');
+    }
+    
     return data;
   },
 
@@ -84,9 +91,16 @@ export const customersService = {
         created_by: (await supabase.auth.getUser()).data.user?.id
       }])
       .select()
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      throw new Error(`Feil ved opprettelse av kunde: ${error.message}`);
+    }
+    
+    if (!data) {
+      throw new Error('Ingen data returnert ved opprettelse av kunde');
+    }
+    
     return data;
   },
 

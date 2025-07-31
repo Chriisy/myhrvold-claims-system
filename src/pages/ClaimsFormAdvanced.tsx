@@ -178,9 +178,15 @@ const ClaimsFormAdvanced = () => {
             .from('claims')
             .select('*')
             .eq('id', claimId)
-            .single();
+            .maybeSingle();
           
-          if (error) throw error;
+          if (error) {
+            throw new Error(`Feil ved henting av reklamasjon: ${error.message}`);
+          }
+          
+          if (!data) {
+            throw new Error('Reklamasjon ikke funnet');
+          }
           
            if (data) {
              // Map database fields to form data
@@ -753,9 +759,15 @@ const ClaimsFormAdvanced = () => {
           .from('claims')
           .insert(claimData)
           .select()
-          .single();
+          .maybeSingle();
 
-        if (claimError) throw claimError;
+        if (claimError) {
+          throw new Error(`Feil ved opprettelse av reklamasjon: ${claimError.message}`);
+        }
+        
+        if (!claimResult) {
+          throw new Error('Ingen data returnert fra database');
+        }
 
         await supabase.from('claim_timeline').insert([{
           claim_id: claimResult.id,

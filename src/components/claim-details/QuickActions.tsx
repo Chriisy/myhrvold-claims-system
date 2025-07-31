@@ -59,11 +59,16 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier, claimData }
           .from('claims')
           .select('*')
           .eq('id', claimId)
-          .single();
+          .maybeSingle();
 
-        if (claimError || !claim) {
-          throw new Error('Could not fetch claim data');
+        if (claimError) {
+          throw new Error(`Database error: ${claimError.message}`);
         }
+        
+        if (!claim) {
+          throw new Error('Reklamasjon ikke funnet');
+        }
+        
         claimToUse = claim;
       }
 
@@ -75,10 +80,11 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier, claimData }
         description: `Reklamasjonsdokument på ${language === 'no' ? 'norsk' : 'engelsk'} er lastet ned.`,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Ukjent feil';
       console.error('Error downloading PDF:', error);
       toast({
         title: "Feil ved nedlasting",
-        description: "Kunne ikke laste ned PDF. Prøv igjen senere.",
+        description: `Kunne ikke laste ned PDF: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {

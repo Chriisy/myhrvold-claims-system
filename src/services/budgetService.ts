@@ -63,9 +63,16 @@ export const budgetService = {
       .from('budget_targets')
       .insert(target)
       .select()
-      .single();
+      .maybeSingle();
     
-    if (error) throw error;
+    if (error) {
+      throw new Error(`Feil ved opprettelse av budsjettmål: ${error.message}`);
+    }
+    
+    if (!data) {
+      throw new Error('Ingen data returnert ved opprettelse av budsjettmål');
+    }
+    
     return data;
   },
 
@@ -76,9 +83,16 @@ export const budgetService = {
       .update(updates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
     
-    if (error) throw error;
+    if (error) {
+      throw new Error(`Feil ved oppdatering av budsjettmål: ${error.message}`);
+    }
+    
+    if (!data) {
+      throw new Error('Budsjettmål ikke funnet eller ingen endringer gjort');
+    }
+    
     return data;
   },
 
