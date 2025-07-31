@@ -214,6 +214,11 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   doc.text('Christopher Strøm', 20, yPosition);
   yPosition += 4;
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Technical Manager', 20, yPosition);
+  yPosition += 4;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(30, 41, 59);
   doc.text('christopher.strom@myhrvold.no', 20, yPosition);
   yPosition += 12;
 
