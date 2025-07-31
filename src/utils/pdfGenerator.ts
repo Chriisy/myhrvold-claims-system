@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 
 export interface ClaimData {
   id: string;
@@ -164,7 +165,7 @@ const splitTextToLines = (doc: jsPDF, text: string, maxWidth: number) => {
   return lines;
 };
 
-export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
+export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') => {
   const doc = new jsPDF('p', 'mm', 'a4');
   const t = translations[language];
   let yPosition = 20;
@@ -434,6 +435,40 @@ export const generateClaimPDF = (claim: ClaimData, language: 'no' | 'en') => {
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
   doc.text(t.systemFooter, 20, yPosition);
+
+  // Generate QR code for claim follow-up in bottom right corner
+  try {
+    // Create URL for claim follow-up (adjust this URL to match your actual claim details route)
+    const followUpUrl = `${window.location.origin}/claims/${claim.id}`;
+    
+    // Generate QR code as data URL
+    const qrCodeDataUrl = await QRCode.toDataURL(followUpUrl, {
+      width: 200,
+      margin: 1,
+      color: {
+        dark: '#1e293b', // slate-800
+        light: '#ffffff'
+      }
+    });
+
+    // Add QR code in bottom right corner
+    const qrSize = 25; // Size in mm
+    const pageWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
+    const qrX = pageWidth - qrSize - 15; // 15mm from right edge
+    const qrY = pageHeight - qrSize - 15; // 15mm from bottom edge
+
+    doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+
+    // Add QR code label
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    const labelText = language === 'no' ? 'Scan for oppfølging' : 'Scan for follow-up';
+    const labelWidth = doc.getTextWidth(labelText);
+    doc.text(labelText, qrX + (qrSize - labelWidth) / 2, qrY + qrSize + 4);
+  } catch (error) {
+    console.error('Failed to generate QR code:', error);
+  }
 
   // Save the PDF
   const filename = language === 'no' 

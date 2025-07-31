@@ -68,7 +68,7 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier, claimData }
       }
 
       // Generate and download PDF using jsPDF
-      generateClaimPDF(claimToUse, language);
+      await generateClaimPDF(claimToUse, language);
 
       toast({
         title: "PDF nedlastet",
