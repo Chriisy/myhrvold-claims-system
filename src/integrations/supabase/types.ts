@@ -860,7 +860,7 @@ export type Database = {
         | "extended_warranty"
       refund_status: "pending" | "received" | "rejected"
       urgency_level: "low" | "normal" | "high" | "critical"
-      user_role: "technician" | "admin"
+      user_role: "technician" | "admin" | "saksbehandler"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1017,7 +1017,7 @@ export const Constants = {
       ],
       refund_status: ["pending", "received", "rejected"],
       urgency_level: ["low", "normal", "high", "critical"],
-      user_role: ["technician", "admin"],
+      user_role: ["technician", "admin", "saksbehandler"],
     },
   },
 } as const

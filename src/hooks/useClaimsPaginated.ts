@@ -72,7 +72,7 @@ export const useClaimsPaginated = (filters: ClaimsFilters = {}) => {
         if (filters.status) {
           queryFilters.status = filters.status;
         }
-        if (filters.department && profile?.role === 'admin') {
+        if (filters.department && (profile?.role === 'admin' || profile?.role === 'saksbehandler')) {
           queryFilters.department = filters.department;
         }
         if (filters.urgency) {

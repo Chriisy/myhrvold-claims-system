@@ -52,7 +52,7 @@ const AnalyticsEnhanced = () => {
 
   // Budget hooks
   const { user } = useAuth();
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'saksbehandler';
   const { data: availableBudgetYears } = useAvailableYears();
   const { data: budgetTargets } = useBudgetTargets();
   const { data: budgetProgress } = useBudgetProgress(selectedBudgetYear);

@@ -16,7 +16,7 @@ interface User {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'technician';
+  role: 'admin' | 'technician' | 'saksbehandler';
   department: 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet' | 'vestfold' | 'agder' | 'ekstern';
   phone?: string;
   is_active: boolean;
@@ -50,7 +50,7 @@ const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
   const [formData, setFormData] = useState({
     email: "",
     full_name: "",
-    role: "technician" as "admin" | "technician",
+    role: "technician" as "admin" | "technician" | "saksbehandler",
     department: "oslo" as "oslo" | "bergen" | "trondheim" | "stavanger" | "kristiansand" | "nord_norge" | "innlandet" | "vestfold" | "agder" | "ekstern",
     phone: "",
     is_active: true,
@@ -200,7 +200,9 @@ const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
   );
 
   const getRoleColor = (role: string) => {
-    return role === 'admin' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-blue-100 text-blue-800 border-blue-200';
+    if (role === 'admin') return 'bg-red-100 text-red-800 border-red-200';
+    if (role === 'saksbehandler') return 'bg-green-100 text-green-800 border-green-200';
+    return 'bg-blue-100 text-blue-800 border-blue-200';
   };
 
   const getDepartmentLabel = (dept: string) => {
@@ -273,14 +275,14 @@ const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
                 )}
                 <div>
                   <Label htmlFor="role">Rolle *</Label>
-                  <Select value={formData.role} onValueChange={(value: "admin" | "technician") => setFormData(prev => ({ ...prev, role: value }))}>
+                  <Select value={formData.role} onValueChange={(value: "admin" | "technician" | "saksbehandler") => setFormData(prev => ({ ...prev, role: value }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="technician">Tekniker</SelectItem>
-                      <SelectItem value="admin">Administrator</SelectItem>
-                    </SelectContent>
+                      <SelectContent>
+                        <SelectItem value="technician">Tekniker</SelectItem>
+                        <SelectItem value="saksbehandler">Saksbehandler</SelectItem>
+                      </SelectContent>
                   </Select>
                 </div>
                 <div>
@@ -372,7 +374,7 @@ const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold">{user.full_name}</h3>
                         <Badge className={getRoleColor(user.role)}>
-                          {user.role === 'admin' ? 'Administrator' : 'Tekniker'}
+                          {user.role === 'admin' ? 'Administrator' : user.role === 'saksbehandler' ? 'Saksbehandler' : 'Tekniker'}
                         </Badge>
                         <Badge variant={user.is_active ? "default" : "secondary"}>
                           {user.is_active ? "Aktiv" : "Inaktiv"}

@@ -86,8 +86,8 @@ export const QuickActions = ({ claimId, createdBy, onSendToSupplier, claimData }
     }
   };
 
-  // Check if user can delete this claim (admin or creator)
-  const canDelete = profile?.role === 'admin' || profile?.id === createdBy;
+  // Check if user can delete this claim (admin, saksbehandler or creator)
+  const canDelete = profile?.role === 'admin' || profile?.role === 'saksbehandler' || profile?.id === createdBy;
 
   return (
     <Card>

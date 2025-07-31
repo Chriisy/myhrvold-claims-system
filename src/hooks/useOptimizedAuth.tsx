@@ -7,7 +7,7 @@ interface Profile {
   email: string;
   full_name: string;
   phone?: string;
-  role: 'technician' | 'admin';
+  role: 'technician' | 'admin' | 'saksbehandler';
   department: 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet' | 'vestfold' | 'agder' | 'ekstern';
   is_active: boolean;
   created_date: string;

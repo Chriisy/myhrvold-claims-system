@@ -50,7 +50,7 @@ const AppSidebar = memo(() => {
       : "hover:bg-muted/50 transition-colors";
 
   const filteredItems = navigationItems.filter(item => 
-    !item.adminOnly || profile?.role === 'admin'
+    !item.adminOnly || profile?.role === 'admin' || profile?.role === 'saksbehandler'
   );
 
   return (

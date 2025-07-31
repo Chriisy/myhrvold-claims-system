@@ -118,7 +118,7 @@ const Dashboard = () => {
                   <span className="sm:hidden">Rapporter</span>
                 </Button>
               </Link>
-              {profile?.role === 'admin' && (
+              {(profile?.role === 'admin' || profile?.role === 'saksbehandler') && (
                 <Link to="/suppliers/scorecard" className="w-full sm:w-auto">
                   <Button variant="outline" className="w-full sm:w-auto">
                     <Award className="mr-2 h-4 w-4" />
@@ -259,7 +259,7 @@ const Dashboard = () => {
         </div>
 
         {/* Department Performance (Admin Only) */}
-        {profile?.role === 'admin' && stats?.departmentStats && (
+        {(profile?.role === 'admin' || profile?.role === 'saksbehandler') && stats?.departmentStats && (
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Avdelings-oversikt</CardTitle>

@@ -26,7 +26,9 @@ const NavHeader = ({ title, subtitle, children }: NavHeaderProps) => {
   };
 
   const getRoleName = (role: string) => {
-    return role === 'admin' ? 'Administrator' : 'Tekniker';
+    if (role === 'admin') return 'Administrator';
+    if (role === 'saksbehandler') return 'Saksbehandler';
+    return 'Tekniker';
   };
 
   return (
