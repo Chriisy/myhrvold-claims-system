@@ -317,22 +317,27 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') 
   if (claim.detailed_description) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    // Improve the language for better professionalism
-    let improvedDescription = claim.detailed_description;
-    if (language === 'en' && claim.detailed_description.includes('Replaced the controller')) {
-      improvedDescription = claim.detailed_description
+    
+    // Clean up any formatting issues and improve readability
+    let cleanDescription = claim.detailed_description
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .trim();
+    
+    // Improve specific text patterns
+    if (language === 'en') {
+      cleanDescription = cleanDescription
         .replace('Replaced the controller as it was not supplying power to the lower heating element. The unit was not programmed from the factory',
                 'The temperature controller failed to supply power to the lower heating element. Investigation revealed the unit had not been properly initialized or configured at delivery. After replacing the controller, the unit operated as expected.');
     }
     
-    const maxWidth = 170;
-    const lines = splitTextToLines(doc, improvedDescription, maxWidth);
+    const maxWidth = 165;
+    const lines = splitTextToLines(doc, cleanDescription, maxWidth);
     
     lines.forEach(line => {
       doc.text(line, 20, yPosition);
-      yPosition += 4;
+      yPosition += 4.5;
     });
-    yPosition += 2;
+    yPosition += 3;
   }
 
   yPosition += 8;
