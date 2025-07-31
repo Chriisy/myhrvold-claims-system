@@ -22,6 +22,9 @@ export const useUpdateClaimStatus = () => {
       // Invalidate and refetch claim data
       queryClient.invalidateQueries({ queryKey: ['claim', variables.claimId] });
       queryClient.invalidateQueries({ queryKey: ['claims'] });
+      // Invalidate budget progress since refunds may have changed
+      queryClient.invalidateQueries({ queryKey: ['budget-progress'] });
+      queryClient.invalidateQueries({ queryKey: ['cost-analytics'] });
       
       showSuccess(
         "Status oppdatert",
@@ -53,6 +56,8 @@ export const useDeleteClaim = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['recent-claims'] });
       queryClient.invalidateQueries({ queryKey: ['cost-analytics'] });
+      // Invalidate budget progress since refunds may have changed
+      queryClient.invalidateQueries({ queryKey: ['budget-progress'] });
       queryClient.removeQueries({ queryKey: ['claim', claimId] });
       
       showSuccess(
@@ -91,6 +96,9 @@ export const useUpdateClaim = () => {
       queryClient.invalidateQueries({ queryKey: ['claims-paginated'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['recent-claims'] });
+      // Invalidate budget progress since refunds may have changed
+      queryClient.invalidateQueries({ queryKey: ['budget-progress'] });
+      queryClient.invalidateQueries({ queryKey: ['cost-analytics'] });
       
       showSuccess(
         "Reklamasjon oppdatert",
