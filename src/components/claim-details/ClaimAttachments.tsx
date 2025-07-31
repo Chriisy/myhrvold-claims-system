@@ -16,11 +16,12 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ClaimAttachment } from "@/types/api";
 
 interface ClaimAttachmentsProps {
   claimId: string;
-  claimFiles: any[];
-  onFilesUpdate: (files: any[]) => void;
+  claimFiles: ClaimAttachment[];
+  onFilesUpdate: (files: ClaimAttachment[]) => void;
 }
 
 const ClaimAttachments = memo(({ claimId, claimFiles, onFilesUpdate }: ClaimAttachmentsProps) => {
@@ -47,13 +48,14 @@ const ClaimAttachments = memo(({ claimId, claimFiles, onFilesUpdate }: ClaimAtta
         .from('claim-attachments')
         .getPublicUrl(fileName);
 
-      const newFile = {
+      const newFile: ClaimAttachment = {
         id: Date.now().toString(),
         name: file.name,
         url: publicUrl,
         type: type,
         size: file.size,
         uploadedAt: new Date().toISOString(),
+        uploadedBy: 'current-user', // TODO: Get from auth context
         path: fileName
       };
 
@@ -62,7 +64,7 @@ const ClaimAttachments = memo(({ claimId, claimFiles, onFilesUpdate }: ClaimAtta
       
       const { error: updateError } = await supabase
         .from('claims')
-        .update({ files: updatedFiles })
+        .update({ files: updatedFiles as any }) // Cast for JSONB compatibility
         .eq('id', claimId);
 
       if (updateError) throw updateError;
@@ -91,7 +93,7 @@ const ClaimAttachments = memo(({ claimId, claimFiles, onFilesUpdate }: ClaimAtta
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (fileToDelete: any) => {
+    mutationFn: async (fileToDelete: ClaimAttachment) => {
       // Delete from storage
       if (fileToDelete.path) {
         const { error: deleteError } = await supabase.storage
@@ -108,7 +110,7 @@ const ClaimAttachments = memo(({ claimId, claimFiles, onFilesUpdate }: ClaimAtta
       
       const { error: updateError } = await supabase
         .from('claims')
-        .update({ files: updatedFiles })
+        .update({ files: updatedFiles as any }) // Cast for JSONB compatibility
         .eq('id', claimId);
 
       if (updateError) throw updateError;
@@ -156,7 +158,7 @@ const ClaimAttachments = memo(({ claimId, claimFiles, onFilesUpdate }: ClaimAtta
     uploadMutation.mutate({ file: selectedFile, type: fileType });
   };
 
-  const handleDownload = (file: any) => {
+  const handleDownload = (file: ClaimAttachment) => {
     window.open(file.url, '_blank');
   };
 
@@ -207,7 +209,7 @@ const ClaimAttachments = memo(({ claimId, claimFiles, onFilesUpdate }: ClaimAtta
               <select
                 id="file-type"
                 value={fileType}
-                onChange={(e) => setFileType(e.target.value as any)}
+                onChange={(e) => setFileType(e.target.value as 'credit_note' | 'invoice' | 'other')}
                 className="w-full mt-1 p-2 border rounded-md text-sm"
               >
                 <option value="credit_note">Credit Note</option>

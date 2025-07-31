@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { claimService } from '@/services/claimService';
 import { useAuth } from '@/hooks/useOptimizedAuth';
+import { DashboardClaim, DepartmentStats } from '@/types/api';
 
 // Dashboard statistics query
 export const useDashboardStats = () => {
@@ -50,7 +51,7 @@ export const useDashboardStats = () => {
         
         // Performance metrics
         averageResolutionTime: calculateAverageResolutionTime(claims),
-        overdueClaimsCount: calculateOverdueClaims(claims).length,
+        overdueClaimsCount: calculateOverdueClaims(claims),
         
         // Refund rate calculation
         refundRate: calculateRefundRate(claims),
@@ -90,7 +91,7 @@ export const useRecentClaims = (limit: number = 10) => {
 };
 
 // Helper functions
-const calculateDepartmentStats = (claims: any[]) => {
+const calculateDepartmentStats = (claims: DashboardClaim[]): DepartmentStats[] => {
   const departments = ['oslo', 'bergen', 'trondheim', 'stavanger', 'kristiansand', 'nord_norge', 'innlandet', 'vestfold', 'agder', 'ekstern'];
   
   return departments.map(dept => {
@@ -106,7 +107,7 @@ const calculateDepartmentStats = (claims: any[]) => {
   });
 };
 
-const calculateAverageResolutionTime = (claims: any[]): number => {
+const calculateAverageResolutionTime = (claims: DashboardClaim[]): number => {
   const resolvedClaims = claims.filter(c => c.status === 'resolved' && c.created_date);
   
   if (resolvedClaims.length === 0) return 0;
@@ -122,26 +123,28 @@ const calculateAverageResolutionTime = (claims: any[]): number => {
   return Math.round(totalDays / resolvedClaims.length);
 };
 
-const calculateOverdueClaims = (claims: any[]) => {
+const calculateOverdueClaims = (claims: DashboardClaim[]): number => {
   const currentDate = new Date();
   const sevenDaysAgo = new Date(currentDate.getTime() - (7 * 24 * 60 * 60 * 1000));
   
-  return claims.filter(claim => {
+  const overdueClaims = claims.filter(claim => {
     const createdDate = new Date(claim.created_date);
     return (
       ['pending_approval', 'under_processing', 'sent_supplier'].includes(claim.status) &&
       createdDate < sevenDaysAgo
     );
   });
+  
+  return overdueClaims.length;
 };
 
-const calculateAvgCost = (claims: any[]): number => {
+const calculateAvgCost = (claims: DashboardClaim[]): number => {
   if (claims.length === 0) return 0;
   const totalCost = claims.reduce((sum, c) => sum + (c.total_cost || 0), 0);
   return Math.round(totalCost / claims.length);
 };
 
-const calculateRefundRate = (claims: any[]): number => {
+const calculateRefundRate = (claims: DashboardClaim[]): number => {
   const totalExpected = claims.reduce((sum, c) => sum + (c.expected_refund || 0), 0);
   const totalReceived = claims.reduce((sum, c) => sum + (c.actual_refund || 0), 0);
   
@@ -149,7 +152,7 @@ const calculateRefundRate = (claims: any[]): number => {
   return (totalReceived / totalExpected) * 100;
 };
 
-const calculateWeeklyTrend = (claims: any[]) => {
+const calculateWeeklyTrend = (claims: DashboardClaim[]) => {
   const now = new Date();
   const oneWeekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
   const twoWeeksAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
@@ -222,7 +225,7 @@ export const useCostAnalytics = (timeRange: string = '6m') => {
   });
 };
 
-const calculateSupplierCosts = (claims: any[]) => {
+const calculateSupplierCosts = (claims: DashboardClaim[]) => {
   const supplierMap = new Map();
   
   claims.forEach(claim => {
@@ -254,7 +257,7 @@ const calculateSupplierCosts = (claims: any[]) => {
     .filter(s => s.claimCount > 0); // Filter out empty suppliers
 };
 
-const calculateProductCosts = (claims: any[]) => {
+const calculateProductCosts = (claims: DashboardClaim[]) => {
   const productMap = new Map();
   
   claims.forEach(claim => {
@@ -288,7 +291,7 @@ const calculateProductCosts = (claims: any[]) => {
     .filter(p => p.claimCount > 0); // Filter out empty products
 };
 
-const calculateRefundAnalysis = (claims: any[]) => {
+const calculateRefundAnalysis = (claims: DashboardClaim[]) => {
   const refundStats = {
     totalExpected: claims.reduce((sum, c) => sum + (c.expected_refund || 0), 0),
     totalReceived: claims.reduce((sum, c) => sum + (c.actual_refund || 0), 0),
@@ -333,7 +336,7 @@ const calculateRefundAnalysis = (claims: any[]) => {
   };
 };
 
-const calculateCostTrends = (claims: any[]) => {
+const calculateCostTrends = (claims: DashboardClaim[]) => {
   const monthMap = new Map();
   
   claims.forEach(claim => {
