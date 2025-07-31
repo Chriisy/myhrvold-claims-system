@@ -295,24 +295,24 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') 
     yPosition += 5;
   }
 
-  yPosition += 12;
+  yPosition += 8;
 
   // Reported Issue
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text(t.reportedIssue, 20, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(claim.issue_description, 20, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   // Service Action Taken
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text(t.serviceAction, 20, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   if (claim.detailed_description) {
     doc.setFontSize(10);
@@ -335,24 +335,24 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') 
     yPosition += 3;
   }
 
-  yPosition += 12;
+  yPosition += 8;
 
   // Requested Action section (moved up after work performed)
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text(t.requestedAction, 20, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text(t.defaultAction, 20, yPosition);
-  yPosition += 15;
+  yPosition += 10;
 
   // Customer Information
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Customer Information', 20, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
@@ -371,13 +371,13 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') 
     yPosition += 5;
   }
 
-  yPosition += 8;
+  yPosition += 6;
 
   // Work Performed
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Work Performed', 20, yPosition);
-  yPosition += 8;
+  yPosition += 6;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
