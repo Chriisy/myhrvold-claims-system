@@ -10,6 +10,7 @@ import { ConnectionStatus } from "./components/ui/ConnectionStatus";
 import { CookieConsent } from "./components/gdpr/CookieConsent";
 import { ThemeProvider } from "./hooks/useTheme";
 import { useGlobalShortcuts } from "./hooks/useKeyboardShortcuts";
+import { useAutoLogout } from "./hooks/useAutoLogout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/AnalyticsEnhanced";
@@ -44,6 +45,7 @@ const queryClient = new QueryClient({
 
 function AppRoutes() {
   useGlobalShortcuts();
+  useAutoLogout();
   
   return (
     <Routes>
