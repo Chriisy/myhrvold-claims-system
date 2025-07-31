@@ -332,7 +332,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') 
       doc.text(line, 20, yPosition);
       yPosition += 4;
     });
-    yPosition += 3;
+    yPosition += 2;
   }
 
   yPosition += 8;
