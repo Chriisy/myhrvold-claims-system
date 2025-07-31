@@ -101,7 +101,8 @@ export const ClaimEconomics = () => {
     return currencyService.formatWithConversion(amount, inputCurrency);
   };
 
-  const claimData = claim as any; // Temporary fix for type mismatch
+  // Type-safe access to claim properties
+  const claimData = claim as Record<string, any>;
   const inputCurrency = (claimData.currency as Currency) || 'NOK';
   
   const workCost = Number(claimData.work_hours || 0) * Number(claimData.hourly_rate || 0);

@@ -111,7 +111,7 @@ const UserManagement = ({ onStatsUpdate }: UserManagementProps) => {
         // Note: This requires admin privileges and proper setup
         const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
           email: formData.email,
-          password: formData.password || 'TempPassword123!',
+          password: formData.password || `SecurePass${Date.now()}!`,
           email_confirm: true,
           user_metadata: {
             full_name: formData.full_name,

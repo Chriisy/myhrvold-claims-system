@@ -346,7 +346,6 @@ const ClaimsFormAdvanced = () => {
 
   // Handle OCR data extraction
   const handleOCRDataExtracted = (ocrData: any) => {
-    console.log('🔍 OCR Data received:', ocrData);
     
     // Map OCR data to form fields with corrected field mapping
     const updates: any = {};
@@ -432,11 +431,13 @@ const ClaimsFormAdvanced = () => {
           updates.purchaseDate = date.toISOString().split('T')[0];
         }
       } catch (e) {
-        console.warn('Could not parse invoice date:', ocrData.invoiceDate);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Could not parse invoice date:', ocrData.invoiceDate);
+        }
       }
     }
 
-    console.log('📝 Form updates to apply:', updates);
+    
     
     // Apply all updates to form data
     setFormData(prev => ({

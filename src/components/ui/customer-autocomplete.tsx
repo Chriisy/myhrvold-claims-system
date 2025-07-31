@@ -48,14 +48,14 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
       const customerData: Omit<Customer, 'id'> = searchBy === 'name' 
         ? {
             customer_name: searchValue,
-            customer_number: `NEW-${Date.now()}`, // Temporary number
+            customer_number: `AUTO-${Date.now()}`, // Auto-generated number
             contact_person: '',
             email: '',
             phone: '',
             address: ''
           }
         : {
-            customer_name: `Customer ${searchValue}`, // Temporary name
+            customer_name: `Customer ${searchValue}`, // Auto-generated name
             customer_number: searchValue,
             contact_person: '',
             email: '',

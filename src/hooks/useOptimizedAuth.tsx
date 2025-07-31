@@ -83,7 +83,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        // Only log in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching profile:', error);
+        }
         
         // Retry logic for network errors
         if (retries < 3 && (error.message.includes('NetworkError') || error.message.includes('fetch'))) {
@@ -100,7 +103,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setError(null);
       return data;
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error in fetchProfile:', error);
+      }
       
       // Retry for network errors
       if (retries < 3) {
@@ -154,7 +159,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setProfile(profileData);
           }
         } catch (error) {
-          console.error('Error loading profile:', error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error loading profile:', error);
+          }
           if (mountedRef.current) {
             setProfile(null);
             setError('Failed to load user profile');
@@ -183,7 +190,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting initial session:', error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error getting initial session:', error);
+          }
           if (mountedRef.current) {
             setError('Failed to initialize authentication');
             setLoading(false);
@@ -209,7 +218,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error initializing auth:', error);
+        }
         if (mountedRef.current) {
           setError('Failed to initialize authentication');
           setLoading(false);
@@ -239,7 +250,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setProfile(null);
       setError(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error signing out:', error);
+      }
       setError('Failed to sign out');
     }
   }, []);

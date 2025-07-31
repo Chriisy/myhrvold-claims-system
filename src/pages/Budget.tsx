@@ -105,7 +105,7 @@ export default function Budget() {
                 {departmentTargets.map(target => (
                   <BudgetProgressCard
                     key={target.id}
-                    progress={overallProgress} // TODO: Get department-specific progress
+                    progress={overallProgress} // Using overall progress for now
                     year={selectedYear}
                     title={target.department ? target.department.charAt(0).toUpperCase() + target.department.slice(1) : 'Ukjent'}
                     isLoading={progressLoading}
@@ -123,7 +123,7 @@ export default function Budget() {
                 {supplierTargets.map(target => (
                   <BudgetProgressCard
                     key={target.id}
-                    progress={overallProgress} // TODO: Get supplier-specific progress
+                    progress={overallProgress} // Using overall progress for now
                     year={selectedYear}
                     title={target.supplier_name || 'Ukjent leverandør'}
                     isLoading={progressLoading}

@@ -93,11 +93,8 @@ export const useRecentClaims = (limit: number = 10) => {
 const calculateDepartmentStats = (claims: any[]) => {
   const departments = ['oslo', 'bergen', 'trondheim', 'stavanger', 'kristiansand', 'nord_norge', 'innlandet', 'vestfold', 'agder', 'ekstern'];
   
-  console.log('Claims departments found:', [...new Set(claims.map(c => c.department))]);
-  
   return departments.map(dept => {
     const deptClaims = claims.filter(c => c.department === dept);
-    console.log(`Department ${dept}: ${deptClaims.length} claims`);
     
     return {
       department: dept,
