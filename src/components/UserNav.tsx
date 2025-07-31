@@ -115,7 +115,7 @@ const UserNav = () => {
               <p className="font-medium">{profile.full_name}</p>
               <p className="text-xs text-muted-foreground">{user.email}</p>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant={profile.role === 'admin' || profile.role === 'saksbehandler' ? 'default' : 'secondary'} className="text-xs">
+                <Badge variant={profile.role === 'admin' ? 'default' : profile.role === 'saksbehandler' ? 'outline' : 'secondary'} className="text-xs">
                   {profile.role === 'admin' ? (
                     <>
                       <Shield className="h-3 w-3 mr-1" />
@@ -138,7 +138,7 @@ const UserNav = () => {
           </div>
         </div>
         
-        {(profile.role === 'admin' || profile.role === 'saksbehandler') && (
+        {profile.role === 'admin' && (
           <>
             <DropdownMenuItem asChild>
               <Link to="/suppliers/scorecard" className="flex items-center gap-2 w-full">

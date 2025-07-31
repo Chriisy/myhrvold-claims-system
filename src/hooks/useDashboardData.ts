@@ -33,7 +33,7 @@ export const useDashboardStats = () => {
         actualRefunds: claims.reduce((sum, c) => sum + (c.actual_refund || 0), 0),
         
         // Department breakdown (for admins)
-        departmentStats: (profile?.role === 'admin' || profile?.role === 'saksbehandler') ? calculateDepartmentStats(claims) : null,
+        departmentStats: profile?.role === 'admin' ? calculateDepartmentStats(claims) : null,
         
         // Recent activity
         recentClaims: claims

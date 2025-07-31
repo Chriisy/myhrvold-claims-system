@@ -82,7 +82,7 @@ const AdminSettings = () => {
   };
 
   // Check if user is admin
-  if (profile?.role !== 'admin' && profile?.role !== 'saksbehandler') {
+  if (profile?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-96">

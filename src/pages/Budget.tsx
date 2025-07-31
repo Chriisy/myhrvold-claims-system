@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export default function Budget() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const { user, profile } = useAuth();
-  const isAdmin = profile?.role === 'admin' || profile?.role === 'saksbehandler';
+  const isAdmin = profile?.role === 'admin';
 
   const { data: availableYears, isLoading: yearsLoading } = useAvailableYears();
   const { data: targets, isLoading: targetsLoading } = useBudgetTargetsByYear(selectedYear);
