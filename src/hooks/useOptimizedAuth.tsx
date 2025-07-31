@@ -244,16 +244,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Clear cache
       profileCache.clear();
       
-      await supabase.auth.signOut();
+      // Clear auth state from storage
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      Object.keys(sessionStorage || {}).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+      
+      // Global sign out from all sessions
+      await supabase.auth.signOut({ scope: 'global' });
+      
       setUser(null);
       setSession(null);
       setProfile(null);
       setError(null);
+      
+      // Force page reload for clean state
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Error signing out:', error);
       }
-      setError('Failed to sign out');
+      // Still clear local state even if signOut fails
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setError('Failed to sign out completely');
+      
+      // Force navigation anyway
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
     }
   }, []);
 

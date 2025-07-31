@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { validateEmail, validatePassword, validateNorwegianName, sanitizeInput, authRateLimiter } from "@/utils/security";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -51,6 +52,25 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Rate limiting check
+      const identifier = `auth_${email}`;
+      if (authRateLimiter.isRateLimited(identifier)) {
+        throw new Error("For mange innloggingsforsøk. Prøv igjen om 15 minutter.");
+      }
+
+      // Input validation
+      if (!email.trim() || !password.trim()) {
+        throw new Error("E-post og passord er påkrevd");
+      }
+
+      // Email validation using security utility
+      if (!validateEmail(email)) {
+        throw new Error("Ugyldig e-postadresse");
+      }
+
+      // Record attempt for rate limiting
+      authRateLimiter.recordAttempt(identifier);
+
       // Clean up existing state first
       cleanupAuthState();
       
@@ -62,11 +82,20 @@ const Auth = () => {
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Sanitize error messages to prevent information leakage
+        let userMessage = "Innlogging feilet. Sjekk e-post og passord.";
+        if (error.message.includes("Email not confirmed")) {
+          userMessage = "E-post må bekreftes før innlogging.";
+        } else if (error.message.includes("Invalid login credentials")) {
+          userMessage = "Ugyldig e-post eller passord.";
+        }
+        throw new Error(userMessage);
+      }
 
       if (data.user) {
         toast({
@@ -92,6 +121,36 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Rate limiting check
+      const identifier = `signup_${email}`;
+      if (authRateLimiter.isRateLimited(identifier)) {
+        throw new Error("For mange registreringsforsøk. Prøv igjen om 15 minutter.");
+      }
+
+      // Input validation
+      if (!email.trim() || !password.trim() || !fullName.trim() || !department || !role) {
+        throw new Error("Alle obligatoriske felt må fylles ut");
+      }
+
+      // Email validation using security utility
+      if (!validateEmail(email)) {
+        throw new Error("Ugyldig e-postadresse");
+      }
+
+      // Password strength validation using security utility
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.isValid) {
+        throw new Error(passwordValidation.errors[0]);
+      }
+
+      // Name validation using security utility
+      if (!validateNorwegianName(fullName)) {
+        throw new Error("Navn kan kun inneholde bokstaver, mellomrom, bindestrek og apostrof");
+      }
+
+      // Record attempt for rate limiting
+      authRateLimiter.recordAttempt(identifier);
+
       // Clean up existing state first
       cleanupAuthState();
       
@@ -103,19 +162,28 @@ const Auth = () => {
       }
 
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: fullName,
+            full_name: sanitizeInput(fullName.trim()),
             role,
             department,
           },
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Sanitize error messages
+        let userMessage = "Registrering feilet. Prøv igjen.";
+        if (error.message.includes("User already registered")) {
+          userMessage = "E-postadressen er allerede i bruk.";
+        } else if (error.message.includes("Password should be at least")) {
+          userMessage = "Passord oppfyller ikke sikkerhetskravene.";
+        }
+        throw new Error(userMessage);
+      }
 
       toast({
         title: "Bruker opprettet",
@@ -135,31 +203,47 @@ const Auth = () => {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast({
-        title: "E-post påkrevd",
-        description: "Vennligst skriv inn e-postadressen din.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setLoading(true);
+
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
+      // Rate limiting check for password reset
+      const identifier = `reset_${email}`;
+      if (authRateLimiter.isRateLimited(identifier)) {
+        throw new Error("For mange nullstillingsforsøk. Prøv igjen om 15 minutter.");
+      }
+
+      // Input validation
+      if (!email.trim()) {
+        throw new Error("E-postadresse er påkrevd");
+      }
+
+      // Email validation using security utility
+      if (!validateEmail(email)) {
+        throw new Error("Ugyldig e-postadresse");
+      }
+
+      // Record attempt for rate limiting
+      authRateLimiter.recordAttempt(identifier);
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Don't reveal whether email exists or not for security
+        console.warn("Password reset error:", error.message);
+      }
 
+      // Always show success message regardless of error to prevent email enumeration
       toast({
-        title: "Reset-lenke sendt",
-        description: "Sjekk e-posten din for passord reset-lenke.",
+        title: "Nullstillingslenke sendt",
+        description: "Hvis e-postadressen finnes i systemet, vil du motta en nullstillingslenke.",
       });
+      
       setIsResetMode(false);
     } catch (error: any) {
       toast({
-        title: "Feil ved sending",
+        title: "Feil ved nullstilling",
         description: error.message,
         variant: "destructive",
       });
