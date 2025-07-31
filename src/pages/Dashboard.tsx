@@ -151,7 +151,11 @@ const Dashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalClaims || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {profile?.role === 'technician' ? 'I din avdeling' : 'Totalt i systemet'}
+                {profile?.role === 'technician' 
+                  ? `Avdeling ${profile?.department === 'nord_norge' ? 'Nord Norge' : 
+                      profile?.department === 'kristiansand' ? 'Kristiansand' :
+                      profile?.department?.charAt(0).toUpperCase() + profile?.department?.slice(1)}` 
+                  : 'Totalt i systemet'}
               </p>
             </CardContent>
           </Card>
