@@ -171,104 +171,96 @@ const splitTextToLines = (doc: jsPDF, text: string, maxWidth: number) => {
 export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') => {
   const doc = new jsPDF('p', 'mm', 'a4');
   const t = translations[language];
-  let yPosition = 15;
+  let yPosition = 20;
 
-  // Clean header with company branding
-  doc.setFillColor(52, 73, 94); // Professional dark blue
-  doc.rect(0, 0, 210, 28, 'F');
+  // Premium header with company logo area and colored background
+  doc.setFillColor(30, 41, 59); // slate-800 for premium look
+  doc.rect(0, 0, 210, 35, 'F');
   
-  // Company name
+  // Company name in premium white
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
+  doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('MYHRVOLD GRUPPEN', 20, 17);
+  doc.text('MYHRVOLD GRUPPEN', 20, 18);
   
-  // Claim ID section - more prominent
-  doc.setFillColor(236, 240, 241); // Light gray background
-  doc.rect(130, 5, 75, 18, 'F');
-  doc.setDrawColor(149, 165, 166);
-  doc.setLineWidth(0.3);
-  doc.rect(130, 5, 75, 18, 'S');
-  
-  doc.setTextColor(44, 62, 80);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Claim ID / Reklamasjonssak ID', 133, 12);
-  doc.setFontSize(14);
-  doc.text(claim.claim_number, 133, 18);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${new Date().toLocaleDateString(language === 'no' ? 'nb-NO' : 'en-GB')}`, 133, 21);
-
-  // Document title - more compact
-  doc.setTextColor(44, 62, 80);
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  yPosition = 38;
-  doc.text(t.subject, 105, yPosition, { align: 'center' });
-  
-  // Subtle separator
-  doc.setDrawColor(189, 195, 199);
-  doc.setLineWidth(0.3);
-  doc.line(20, yPosition + 3, 190, yPosition + 3);
-
-  yPosition += 10;
-
-  // Contact information - more compact
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(127, 140, 141);
-  doc.text('Return correspondence to:', 20, yPosition);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(44, 62, 80);
-  doc.text('Christopher Strøm', 90, yPosition);
-  doc.setFont('helvetica', 'normal');
-  doc.text('| Technical Manager | christopher.strom@myhrvold.no', 135, yPosition);
-  yPosition += 8;
-
-  // Product Information section with box styling
-  doc.setFillColor(248, 249, 250);
-  doc.rect(15, yPosition - 2, 180, 45, 'F');
-  doc.setDrawColor(189, 195, 199);
-  doc.setLineWidth(0.3);
-  doc.rect(15, yPosition - 2, 180, 45, 'S');
-  
+  // Claim ID in top right corner
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(44, 62, 80);
-  doc.text(t.productInfo, 20, yPosition + 3);
+  doc.text(`Claim ID:`, 150, 18);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Generated: ${new Date().toLocaleDateString(language === 'no' ? 'nb-NO' : 'en-GB')}`, 150, 25);
+
+  // Document title with improved styling
+  doc.setTextColor(30, 41, 59); // slate-800
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  yPosition = 50;
+  doc.text(`${t.subject} -`, 105, yPosition, { align: 'center' });
+  
+  // Add separator line
+  doc.setDrawColor(203, 213, 225); // slate-300
+  doc.setLineWidth(0.5);
+  doc.line(20, yPosition + 5, 190, yPosition + 5);
+
+  yPosition += 18;
+
+  // Contact information for return correspondence
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Return correspondence to:', 20, yPosition);
+  yPosition += 4;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 41, 59);
+  doc.text('Christopher Strøm', 20, yPosition);
+  yPosition += 4;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Technical Manager', 20, yPosition);
+  yPosition += 4;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(30, 41, 59);
+  doc.text('christopher.strom@myhrvold.no', 20, yPosition);
+  yPosition += 12;
+
+  // Product Information
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(t.productInfo, 20, yPosition);
   yPosition += 8;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   
-  const labelWidth = 65;
+  // Product fields with consistent spacing
+  const labelWidth = 70; // Fixed width for all labels
   
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.product}:`, 20, yPosition);
   doc.setFont('helvetica', 'normal');
   
-  // Handle UBERT brand name in bold
-  if (claim.product_name.includes('UBERT')) {
-    const parts = claim.product_name.split('UBERT');
+  // Handle brand name in bold
+  if (claim.product_name.includes('BIZERBA')) {
+    const parts = claim.product_name.split('BIZERBA');
     doc.text(parts[0], labelWidth, yPosition);
     const prefixWidth = doc.getTextWidth(parts[0]);
     doc.setFont('helvetica', 'bold');
-    doc.text('UBERT', labelWidth + prefixWidth, yPosition);
-    const ubertWidth = doc.getTextWidth('UBERT');
+    doc.text('BIZERBA', labelWidth + prefixWidth, yPosition);
+    const brandWidth = doc.getTextWidth('BIZERBA');
     doc.setFont('helvetica', 'normal');
-    doc.text(parts[1] || '', labelWidth + prefixWidth + ubertWidth, yPosition);
+    doc.text(parts[1] || '', labelWidth + prefixWidth + brandWidth, yPosition);
   } else {
     doc.text(claim.product_name, labelWidth, yPosition);
   }
-  yPosition += 4;
+  yPosition += 5;
 
   if (claim.product_model) {
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.model}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(claim.product_model, labelWidth, yPosition);
-    yPosition += 4;
+    yPosition += 5;
   }
 
   if (claim.serial_number) {
@@ -276,7 +268,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') 
     doc.text(`${t.serialNumber}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(claim.serial_number, labelWidth, yPosition);
-    yPosition += 4;
+    yPosition += 5;
   }
 
   if (claim.purchase_date) {
@@ -284,206 +276,191 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en') 
     doc.text(`${t.purchaseDate}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(formatDate(claim.purchase_date, language), labelWidth, yPosition);
-    yPosition += 4;
+    yPosition += 5;
   }
 
   if (claim.warranty_period) {
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.warranty}:`, 20, yPosition);
     doc.setFont('helvetica', 'normal');
+    // Fix the "1year" spacing issue
     let warrantyText = claim.warranty_period;
     if (!warrantyText.includes(' ')) {
+      // Add space between number and year (e.g., "1year" -> "1 year")
       warrantyText = warrantyText.replace(/(\d+)(\w+)/, '$1 $2');
     }
     if (!warrantyText.includes(t.year)) {
       warrantyText += ` ${t.year}`;
     }
     doc.text(warrantyText, labelWidth, yPosition);
-    yPosition += 4;
-  }
-  
-  // Add PO Reference field
-  if (claim.po_reference) {
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${t.poReference}:`, 20, yPosition);
-    doc.setFont('helvetica', 'normal');
-    doc.text(claim.po_reference, labelWidth, yPosition);
-    yPosition += 4;
+    yPosition += 5;
   }
 
   yPosition += 8;
 
-  // Issue and Service section with box styling
-  doc.setFillColor(253, 246, 227);
-  const issueBoxHeight = 35;
-  doc.rect(15, yPosition - 2, 180, issueBoxHeight, 'F');
-  doc.setDrawColor(189, 195, 199);
-  doc.setLineWidth(0.3);
-  doc.rect(15, yPosition - 2, 180, issueBoxHeight, 'S');
-
-  doc.setFontSize(12);
+  // Reported Issue
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(44, 62, 80);
-  doc.text(t.reportedIssue, 20, yPosition + 3);
-  yPosition += 8;
+  doc.text(t.reportedIssue, 20, yPosition);
+  yPosition += 6;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(176, 58, 46);
   doc.text(claim.issue_description, 20, yPosition);
-  yPosition += 10;
+  yPosition += 6;
 
-  doc.setFontSize(11);
+  // Service Action Taken
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(44, 62, 80);
   doc.text(t.serviceAction, 20, yPosition);
-  yPosition += 5;
+  yPosition += 6;
 
   if (claim.detailed_description) {
-    doc.setFontSize(9);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(85, 85, 85);
     
+    // Clean up any formatting issues and improve readability
     let cleanDescription = claim.detailed_description
-      .replace(/\s+/g, ' ')
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
       .trim();
     
+    // Improve specific text patterns
     if (language === 'en') {
       cleanDescription = cleanDescription
         .replace('Replaced the controller as it was not supplying power to the lower heating element. The unit was not programmed from the factory',
                 'The temperature controller failed to supply power to the lower heating element. Investigation revealed the unit had not been properly initialized or configured at delivery. After replacing the controller, the unit operated as expected.');
     }
     
-    const maxWidth = 170;
+    const maxWidth = 165;
     const lines = splitTextToLines(doc, cleanDescription, maxWidth);
     
     lines.forEach(line => {
       doc.text(line, 20, yPosition);
-      yPosition += 3.5;
+      yPosition += 4.5;
     });
+    yPosition += 3;
   }
 
   yPosition += 8;
 
-  // Customer & Work Performed section - grouped together
-  doc.setFillColor(240, 248, 255);
-  const customerWorkBoxHeight = 30;
-  doc.rect(15, yPosition - 2, 180, customerWorkBoxHeight, 'F');
-  doc.setDrawColor(189, 195, 199);
-  doc.setLineWidth(0.3);
-  doc.rect(15, yPosition - 2, 180, customerWorkBoxHeight, 'S');
-
-  // Two column layout
-  doc.setFontSize(11);
+  // Requested Action section (moved up after work performed)
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(44, 62, 80);
-  doc.text('Customer Information', 20, yPosition + 3);
-  doc.text('Work Performed', 110, yPosition + 3);
-  yPosition += 8;
+  doc.text(t.requestedAction, 20, yPosition);
+  yPosition += 6;
 
-  // Customer info column
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Customer:', 20, yPosition);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.customer_name, 20, yPosition + 3);
-  
-  if (claim.customer_address) {
-    doc.setFont('helvetica', 'bold');
-    doc.text('Address:', 20, yPosition + 7);
-    doc.setFont('helvetica', 'normal');
-    doc.text(claim.customer_address, 20, yPosition + 10);
-  }
+  doc.text(t.defaultAction, 20, yPosition);
+  yPosition += 10;
 
-  // Work performed column
+  // Customer Information
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text(`${t.technician}:`, 110, yPosition);
+  doc.text('Customer Information', 20, yPosition);
+  yPosition += 6;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  const customerLabelWidth = doc.getTextWidth('Customer: ');
+  doc.text('Customer: ', 20, yPosition);
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.technician_name, 110, yPosition + 3);
+  doc.text(claim.customer_name, 20 + customerLabelWidth, yPosition);
+  yPosition += 5;
 
-  yPosition += 20;
+  yPosition += 6;
 
-  // Spare parts section with cleaner formatting
+  // Work Performed
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Work Performed', 20, yPosition);
+  yPosition += 6;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  const technicianLabelWidth = doc.getTextWidth(`${t.technician}: `);
+  doc.text(`${t.technician}: `, 20, yPosition);
+  doc.setFont('helvetica', 'normal');
+  doc.text(claim.technician_name, 20 + technicianLabelWidth, yPosition);
+  yPosition += 5;
+
+  // Spare parts details (without prices)
   const customLineItems = claim.custom_line_items ? 
     (Array.isArray(claim.custom_line_items) ? claim.custom_line_items : 
      (typeof claim.custom_line_items === 'string' ? JSON.parse(claim.custom_line_items) : [])) : [];
   
   if (customLineItems.length > 0) {
-    doc.setFillColor(245, 245, 245);
-    const partsBoxHeight = Math.max(20, customLineItems.length * 10 + 8);
-    doc.rect(15, yPosition - 2, 180, partsBoxHeight, 'F');
-    doc.setDrawColor(189, 195, 199);
-    doc.setLineWidth(0.3);
-    doc.rect(15, yPosition - 2, 180, partsBoxHeight, 'S');
-    
-    doc.setFontSize(11);
+    yPosition += 3;
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(44, 62, 80);
-    doc.text(`${t.sparePartsUsed}:`, 20, yPosition + 3);
-    yPosition += 8;
+    doc.text(`${t.sparePartsUsed}:`, 20, yPosition);
+    yPosition += 6;
     
     customLineItems.forEach((item: any, index: number) => {
-      doc.setFontSize(9);
+      // Bullet point style for spare parts
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(85, 85, 85);
-      doc.text(`• ${t.partNumber}: ${item.partNumber || 'N/A'}`, 22, yPosition);
-      doc.text(`${t.description}: ${item.description || 'N/A'}`, 45, yPosition);
-      doc.text(`${t.quantity}: ${item.quantity || 1}`, 160, yPosition);
+      doc.text('•', 25, yPosition);
+      doc.text(`${t.partNumber}: ${item.partNumber || 'N/A'}`, 30, yPosition);
       yPosition += 4;
+      
+      doc.text('•', 25, yPosition);
+      doc.text(`${t.description}: ${item.description || 'N/A'}`, 30, yPosition);  
+      yPosition += 4;
+      
+      doc.text('•', 25, yPosition);
+      doc.text(`${t.quantity}: ${item.quantity || 1}`, 30, yPosition);
+      yPosition += 6; // Extra space between parts
     });
     
-    yPosition += 5;
+    yPosition += 3;
   }
 
-  // Requested Action section
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(44, 62, 80);
-  doc.text(t.requestedAction, 20, yPosition);
-  yPosition += 5;
+  yPosition += 15;
 
+  // Footer with system information
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(85, 85, 85);
-  doc.text(t.defaultAction, 20, yPosition);
-  yPosition += 10;
-
-  // Clean, minimal footer
-  yPosition += 10;
-  doc.setDrawColor(189, 195, 199);
-  doc.setLineWidth(0.3);
-  doc.line(20, yPosition, 190, yPosition);
-  yPosition += 5;
+  doc.setTextColor(128, 128, 128);
+  doc.text('This PDF was generated automatically from our warranty claim system.', 20, yPosition);
+  yPosition += 4;
+  doc.text(`Claim Number: ${claim.claim_number}`, 20, yPosition);
+  yPosition += 4;
+  doc.text(`Generated: ${formatDate(new Date().toISOString(), language)}`, 20, yPosition);
+  yPosition += 6;
   
+  // System footer
   doc.setFontSize(8);
-  doc.setTextColor(127, 140, 141);
-  doc.text(`This document was generated automatically on ${formatDate(new Date().toISOString(), language)}`, 20, yPosition);
+  doc.setTextColor(100, 100, 100);
+  doc.text(t.systemFooter, 20, yPosition);
 
-  // Optional QR code (smaller and cleaner)
+  // Generate QR code for claim follow-up in bottom right corner
   try {
+    // Create URL for claim follow-up (adjust this URL to match your actual claim details route)
     const followUpUrl = `${window.location.origin}/claims/${claim.id}`;
+    
+    // Generate QR code as data URL
     const qrCodeDataUrl = await QRCode.toDataURL(followUpUrl, {
-      width: 150,
+      width: 200,
       margin: 1,
       color: {
-        dark: '#2c3e50',
+        dark: '#1e293b', // slate-800
         light: '#ffffff'
       }
     });
 
-    const qrSize = 20;
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const qrX = pageWidth - qrSize - 20;
-    const qrY = pageHeight - qrSize - 20;
+    // Add QR code in bottom right corner
+    const qrSize = 25; // Size in mm
+    const pageWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
+    const qrX = pageWidth - qrSize - 15; // 15mm from right edge
+    const qrY = pageHeight - qrSize - 15; // 15mm from bottom edge
 
     doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
 
-    doc.setFontSize(7);
-    doc.setTextColor(127, 140, 141);
-    const labelText = language === 'no' ? 'Scan for follow-up' : 'Scan for follow-up';
+    // Add QR code label
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    const labelText = language === 'no' ? 'Scan for oppfølging' : 'Scan for follow-up';
     const labelWidth = doc.getTextWidth(labelText);
-    doc.text(labelText, qrX + (qrSize - labelWidth) / 2, qrY + qrSize + 3);
+    doc.text(labelText, qrX + (qrSize - labelWidth) / 2, qrY + qrSize + 4);
   } catch (error) {
     console.error('Failed to generate QR code:', error);
   }
