@@ -151,6 +151,8 @@ export const useAdvancedClaimForm = () => {
     id: string;
     partNumber: string;
     description: string;
+    quantity: number;
+    unitPrice: number;
     price: number;
     refundRequested: boolean;
     refundApproved: boolean;
@@ -354,7 +356,9 @@ export const useAdvancedClaimForm = () => {
             id: item.id || Date.now().toString(),
             partNumber: item.partNumber || "",
             description: item.description || "",
-            price: item.unitPrice || 0,
+            quantity: item.quantity || 1,
+            unitPrice: item.unitPrice || 0,
+            price: (item.quantity || 1) * (item.unitPrice || 0),
             refundRequested: false,
             refundApproved: false
           }));
@@ -499,6 +503,8 @@ export const useAdvancedClaimForm = () => {
       id: Date.now().toString(),
       partNumber: "",
       description: "",
+      quantity: 1,
+      unitPrice: 0,
       price: 0,
       refundRequested: false,
       refundApproved: false
@@ -511,9 +517,17 @@ export const useAdvancedClaimForm = () => {
   }, []);
 
   const handleUpdatePart = useCallback((index: number, field: string, value: any) => {
-    setParts(prev => prev.map((part, i) => 
-      i === index ? { ...part, [field]: value } : part
-    ));
+    setParts(prev => prev.map((part, i) => {
+      if (i === index) {
+        const updatedPart = { ...part, [field]: value };
+        // Auto-calculate total price when quantity or unitPrice changes
+        if (field === 'quantity' || field === 'unitPrice') {
+          updatedPart.price = updatedPart.quantity * updatedPart.unitPrice;
+        }
+        return updatedPart;
+      }
+      return part;
+    }));
   }, []);
 
   const handleAddCustomLineItem = useCallback(() => {

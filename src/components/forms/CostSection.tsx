@@ -9,6 +9,8 @@ interface Part {
   id: string;
   partNumber: string;
   description: string;
+  quantity: number;
+  unitPrice: number;
   price: number;
   refundRequested: boolean;
   refundApproved: boolean;
@@ -84,7 +86,7 @@ export const CostSection = memo<CostSectionProps>(({
     const overtime100Cost = formData.overtime100Hours * formData.hourlyRate * 2;
     const travelHoursCost = formData.travelHours * formData.hourlyRate;
     const vehicleCost = formData.travelDistanceKm * formData.vehicleCostPerKm;
-    const partsTotal = parts.reduce((sum, part) => sum + part.price, 0);
+    const partsTotal = parts.reduce((sum, part) => sum + (part.quantity * part.unitPrice), 0);
     const customLineItemsTotal = customLineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     const newEquipmentTotal = newEquipmentItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     
@@ -355,15 +357,37 @@ export const CostSection = memo<CostSectionProps>(({
                         placeholder="Beskrivelse av del"
                       />
                     </div>
+                    <div className="w-24 space-y-2">
+                      <Label>Antall</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={part.quantity}
+                        onChange={(e) => onUpdatePart(index, 'quantity', parseInt(e.target.value) || 1)}
+                        disabled={disabled}
+                        placeholder="1"
+                      />
+                    </div>
                     <div className="w-32 space-y-2">
-                      <Label>Pris (kr)</Label>
+                      <Label>Enhetspris (kr)</Label>
                       <Input
                         type="number"
                         min="0"
                         step="0.01"
-                        value={part.price}
-                        onChange={(e) => onUpdatePart(index, 'price', parseFloat(e.target.value) || 0)}
+                        value={part.unitPrice}
+                        onChange={(e) => onUpdatePart(index, 'unitPrice', parseFloat(e.target.value) || 0)}
                         disabled={disabled}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="w-32 space-y-2">
+                      <Label>Totalpris (kr)</Label>
+                      <Input
+                        type="number"
+                        value={part.price}
+                        disabled
+                        className="bg-muted"
                         placeholder="0"
                       />
                     </div>
