@@ -439,9 +439,9 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.customer}:`, LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT; // Normal spacing
+  yPosition += LINE_HEIGHT; // Normal spacing below Customer:
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.customer_name, LABEL_X + 20, yPosition); // Indent customer name
+  doc.text(claim.customer_name, LABEL_X + 30, yPosition); // Better indent for customer name
   yPosition += SECTION_GAP;
 
   // Work Performed - grouped tightly with spare parts
@@ -453,9 +453,9 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.technician}:`, LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT; // Normal spacing
+  yPosition += LINE_HEIGHT; // Normal spacing below Technician:
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.technician_name, LABEL_X + 20, yPosition); // Indent technician name
+  doc.text(claim.technician_name, LABEL_X + 30, yPosition); // Better indent for technician name
   yPosition += LINE_HEIGHT;
 
   // Spare parts details (without prices) - improved layout
