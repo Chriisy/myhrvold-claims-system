@@ -156,6 +156,14 @@ export const useAdvancedClaimForm = () => {
     unitPrice: number;
   }>>([]);
 
+  const [newEquipmentItems, setNewEquipmentItems] = useState<Array<{
+    id: string;
+    equipmentNumber: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+  }>>([]);
+
   // Initialize form data
   useEffect(() => {
     fetchSuppliers();
@@ -452,6 +460,72 @@ export const useAdvancedClaimForm = () => {
     });
   }, [toast]);
 
+  // Add new equipment handlers
+  const handleAddNewEquipment = useCallback(() => {
+    const newItem = {
+      id: Date.now().toString(),
+      equipmentNumber: "",
+      description: "",
+      quantity: 1,
+      unitPrice: 0
+    };
+    setNewEquipmentItems(prev => [...prev, newItem]);
+  }, []);
+
+  const handleRemoveNewEquipment = useCallback((index: number) => {
+    setNewEquipmentItems(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleUpdateNewEquipment = useCallback((index: number, field: string, value: any) => {
+    setNewEquipmentItems(prev => prev.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    ));
+  }, []);
+
+  // Add existing parts and custom line item handlers
+  const handleAddPart = useCallback(() => {
+    const newPart = {
+      id: Date.now().toString(),
+      partNumber: "",
+      description: "",
+      price: 0,
+      refundRequested: false,
+      refundApproved: false
+    };
+    setParts(prev => [...prev, newPart]);
+  }, []);
+
+  const handleRemovePart = useCallback((index: number) => {
+    setParts(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleUpdatePart = useCallback((index: number, field: string, value: any) => {
+    setParts(prev => prev.map((part, i) => 
+      i === index ? { ...part, [field]: value } : part
+    ));
+  }, []);
+
+  const handleAddCustomLineItem = useCallback(() => {
+    const newItem = {
+      id: Date.now().toString(),
+      partNumber: "",
+      description: "",
+      quantity: 1,
+      unitPrice: 0
+    };
+    setCustomLineItems(prev => [...prev, newItem]);
+  }, []);
+
+  const handleRemoveCustomLineItem = useCallback((index: number) => {
+    setCustomLineItems(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleUpdateCustomLineItem = useCallback((index: number, field: string, value: any) => {
+    setCustomLineItems(prev => prev.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    ));
+  }, []);
+
   return {
     formData,
     loading,
@@ -460,15 +534,26 @@ export const useAdvancedClaimForm = () => {
     selectedSupplierProfile,
     parts,
     customLineItems,
+    newEquipmentItems,
     isEditing,
     handleInputChange,
     handleOCRDataExtracted,
     setLoading,
     setParts,
     setCustomLineItems,
+    setNewEquipmentItems,
     updateClaimMutation,
     navigate,
     toast,
-    user
+    user,
+    handleAddPart,
+    handleRemovePart,
+    handleUpdatePart,
+    handleAddCustomLineItem,
+    handleRemoveCustomLineItem,
+    handleUpdateCustomLineItem,
+    handleAddNewEquipment,
+    handleRemoveNewEquipment,
+    handleUpdateNewEquipment
   };
 };

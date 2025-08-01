@@ -22,6 +22,7 @@ interface AdvancedFormWrapperProps {
   selectedSupplierProfile: any;
   parts: any[];
   customLineItems: any[];
+  newEquipmentItems: any[];
   onInputChange: (field: string, value: any) => void;
   onSubmit: (e: React.FormEvent) => void;
   onOCRDataExtracted: (data: any) => void;
@@ -31,6 +32,9 @@ interface AdvancedFormWrapperProps {
   onAddCustomLineItem: () => void;
   onRemoveCustomLineItem: (index: number) => void;
   onUpdateCustomLineItem: (index: number, field: string, value: any) => void;
+  onAddNewEquipment: () => void;
+  onRemoveNewEquipment: (index: number) => void;
+  onUpdateNewEquipment: (index: number, field: string, value: any) => void;
 }
 
 export const AdvancedFormWrapper = memo<AdvancedFormWrapperProps>(({
@@ -42,6 +46,7 @@ export const AdvancedFormWrapper = memo<AdvancedFormWrapperProps>(({
   selectedSupplierProfile,
   parts,
   customLineItems,
+  newEquipmentItems,
   onInputChange,
   onSubmit,
   onOCRDataExtracted,
@@ -50,7 +55,10 @@ export const AdvancedFormWrapper = memo<AdvancedFormWrapperProps>(({
   onUpdatePart,
   onAddCustomLineItem,
   onRemoveCustomLineItem,
-  onUpdateCustomLineItem
+  onUpdateCustomLineItem,
+  onAddNewEquipment,
+  onRemoveNewEquipment,
+  onUpdateNewEquipment
 }) => {
   const { profile, signOut } = useAuth();
   const [currentTab, setCurrentTab] = useState("customer");
@@ -180,6 +188,7 @@ export const AdvancedFormWrapper = memo<AdvancedFormWrapperProps>(({
                 formData={formData}
                 parts={parts}
                 customLineItems={customLineItems}
+                newEquipmentItems={newEquipmentItems}
                 onFieldChange={onInputChange}
                 onAddPart={onAddPart}
                 onRemovePart={onRemovePart}
@@ -187,6 +196,9 @@ export const AdvancedFormWrapper = memo<AdvancedFormWrapperProps>(({
                 onAddCustomLineItem={onAddCustomLineItem}
                 onRemoveCustomLineItem={onRemoveCustomLineItem}
                 onUpdateCustomLineItem={onUpdateCustomLineItem}
+                onAddNewEquipment={onAddNewEquipment}
+                onRemoveNewEquipment={onRemoveNewEquipment}
+                onUpdateNewEquipment={onUpdateNewEquipment}
                 disabled={loading}
               />
             </TabsContent>

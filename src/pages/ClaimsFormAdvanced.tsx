@@ -12,16 +12,27 @@ const ClaimsFormAdvanced = () => {
     selectedSupplierProfile,
     parts,
     customLineItems,
+    newEquipmentItems,
     isEditing,
     handleInputChange,
     handleOCRDataExtracted,
     setLoading,
     setParts,
     setCustomLineItems,
+    setNewEquipmentItems,
     updateClaimMutation,
     navigate,
     toast,
-    user
+    user,
+    handleAddPart,
+    handleRemovePart,
+    handleUpdatePart,
+    handleAddCustomLineItem,
+    handleRemoveCustomLineItem,
+    handleUpdateCustomLineItem,
+    handleAddNewEquipment,
+    handleRemoveNewEquipment,
+    handleUpdateNewEquipment
   } = useAdvancedClaimForm();
 
   const validateForm = () => {
@@ -44,6 +55,7 @@ const ClaimsFormAdvanced = () => {
     const vehicleCost = formData.travelDistanceKm * formData.vehicleCostPerKm;
     const partsTotal = parts.reduce((sum, part) => sum + part.price, 0);
     const customLineItemsTotal = customLineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    const newEquipmentTotal = newEquipmentItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     
     return {
       workCost,
@@ -53,7 +65,7 @@ const ClaimsFormAdvanced = () => {
       vehicleCost,
       totalCost: workCost + overtime50Cost + overtime100Cost + travelHoursCost + 
                  vehicleCost + formData.consumablesCost + formData.externalServicesCost + 
-                 formData.travelCost + partsTotal + customLineItemsTotal,
+                 formData.travelCost + partsTotal + customLineItemsTotal + newEquipmentTotal,
       totalRefunded: formData.refundedWorkCost + formData.refundedTravelCost + 
                     formData.refundedVehicleCost + formData.refundedPartsCost + formData.refundedOtherCost
     };
@@ -78,7 +90,7 @@ const ClaimsFormAdvanced = () => {
 
       const costs = calculateCosts();
       
-      // Prepare custom line items with parts and custom items combined
+      // Prepare custom line items with parts, custom items, and new equipment combined
       const allLineItems = [
         ...parts.map(part => ({
           id: part.id,
@@ -91,6 +103,14 @@ const ClaimsFormAdvanced = () => {
         ...customLineItems.map(item => ({
           ...item,
           category: 'custom'
+        })),
+        ...newEquipmentItems.map(item => ({
+          id: item.id,
+          partNumber: item.equipmentNumber,
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          category: 'new_equipment'
         }))
       ];
 
@@ -194,48 +214,6 @@ const ClaimsFormAdvanced = () => {
     }
   };
 
-  // Part management functions
-  const handleAddPart = () => {
-    setParts([...parts, {
-      id: Date.now().toString(),
-      partNumber: '',
-      description: '',
-      price: 0,
-      refundRequested: false,
-      refundApproved: false
-    }]);
-  };
-
-  const handleRemovePart = (index: number) => {
-    setParts(parts.filter((_, i) => i !== index));
-  };
-
-  const handleUpdatePart = (index: number, field: string, value: any) => {
-    const newParts = [...parts];
-    newParts[index] = { ...newParts[index], [field]: value };
-    setParts(newParts);
-  };
-
-  // Custom line item management functions
-  const handleAddCustomLineItem = () => {
-    setCustomLineItems([...customLineItems, {
-      id: Date.now().toString(),
-      partNumber: '',
-      description: '',
-      quantity: 1,
-      unitPrice: 0
-    }]);
-  };
-
-  const handleRemoveCustomLineItem = (index: number) => {
-    setCustomLineItems(customLineItems.filter((_, i) => i !== index));
-  };
-
-  const handleUpdateCustomLineItem = (index: number, field: string, value: any) => {
-    const newItems = [...customLineItems];
-    newItems[index] = { ...newItems[index], [field]: value };
-    setCustomLineItems(newItems);
-  };
 
   return (
     <AdvancedFormWrapper
@@ -247,6 +225,7 @@ const ClaimsFormAdvanced = () => {
       selectedSupplierProfile={selectedSupplierProfile}
       parts={parts}
       customLineItems={customLineItems}
+      newEquipmentItems={newEquipmentItems}
       onInputChange={handleInputChange}
       onSubmit={handleSubmit}
       onOCRDataExtracted={handleOCRDataExtracted}
@@ -256,6 +235,9 @@ const ClaimsFormAdvanced = () => {
       onAddCustomLineItem={handleAddCustomLineItem}
       onRemoveCustomLineItem={handleRemoveCustomLineItem}
       onUpdateCustomLineItem={handleUpdateCustomLineItem}
+      onAddNewEquipment={handleAddNewEquipment}
+      onRemoveNewEquipment={handleRemoveNewEquipment}
+      onUpdateNewEquipment={handleUpdateNewEquipment}
     />
   );
 };

@@ -22,6 +22,14 @@ interface CustomLineItem {
   unitPrice: number;
 }
 
+interface NewEquipmentItem {
+  id: string;
+  equipmentNumber: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
 interface CostSectionProps {
   formData: {
     workHours: number;
@@ -38,6 +46,7 @@ interface CostSectionProps {
   };
   parts: Part[];
   customLineItems: CustomLineItem[];
+  newEquipmentItems: NewEquipmentItem[];
   onFieldChange: (field: string, value: number) => void;
   onAddPart: () => void;
   onRemovePart: (index: number) => void;
@@ -45,21 +54,28 @@ interface CostSectionProps {
   onAddCustomLineItem: () => void;
   onRemoveCustomLineItem: (index: number) => void;
   onUpdateCustomLineItem: (index: number, field: string, value: any) => void;
+  onAddNewEquipment: () => void;
+  onRemoveNewEquipment: (index: number) => void;
+  onUpdateNewEquipment: (index: number, field: string, value: any) => void;
   disabled?: boolean;
 }
 
-export const CostSection = memo<CostSectionProps>(({ 
-  formData, 
+export const CostSection = memo<CostSectionProps>(({
+  formData,
   parts,
   customLineItems,
-  onFieldChange, 
+  newEquipmentItems,
+  onFieldChange,
   onAddPart,
   onRemovePart,
   onUpdatePart,
   onAddCustomLineItem,
   onRemoveCustomLineItem,
   onUpdateCustomLineItem,
-  disabled = false 
+  onAddNewEquipment,
+  onRemoveNewEquipment,
+  onUpdateNewEquipment,
+  disabled = false
 }) => {
   // Memoized calculations to prevent unnecessary recalculations
   const calculations = useMemo(() => {
@@ -70,10 +86,11 @@ export const CostSection = memo<CostSectionProps>(({
     const vehicleCost = formData.travelDistanceKm * formData.vehicleCostPerKm;
     const partsTotal = parts.reduce((sum, part) => sum + part.price, 0);
     const customLineItemsTotal = customLineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    const newEquipmentTotal = newEquipmentItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     
     const totalCost = workCost + overtime50Cost + overtime100Cost + travelHoursCost + 
                      vehicleCost + formData.consumablesCost + formData.externalServicesCost + 
-                     formData.travelCost + partsTotal + customLineItemsTotal;
+                     formData.travelCost + partsTotal + customLineItemsTotal + newEquipmentTotal;
 
     return {
       workCost,
@@ -83,6 +100,7 @@ export const CostSection = memo<CostSectionProps>(({
       vehicleCost,
       partsTotal,
       customLineItemsTotal,
+      newEquipmentTotal,
       totalCost
     };
   }, [
@@ -98,7 +116,8 @@ export const CostSection = memo<CostSectionProps>(({
     formData.consumablesCost,
     formData.externalServicesCost,
     parts,
-    customLineItems
+    customLineItems,
+    newEquipmentItems
   ]);
 
   // Memoized number input handler
@@ -361,6 +380,93 @@ export const CostSection = memo<CostSectionProps>(({
                 ))}
                 <div className="text-sm text-muted-foreground text-right">
                   Totalt reservedeler: {calculations.partsTotal.toLocaleString('no-NO')} kr
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* New Equipment section */}
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">
+              Ny maskin
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onAddNewEquipment}
+                disabled={disabled}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Legg til maskin
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {newEquipmentItems.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                Ingen ny maskin lagt til ennå
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {newEquipmentItems.map((item, index) => (
+                  <div key={item.id} className="flex gap-2 items-end">
+                    <div className="w-32 space-y-2">
+                      <Label>Maskinnummer</Label>
+                      <Input
+                        value={item.equipmentNumber}
+                        onChange={(e) => onUpdateNewEquipment(index, 'equipmentNumber', e.target.value)}
+                        disabled={disabled}
+                        placeholder="Maskinnr"
+                      />
+                    </div>
+                    <div className="flex-2 space-y-2">
+                      <Label>Beskrivelse</Label>
+                      <Input
+                        value={item.description}
+                        onChange={(e) => onUpdateNewEquipment(index, 'description', e.target.value)}
+                        disabled={disabled}
+                        placeholder="Beskrivelse av maskin"
+                      />
+                    </div>
+                    <div className="w-24 space-y-2">
+                      <Label>Antall</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={item.quantity}
+                        onChange={(e) => onUpdateNewEquipment(index, 'quantity', parseInt(e.target.value) || 1)}
+                        disabled={disabled}
+                        placeholder="1"
+                      />
+                    </div>
+                    <div className="w-32 space-y-2">
+                      <Label>Enhetspris (kr)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.unitPrice}
+                        onChange={(e) => onUpdateNewEquipment(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                        disabled={disabled}
+                        placeholder="0"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRemoveNewEquipment(index)}
+                      disabled={disabled}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="text-sm text-muted-foreground text-right">
+                  Totalt ny maskin: {calculations.newEquipmentTotal.toLocaleString('no-NO')} kr
                 </div>
               </div>
             )}
