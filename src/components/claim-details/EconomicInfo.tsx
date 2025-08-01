@@ -5,7 +5,7 @@ import { currencyService, Currency } from "@/services/currencyService";
 
 interface CustomLineItem {
   id: string;
-  partNumber?: string;
+  partNumber?: string; // Artikkelnummer - kan være maskin, reservedel osv
   description: string;
   quantity: number;
   unitPrice: number;
@@ -202,7 +202,7 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
                   <div key={item.id} className="border rounded-lg p-4 bg-muted/20">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                       <div>
-                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Delenummer</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Artikkelnummer</span>
                         <div className="font-medium">{item.partNumber || 'N/A'}</div>
                       </div>
                       <div>
