@@ -252,25 +252,6 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
 
   yPosition += 12;
 
-  // Contact information for return correspondence
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Return correspondence to:', LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT;
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(30, 41, 59);
-  doc.text('Christopher Strøm', LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT;
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Technical Manager', LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT;
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(30, 41, 59);
-  doc.text('christopher.strom@myhrvold.no', LABEL_X, yPosition);
-  yPosition += SECTION_GAP;
-
   // PO Reference field - added early in document
   if (claim.po_reference) {
     doc.setFontSize(10);
@@ -501,9 +482,30 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
     });
   }
 
+  // Contact information for return correspondence - moved to bottom
+  yPosition += SECTION_GAP * 2; // Extra space before contact info
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Return correspondence to:', LABEL_X, yPosition);
+  yPosition += LINE_HEIGHT;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 41, 59);
+  doc.text('Christopher Strøm', LABEL_X, yPosition);
+  yPosition += LINE_HEIGHT;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Technical Manager', LABEL_X, yPosition);
+  yPosition += LINE_HEIGHT;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(30, 41, 59);
+  doc.text('christopher.strom@myhrvold.no', LABEL_X, yPosition);
+  yPosition += SECTION_GAP;
+
   // Optional footer section - controlled by showFooter flag
   if (showFooter) {
-    yPosition += SECTION_GAP * 2; // Extra space before footer if shown
+    yPosition += SECTION_GAP; // Space before footer if shown
     
     doc.setFontSize(8);
     doc.setTextColor(128, 128, 128);
