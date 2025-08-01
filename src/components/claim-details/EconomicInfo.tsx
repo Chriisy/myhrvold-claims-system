@@ -89,117 +89,143 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
+        
         {/* Kostnadsoversikt */}
-        <div>
-          <h4 className="font-medium mb-3 flex items-center gap-2">
+        <div className="space-y-4">
+          <h4 className="font-semibold text-lg flex items-center gap-2 pb-2 border-b">
             <DollarSign className="h-4 w-4" />
             Kostnadsoversikt
           </h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-               <div className="flex justify-between text-sm">
-                 <span className="text-muted-foreground">Arbeid ({data.workHours}t):</span>
-                 <span className="font-medium">{formatCurrency(workCost)}</span>
-               </div>
-               {data.overtime50Hours && data.overtime50Hours > 0 && (
-                 <div className="flex justify-between text-sm">
-                   <span className="text-muted-foreground">Overtid 50% ({data.overtime50Hours}t):</span>
-                   <span className="font-medium">{formatCurrency(overtime50Cost)}</span>
-                 </div>
-               )}
-               {data.overtime100Hours && data.overtime100Hours > 0 && (
-                 <div className="flex justify-between text-sm">
-                   <span className="text-muted-foreground">Overtid 100% ({data.overtime100Hours}t):</span>
-                   <span className="font-medium">{formatCurrency(overtime100Cost)}</span>
-                 </div>
-               )}
-               <div className="flex justify-between text-sm">
-                 <span className="text-muted-foreground">Deler:</span>
-                 <span className="font-medium">{formatCurrency(data.partsCost)}</span>
-               </div>
-               {travelTimeCost > 0 && (
-                 <div className="flex justify-between text-sm">
-                   <span className="text-muted-foreground">Reisetid ({data.travelHours}t):</span>
-                   <span className="font-medium">{formatCurrency(travelTimeCost)}</span>
-                 </div>
-               )}
-               {vehicleCost > 0 && (
-                 <div className="flex justify-between text-sm">
-                   <span className="text-muted-foreground">Kjøretøy ({data.travelDistanceKm} km):</span>
-                   <span className="font-medium">{formatCurrency(vehicleCost)}</span>
-                 </div>
-               )}
-               {data.travelCost > 0 && (
-                 <div className="flex justify-between text-sm">
-                   <span className="text-muted-foreground">Andre reiseutgifter:</span>
-                   <span className="font-medium">{formatCurrency(data.travelCost)}</span>
-                 </div>
-               )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Arbeidskostnader */}
+            <div className="space-y-3">
+              <h5 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Arbeid & Reisetid</h5>
+              <div className="space-y-2">
+                {data.workHours > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Arbeid ({data.workHours}t)</span>
+                    <span className="font-medium">{formatCurrency(workCost)}</span>
+                  </div>
+                )}
+                {data.overtime50Hours && data.overtime50Hours > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Overtid 50% ({data.overtime50Hours}t)</span>
+                    <span className="font-medium">{formatCurrency(overtime50Cost)}</span>
+                  </div>
+                )}
+                {data.overtime100Hours && data.overtime100Hours > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Overtid 100% ({data.overtime100Hours}t)</span>
+                    <span className="font-medium">{formatCurrency(overtime100Cost)}</span>
+                  </div>
+                )}
+                {travelTimeCost > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Reisetid ({data.travelHours}t)</span>
+                    <span className="font-medium">{formatCurrency(travelTimeCost)}</span>
+                  </div>
+                )}
+                {vehicleCost > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Kjøretøy ({data.travelDistanceKm} km)</span>
+                    <span className="font-medium">{formatCurrency(vehicleCost)}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Forbruksmateriell:</span>
-                <span className="font-medium">{formatCurrency(data.consumablesCost)}</span>
+
+            {/* Andre kostnader */}
+            <div className="space-y-3">
+              <h5 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Materialer & Tjenester</h5>
+              <div className="space-y-2">
+                {data.partsCost > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Deler</span>
+                    <span className="font-medium">{formatCurrency(data.partsCost)}</span>
+                  </div>
+                )}
+                {customLineItemsTotal > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Tilpassede poster</span>
+                    <span className="font-medium">{formatCurrency(customLineItemsTotal)}</span>
+                  </div>
+                )}
+                {data.consumablesCost > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Forbruksmateriell</span>
+                    <span className="font-medium">{formatCurrency(data.consumablesCost)}</span>
+                  </div>
+                )}
+                {data.externalServicesCost > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Ekstern service</span>
+                    <span className="font-medium">{formatCurrency(data.externalServicesCost)}</span>
+                  </div>
+                )}
+                {data.travelCost > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm">Andre reiseutgifter</span>
+                    <span className="font-medium">{formatCurrency(data.travelCost)}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Ekstern service:</span>
-                <span className="font-medium">{formatCurrency(data.externalServicesCost)}</span>
-              </div>
-              {customLineItemsTotal > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tilpassede poster:</span>
-                  <span className="font-medium">{formatCurrency(customLineItemsTotal)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm font-semibold border-t pt-2">
-                <span>Total kostnad:</span>
-                <span>{formatCurrency(data.totalCost)}</span>
-              </div>
+            </div>
+          </div>
+
+          {/* Total kostnad */}
+          <div className="bg-muted/30 rounded-lg p-4 mt-4">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-lg">Total kostnad:</span>
+              <span className="font-bold text-xl">{formatCurrency(data.totalCost)}</span>
             </div>
           </div>
         </div>
 
         {/* Refusjonsinformasjon */}
-        <div>
-          <h4 className="font-medium mb-3 flex items-center gap-2">
+        <div className="space-y-4">
+          <h4 className="font-semibold text-lg flex items-center gap-2 pb-2 border-b">
             <TrendingUp className="h-4 w-4" />
             Refusjonsinformasjon
           </h4>
-          <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+          
+          <div className="bg-muted/20 rounded-lg p-4 space-y-4">
             <div className="text-sm font-medium text-muted-foreground mb-3">
               Kredittnotas og refusjonsdetaljer
             </div>
             
-            {data.creditNoteNumber && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Kreditnota nummer:</span>
-                <span className="font-medium">{data.creditNoteNumber}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data.creditNoteNumber && (
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Kreditnota nummer</span>
+                  <div className="font-medium">{data.creditNoteNumber}</div>
+                </div>
+              )}
+              
+              {data.refundDateReceived && (
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Refusjonsdato mottatt</span>
+                  <div className="font-medium">
+                    {new Date(data.refundDateReceived).toLocaleDateString('no-NO')}
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Forventet refusjon</span>
+                <div className="font-medium">{formatCurrency(data.expectedRefund)}</div>
               </div>
-            )}
-            
-            {data.refundDateReceived && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Refusjonsdato mottatt:</span>
-                <span className="font-medium">
-                  {new Date(data.refundDateReceived).toLocaleDateString('no-NO')}
-                </span>
+              
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Faktisk refusjon</span>
+                <div className="font-medium">{formatCurrency(data.totalRefunded || 0)}</div>
               </div>
-            )}
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Forventet refusjon (kr):</span>
-              <span className="font-medium">{formatCurrency(data.expectedRefund)}</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Faktisk refusjon (kr):</span>
-              <span className="font-medium">{formatCurrency(data.totalRefunded || 0)}</span>
             </div>
 
             {data.refundStatus && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Refusjonsstatus:</span>
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-sm font-medium">Refusjonsstatus:</span>
                 <Badge className={getRefundStatusColor(data.refundStatus)}>
                   {data.refundStatus === 'received' ? 'Mottatt' : 
                    data.refundStatus === 'pending' ? 'Venter' : 
@@ -208,129 +234,128 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
                 </Badge>
               </div>
             )}
+          </div>
 
-            <div className="flex justify-between items-center font-semibold border-t pt-3 mt-3">
-              <span>Netto kostnad:</span>
-              <span className={(data.totalCost - (data.totalRefunded || 0)) > 0 ? 'text-red-600' : 'text-green-600'}>
+          {/* Netto kostnad fremhevet */}
+          <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-lg">Netto kostnad:</span>
+              <span className={`font-bold text-xl ${(data.totalCost - (data.totalRefunded || 0)) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                 {formatCurrency(data.totalCost - (data.totalRefunded || 0))}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Detaljert refusjon */}
+        {/* Detaljert refusjon - kun vis hvis det finnes data */}
         {(data.refundedWorkCost || data.refundedPartsCost || data.refundedTravelCost || data.refundedVehicleCost || data.refundedOtherCost) && (
-          <div>
-            <h4 className="font-medium mb-3">Refunderte poster</h4>
-            <div className="space-y-2 text-sm">
+          <div className="space-y-4">
+            <h4 className="font-semibold text-lg pb-2 border-b">Refunderte poster</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {data.refundedWorkCost && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Arbeid refundert:</span>
-                  <span>{formatCurrency(data.refundedWorkCost)}</span>
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Arbeid refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedWorkCost)}</span>
                 </div>
               )}
               {data.refundedPartsCost && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Deler refundert:</span>
-                  <span>{formatCurrency(data.refundedPartsCost)}</span>
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Deler refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedPartsCost)}</span>
                 </div>
               )}
               {data.refundedTravelCost && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Reise refundert:</span>
-                  <span>{formatCurrency(data.refundedTravelCost)}</span>
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Reise refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedTravelCost)}</span>
                 </div>
               )}
               {data.refundedVehicleCost && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Kjøretøy refundert:</span>
-                  <span>{formatCurrency(data.refundedVehicleCost)}</span>
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Kjøretøy refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedVehicleCost)}</span>
                 </div>
               )}
               {data.refundedOtherCost && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Annet refundert:</span>
-                  <span>{formatCurrency(data.refundedOtherCost)}</span>
-                </div>
-              )}
-              {data.totalRefunded && (
-                <div className="flex justify-between font-medium border-t pt-2">
-                  <span>Total refundert:</span>
-                  <span>{formatCurrency(data.totalRefunded)}</span>
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Annet refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedOtherCost)}</span>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Custom Line Items Details with Refund Info */}
+        {/* Tilpassede poster - forbedret layout */}
         {data.customLineItems && data.customLineItems.length > 0 && (
-          <div>
-            <h4 className="font-medium mb-3">Tilpassede poster</h4>
-            <div className="space-y-3">
+          <div className="space-y-4">
+            <h4 className="font-semibold text-lg pb-2 border-b">Tilpassede poster</h4>
+            
+            <div className="space-y-4">
               {data.customLineItems.map((item, index) => {
                 const itemTotal = item.quantity * item.unitPrice;
-                // Calculate potential refund for this item (proportional to total refunded parts cost)
                 const itemRefund = data.refundedPartsCost && customLineItemsTotal > 0 ? 
                   (itemTotal / customLineItemsTotal) * data.refundedPartsCost : 0;
                 const itemNetCost = itemTotal - itemRefund;
                 
                 return (
-                  <div key={item.id} className="border rounded-lg p-4 bg-muted/30">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-3">
+                  <div key={item.id} className="border rounded-lg p-4 bg-muted/20">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                       <div>
-                        <span className="font-medium text-muted-foreground">Delenr:</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Delenummer</span>
                         <div className="font-medium">{item.partNumber || 'N/A'}</div>
                       </div>
                       <div>
-                        <span className="font-medium text-muted-foreground">Beskrivelse:</span>
-                        <div className="font-medium">{item.description || 'N/A'}</div>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Beskrivelse</span>
+                        <div className="font-medium">{item.description}</div>
                       </div>
                       <div>
-                        <span className="font-medium text-muted-foreground">Antall:</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Antall</span>
                         <div className="font-medium">{item.quantity}</div>
                       </div>
                       <div>
-                        <span className="font-medium text-muted-foreground">Enhetspris:</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Enhetspris</span>
                         <div className="font-medium">{formatCurrency(item.unitPrice, true)}</div>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t">
-                      <div className="text-center p-2 bg-blue-50 rounded">
-                        <div className="text-xs text-muted-foreground mb-1">Total kostnad</div>
-                        <div className="font-semibold text-blue-700">{formatCurrency(itemTotal)}</div>
+                      <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Total kostnad</div>
+                        <div className="font-bold text-blue-700 dark:text-blue-400">{formatCurrency(itemTotal)}</div>
                       </div>
                       
                       {itemRefund > 0 && (
-                        <div className="text-center p-2 bg-green-50 rounded">
-                          <div className="text-xs text-muted-foreground mb-1">Refundert</div>
-                          <div className="font-semibold text-green-700">
-                            -{formatCurrency(itemRefund, true)}
+                        <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Refundert</div>
+                          <div className="font-bold text-green-700 dark:text-green-400">
+                            -{formatCurrency(itemRefund)}
                           </div>
                         </div>
                       )}
                       
-                      <div className="text-center p-2 bg-red-50 rounded">
-                        <div className="text-xs text-muted-foreground mb-1">Netto kostnad</div>
-                        <div className="font-semibold text-red-700">{formatCurrency(itemNetCost)}</div>
+                      <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Netto kostnad</div>
+                        <div className="font-bold text-red-700 dark:text-red-400">{formatCurrency(itemNetCost)}</div>
                       </div>
                     </div>
                   </div>
                 );
               })}
               
-              <div className="bg-gray-50 rounded-lg p-4 mt-4">
-                <div className="flex justify-between items-center font-semibold">
-                  <span>Total tilpassede poster:</span>
-                  <div className="text-right">
-                    <div className="text-lg">{formatCurrency(customLineItemsTotal)}</div>
+              {/* Sammendrag tilpassede poster */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Total tilpassede poster:</span>
+                  <div className="text-right space-y-1">
+                    <div className="font-bold text-lg">{formatCurrency(customLineItemsTotal)}</div>
                     {data.refundedPartsCost > 0 && (
-                      <div className="text-sm text-green-600">
+                      <div className="text-sm text-green-600 dark:text-green-400">
                         - {formatCurrency(data.refundedPartsCost)} refundert
                       </div>
                     )}
-                    <div className="text-sm font-bold text-red-600">
+                    <div className="text-sm font-bold text-red-600 dark:text-red-400 border-t pt-1">
                       = {formatCurrency(customLineItemsTotal - (data.refundedPartsCost || 0))} netto
                     </div>
                   </div>
