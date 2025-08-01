@@ -55,7 +55,7 @@ export const useGlobalShortcuts = () => {
     {
       key: 'n',
       ctrl: true,
-      action: () => navigate('/claims/new'),
+      action: () => navigate('/claims/new-advanced'),
       description: 'Ny reklamasjon (Ctrl+N)'
     },
     {
