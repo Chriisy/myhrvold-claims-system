@@ -184,9 +184,9 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   const SECTION_GAP = 5;
   const LABEL_X = 20;
   const VALUE_X = 40; // Further reduced from 45 to 40 for tighter spacing
-  const VALUE_X_PRODUCT = 36; // Even tighter for Product/Model (4 spaces less)
-  const VALUE_X_SERIAL = 42; // 2 spaces more for Serial Number
-  const VALUE_X_PURCHASE = 42; // 2 spaces more for Purchase Date
+  const VALUE_X_PRODUCT = 33; // 3 spaces less for Model (was 36)
+  const VALUE_X_SERIAL = 44; // 2 spaces more for Serial Number (was 42)
+  const VALUE_X_PURCHASE = 44; // 2 spaces more for Purchase Date (was 42)
   const LINE_HEIGHT = 4;
   
   let yPosition = 20;
@@ -217,7 +217,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.claimNumber}: `, 130, 15); // Added space after colon
   doc.setFont('helvetica', 'normal');
-  doc.text(claimNumber, 150, 15); // Further reduced from 158 to 150
+  doc.text(claimNumber, 154, 15); // Add 4 spaces (150 + 4)
   
   // Reklamasjonssak ID (internal) - with proper text wrapping
   doc.setFontSize(9);
@@ -230,10 +230,10 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   if (doc.getTextWidth(claimId) > maxClaimIdWidth) {
     const claimIdLines = splitTextToLines(doc, claimId, maxClaimIdWidth);
     claimIdLines.forEach((line, index) => {
-      doc.text(line, 150, 21 + (index * 3)); // Match reduced position
+      doc.text(line, 147, 21 + (index * 3)); // Remove 3 spaces (150 - 3)
     });
   } else {
-    doc.text(claimId, 150, 21); // Match reduced position
+    doc.text(claimId, 147, 21); // Remove 3 spaces (150 - 3)
   }
   
   // Generated date
