@@ -519,18 +519,19 @@ export const useAdvancedClaimForm = () => {
   const handleUpdatePart = useCallback((index: number, field: string, value: any) => {
     console.log('handleUpdatePart called:', { index, field, value });
     setParts(prev => {
-      const newParts = prev.map((part, i) => {
-        if (i === index) {
-          const updatedPart = { ...part, [field]: value };
-          // Auto-calculate total price when quantity or unitPrice changes
-          if (field === 'quantity' || field === 'unitPrice') {
-            updatedPart.price = updatedPart.quantity * updatedPart.unitPrice;
-            console.log('Auto-calculated price:', updatedPart.price, 'from quantity:', updatedPart.quantity, 'unitPrice:', updatedPart.unitPrice);
-          }
-          return updatedPart;
+      const newParts = [...prev];
+      if (index >= 0 && index < newParts.length) {
+        const currentPart = newParts[index];
+        const updatedPart = { ...currentPart, [field]: value };
+        
+        // Auto-calculate total price when quantity or unitPrice changes
+        if (field === 'quantity' || field === 'unitPrice') {
+          updatedPart.price = updatedPart.quantity * updatedPart.unitPrice;
+          console.log('Auto-calculated price:', updatedPart.price, 'from quantity:', updatedPart.quantity, 'unitPrice:', updatedPart.unitPrice);
         }
-        return part;
-      });
+        
+        newParts[index] = updatedPart;
+      }
       console.log('Updated parts:', newParts);
       return newParts;
     });
