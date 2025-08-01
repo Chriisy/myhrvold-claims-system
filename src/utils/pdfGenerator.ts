@@ -176,7 +176,7 @@ const splitTextToLines = (doc: jsPDF, text: string, maxWidth: number) => {
   return lines;
 };
 
-export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', showFooter: boolean = false) => {
+export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', showFooter: boolean = true) => {
   const doc = new jsPDF('p', 'mm', 'a4');
   const t = translations[language];
   
