@@ -184,6 +184,9 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   const SECTION_GAP = 5;
   const LABEL_X = 20;
   const VALUE_X = 40; // Further reduced from 45 to 40 for tighter spacing
+  const VALUE_X_PRODUCT = 36; // Even tighter for Product/Model (4 spaces less)
+  const VALUE_X_SERIAL = 42; // 2 spaces more for Serial Number
+  const VALUE_X_PURCHASE = 42; // 2 spaces more for Purchase Date
   const LINE_HEIGHT = 4;
   
   let yPosition = 20;
@@ -296,7 +299,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   
   if (productName.includes('BIZERBA')) {
     const parts = productName.split('BIZERBA');
-    let currentX = VALUE_X;
+    let currentX = VALUE_X_PRODUCT;
     
     if (parts[0]) {
       doc.text(parts[0], currentX, yPosition);
@@ -314,11 +317,11 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   } else if (doc.getTextWidth(productName) > maxProductWidth) {
     const productLines = splitTextToLines(doc, productName, maxProductWidth);
     productLines.forEach((line, index) => {
-      doc.text(line, VALUE_X, yPosition + (index * LINE_HEIGHT));
+      doc.text(line, VALUE_X_PRODUCT, yPosition + (index * LINE_HEIGHT));
     });
     yPosition += (productLines.length - 1) * LINE_HEIGHT;
   } else {
-    doc.text(productName, VALUE_X, yPosition);
+    doc.text(productName, VALUE_X_PRODUCT, yPosition);
   }
   yPosition += LINE_HEIGHT;
 
@@ -326,7 +329,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.model}:`, LABEL_X, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(claim.product_model, VALUE_X, yPosition);
+    doc.text(claim.product_model, VALUE_X_PRODUCT, yPosition);
     yPosition += LINE_HEIGHT;
   }
 
@@ -334,7 +337,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.serialNumber}:`, LABEL_X, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(claim.serial_number, VALUE_X, yPosition);
+    doc.text(claim.serial_number, VALUE_X_SERIAL, yPosition);
     yPosition += LINE_HEIGHT;
   }
 
@@ -342,7 +345,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.purchaseDate}:`, LABEL_X, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(formatDate(claim.purchase_date, language), VALUE_X, yPosition);
+    doc.text(formatDate(claim.purchase_date, language), VALUE_X_PURCHASE, yPosition);
     yPosition += LINE_HEIGHT;
   }
 
@@ -439,7 +442,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.text(`${t.customer}: `, LABEL_X, yPosition); // Added space after colon
   doc.setFont('helvetica', 'normal');
   doc.text(claim.customer_name, VALUE_X, yPosition); // Put on same line
-  yPosition += SECTION_GAP;
+  yPosition += SECTION_GAP + LINE_HEIGHT; // Extra line break before Work Performed
 
   // Work Performed - grouped tightly with spare parts
   doc.setFontSize(14);
