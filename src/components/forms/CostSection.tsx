@@ -357,18 +357,24 @@ export const CostSection = memo<CostSectionProps>(({
                         placeholder="Beskrivelse av del"
                       />
                     </div>
-                    <div className="w-24 space-y-2">
-                      <Label>Antall</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={part.quantity}
-                        onChange={(e) => onUpdatePart(index, 'quantity', parseInt(e.target.value) || 1)}
-                        disabled={disabled}
-                        placeholder="1"
-                      />
-                    </div>
+                     <div className="w-24 space-y-2">
+                       <Label>Antall</Label>
+                       <Input
+                         type="number"
+                         min="1"
+                         step="1"
+                         value={part.quantity.toString()}
+                         onChange={(e) => {
+                           const value = e.target.value;
+                           const numValue = value === '' ? 1 : parseInt(value);
+                           if (!isNaN(numValue) && numValue > 0) {
+                             onUpdatePart(index, 'quantity', numValue);
+                           }
+                         }}
+                         disabled={disabled}
+                         placeholder="1"
+                       />
+                     </div>
                     <div className="w-32 space-y-2">
                       <Label>Enhetspris (kr)</Label>
                       <Input
