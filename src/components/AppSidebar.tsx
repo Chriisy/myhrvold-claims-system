@@ -91,17 +91,9 @@ const AppSidebar = memo(() => {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/claims/new-advanced" className="hover:bg-muted/50">
+                    <NavLink to="/claims/new" className="hover:bg-muted/50">
                       <FileText className="h-4 w-4" />
                       <span>Ny reklamasjon</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/claims/new-advanced" className="hover:bg-muted/50">
-                      <Settings className="h-4 w-4" />
-                      <span>Avansert skjema</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

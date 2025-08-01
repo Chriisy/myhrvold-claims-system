@@ -15,7 +15,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/AnalyticsEnhanced";
 import ClaimsFormAdvanced from "./pages/ClaimsFormAdvanced";
-import ClaimsForm from "./pages/ClaimsForm";
 import ClaimsList from "./pages/ClaimsList";
 import ClaimDetails from "./pages/ClaimDetails";
 import { ClaimEconomics } from "./pages/ClaimEconomics";
@@ -56,8 +55,7 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
       <Route path="/claims" element={<ProtectedRoute><ClaimsList /></ProtectedRoute>} />
-      <Route path="/claims/new" element={<ProtectedRoute><ClaimsForm /></ProtectedRoute>} />
-      <Route path="/claims/new-advanced" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
+      <Route path="/claims/new" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
       <Route path="/claims/:id" element={<ProtectedRoute><ErrorBoundary><ClaimDetails /></ErrorBoundary></ProtectedRoute>} />
       <Route path="/claims/:id/edit" element={<ProtectedRoute><ClaimsFormAdvanced /></ProtectedRoute>} />
       <Route path="/claims/:id/economics" element={<ProtectedRoute><ClaimEconomics /></ProtectedRoute>} />
