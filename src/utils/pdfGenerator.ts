@@ -212,14 +212,14 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   // Claim ID (external)
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(`${t.claimNumber}:`, 130, 15);
+  doc.text(`${t.claimNumber}: `, 130, 15); // Added space after colon
   doc.setFont('helvetica', 'normal');
-  doc.text(claimNumber, 155, 15); // Reduced from 170 to 155
+  doc.text(claimNumber, 158, 15); // Fine-tuned position
   
   // Reklamasjonssak ID (internal) - with proper text wrapping
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text(`${t.claimId}:`, 130, 21);
+  doc.text(`${t.claimId}: `, 130, 21); // Added space after colon
   doc.setFont('helvetica', 'normal');
   
   // Handle long claim IDs with proper wrapping
@@ -227,10 +227,10 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   if (doc.getTextWidth(claimId) > maxClaimIdWidth) {
     const claimIdLines = splitTextToLines(doc, claimId, maxClaimIdWidth);
     claimIdLines.forEach((line, index) => {
-      doc.text(line, 155, 21 + (index * 3)); // Reduced from 170 to 155
+      doc.text(line, 158, 21 + (index * 3)); // Match position with claim number
     });
   } else {
-    doc.text(claimId, 155, 21); // Reduced from 170 to 155
+    doc.text(claimId, 158, 21); // Match position with claim number
   }
   
   // Generated date
