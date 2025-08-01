@@ -192,7 +192,7 @@ export const RefundSection = memo<RefundSectionProps>(({
           <div>
             <span className="text-muted-foreground">Netto kostnad:</span>
             <div className="font-medium">
-              {((formData.expectedRefund || 0) - (formData.actualRefund || 0)).toLocaleString('no-NO')} kr
+              {((formData.totalCost || 0) - (formData.actualRefund || 0)).toLocaleString('no-NO')} kr
             </div>
           </div>
         </div>

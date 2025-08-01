@@ -188,8 +188,8 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
 
             <div className="flex justify-between items-center font-semibold border-t pt-2">
               <span>Netto kostnad:</span>
-              <span className={data.netCost > 0 ? 'text-red-600' : 'text-green-600'}>
-                {formatCurrency(data.netCost)}
+              <span className={(data.totalCost - (data.totalRefunded || 0)) > 0 ? 'text-red-600' : 'text-green-600'}>
+                {formatCurrency(data.totalCost - (data.totalRefunded || 0))}
               </span>
             </div>
           </div>
