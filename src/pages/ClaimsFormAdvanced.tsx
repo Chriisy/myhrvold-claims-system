@@ -129,7 +129,6 @@ const ClaimsFormAdvanced = () => {
         consumables_cost: formData.consumablesCost,
         external_services_cost: formData.externalServicesCost,
         travel_cost: formData.travelCost,
-        net_cost: costs.totalCost - costs.totalRefunded,
         refunded_work_cost: formData.refundedWorkCost,
         refunded_travel_cost: formData.refundedTravelCost,
         refunded_vehicle_cost: formData.refundedVehicleCost,
