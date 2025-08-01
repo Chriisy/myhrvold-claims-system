@@ -428,7 +428,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text(t.defaultAction, LABEL_X, yPosition);
-  yPosition += SECTION_GAP;
+  yPosition += SECTION_GAP * 2; // Extra spacing after Requested Action
 
   // Customer Information - translated and consistent formatting
   doc.setFontSize(14);
@@ -439,9 +439,9 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.customer}:`, LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT * 2; // Move down 2 lines from Customer:
+  yPosition += LINE_HEIGHT; // Normal spacing
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.customer_name, VALUE_X, yPosition);
+  doc.text(claim.customer_name, LABEL_X + 20, yPosition); // Indent customer name
   yPosition += SECTION_GAP;
 
   // Work Performed - grouped tightly with spare parts
@@ -453,9 +453,9 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.technician}:`, LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT * 2; // Move down 2 lines from Technician:
+  yPosition += LINE_HEIGHT; // Normal spacing
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.technician_name, VALUE_X, yPosition);
+  doc.text(claim.technician_name, LABEL_X + 20, yPosition); // Indent technician name
   yPosition += LINE_HEIGHT;
 
   // Spare parts details (without prices) - improved layout
