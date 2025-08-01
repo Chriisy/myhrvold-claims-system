@@ -183,7 +183,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   // Layout constants for consistent spacing and alignment
   const SECTION_GAP = 5;
   const LABEL_X = 20;
-  const VALUE_X = 55; // Reduced from 70 to minimize whitespace
+  const VALUE_X = 45; // Further reduced from 55 to 45
   const LINE_HEIGHT = 4;
   
   let yPosition = 20;
@@ -214,7 +214,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.claimNumber}: `, 130, 15); // Added space after colon
   doc.setFont('helvetica', 'normal');
-  doc.text(claimNumber, 158, 15); // Fine-tuned position
+  doc.text(claimNumber, 150, 15); // Further reduced from 158 to 150
   
   // Reklamasjonssak ID (internal) - with proper text wrapping
   doc.setFontSize(9);
@@ -227,10 +227,10 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   if (doc.getTextWidth(claimId) > maxClaimIdWidth) {
     const claimIdLines = splitTextToLines(doc, claimId, maxClaimIdWidth);
     claimIdLines.forEach((line, index) => {
-      doc.text(line, 158, 21 + (index * 3)); // Match position with claim number
+      doc.text(line, 150, 21 + (index * 3)); // Match reduced position
     });
   } else {
-    doc.text(claimId, 158, 21); // Match position with claim number
+    doc.text(claimId, 150, 21); // Match reduced position
   }
   
   // Generated date
@@ -455,10 +455,9 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(`${t.customer}:`, LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT; // Normal spacing below Customer:
+  doc.text(`${t.customer}: `, LABEL_X, yPosition); // Added space after colon
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.customer_name, LABEL_X + 15, yPosition); // Reduced indent from 30 to 15
+  doc.text(claim.customer_name, VALUE_X, yPosition); // Put on same line
   yPosition += SECTION_GAP;
 
   // Work Performed - grouped tightly with spare parts
@@ -469,10 +468,9 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(`${t.technician}:`, LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT; // Normal spacing below Technician:
+  doc.text(`${t.technician}: `, LABEL_X, yPosition); // Added space after colon
   doc.setFont('helvetica', 'normal');
-  doc.text(claim.technician_name, LABEL_X + 15, yPosition); // Reduced indent from 30 to 15
+  doc.text(claim.technician_name, VALUE_X, yPosition); // Put on same line  
   yPosition += LINE_HEIGHT;
 
   // Spare parts details (without prices) - improved layout
