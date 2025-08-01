@@ -184,7 +184,8 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   const SECTION_GAP = 5;
   const LABEL_X = 20;
   const VALUE_X = 40; // Further reduced from 45 to 40 for tighter spacing
-  const VALUE_X_PRODUCT = 33; // 3 spaces less for Model (was 36)
+  const VALUE_X_PRODUCT = 34; // 1 space more for Product (was 33)
+  const VALUE_X_MODEL = 32; // 1 space less for Model (was 33)
   const VALUE_X_SERIAL = 44; // 2 spaces more for Serial Number (was 42)
   const VALUE_X_PURCHASE = 44; // 2 spaces more for Purchase Date (was 42)
   const LINE_HEIGHT = 4;
@@ -217,7 +218,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.claimNumber}: `, 130, 15); // Added space after colon
   doc.setFont('helvetica', 'normal');
-  doc.text(claimNumber, 154, 15); // Add 4 spaces (150 + 4)
+  doc.text(claimNumber, 155, 15); // Add 1 space (154 + 1)
   
   // Reklamasjonssak ID (internal) - with proper text wrapping
   doc.setFontSize(9);
@@ -230,10 +231,10 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   if (doc.getTextWidth(claimId) > maxClaimIdWidth) {
     const claimIdLines = splitTextToLines(doc, claimId, maxClaimIdWidth);
     claimIdLines.forEach((line, index) => {
-      doc.text(line, 147, 21 + (index * 3)); // Remove 3 spaces (150 - 3)
+      doc.text(line, 145, 21 + (index * 3)); // Remove 2 spaces (147 - 2)
     });
   } else {
-    doc.text(claimId, 147, 21); // Remove 3 spaces (150 - 3)
+    doc.text(claimId, 145, 21); // Remove 2 spaces (147 - 2)
   }
   
   // Generated date
@@ -254,29 +255,6 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.line(20, yPosition + 3, 190, yPosition + 3);
 
   yPosition += 12;
-
-  // PO Reference field - added early in document
-  if (claim.po_reference) {
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${t.poReference}:`, LABEL_X, yPosition);
-    doc.setFont('helvetica', 'normal');
-    
-    // Handle long PO references with text wrapping
-    const poText = claim.po_reference;
-    const maxPoWidth = 120;
-    if (doc.getTextWidth(poText) > maxPoWidth) {
-      const poLines = splitTextToLines(doc, poText, maxPoWidth);
-      poLines.forEach((line, index) => {
-        doc.text(line, VALUE_X, yPosition + (index * LINE_HEIGHT));
-      });
-      yPosition += poLines.length * LINE_HEIGHT;
-    } else {
-      doc.text(poText, VALUE_X, yPosition);
-      yPosition += LINE_HEIGHT;
-    }
-    yPosition += SECTION_GAP;
-  }
 
   // Product Information section - normalized heading
   doc.setFontSize(14);
@@ -329,7 +307,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
     doc.setFont('helvetica', 'bold');
     doc.text(`${t.model}:`, LABEL_X, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(claim.product_model, VALUE_X_PRODUCT, yPosition);
+    doc.text(claim.product_model, VALUE_X_MODEL, yPosition);
     yPosition += LINE_HEIGHT;
   }
 
@@ -347,6 +325,27 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
     doc.setFont('helvetica', 'normal');
     doc.text(formatDate(claim.purchase_date, language), VALUE_X_PURCHASE, yPosition);
     yPosition += LINE_HEIGHT;
+  }
+
+  // PO Reference field - moved after Purchase Date
+  if (claim.po_reference) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`PO:`, LABEL_X, yPosition);
+    doc.setFont('helvetica', 'normal');
+    
+    // Handle long PO references with text wrapping
+    const poText = claim.po_reference;
+    const maxPoWidth = 120;
+    if (doc.getTextWidth(poText) > maxPoWidth) {
+      const poLines = splitTextToLines(doc, poText, maxPoWidth);
+      poLines.forEach((line, index) => {
+        doc.text(line, VALUE_X, yPosition + (index * LINE_HEIGHT));
+      });
+      yPosition += poLines.length * LINE_HEIGHT;
+    } else {
+      doc.text(poText, VALUE_X, yPosition);
+      yPosition += LINE_HEIGHT;
+    }
   }
 
   if (claim.warranty_period) {
