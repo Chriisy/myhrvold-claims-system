@@ -858,7 +858,12 @@ export type Database = {
         | "claim"
         | "service_callback"
         | "extended_warranty"
-      refund_status: "pending" | "received" | "rejected"
+      refund_status:
+        | "pending"
+        | "received"
+        | "rejected"
+        | "completed"
+        | "partial"
       urgency_level: "low" | "normal" | "high" | "critical"
       user_role: "technician" | "admin" | "saksbehandler"
     }
@@ -1015,7 +1020,13 @@ export const Constants = {
         "service_callback",
         "extended_warranty",
       ],
-      refund_status: ["pending", "received", "rejected"],
+      refund_status: [
+        "pending",
+        "received",
+        "rejected",
+        "completed",
+        "partial",
+      ],
       urgency_level: ["low", "normal", "high", "critical"],
       user_role: ["technician", "admin", "saksbehandler"],
     },
