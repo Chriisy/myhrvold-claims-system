@@ -181,26 +181,24 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   const t = translations[language];
   
   // Layout constants for consistent spacing and alignment
-  const SECTION_GAP = 6;
+  const SECTION_GAP = 5;
   const LABEL_X = 20;
   const VALUE_X = 70;
-  const LINE_HEIGHT = 4.5;
+  const LINE_HEIGHT = 4;
   
   let yPosition = 20;
 
-  // Clean header with company branding
+  // Clean header with company branding - reduced size
   doc.setFillColor(30, 41, 59);
   doc.rect(0, 0, 210, 30, 'F');
   
-  // Company name - slightly smaller for better proportion
+  // Company name - smaller for better proportion
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text(t.companyName, 20, 18);
   
-  // Claim identifiers in top right with proper labels and fallbacks
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
+  // Claim identifiers in top right with actual values
   const claimNumber = claim.claim_number || '(missing)';
   const claimId = claim.id || '(missing)';
   
@@ -211,15 +209,28 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
     console.warn('Missing claim.id in PDF generation');
   }
   
-  doc.text(`${t.claimNumber}: ${claimNumber}`, 130, 15);
-  doc.text(`${t.claimId}: ${claimId}`, 130, 20);
+  // Claim ID (external)
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${t.claimNumber}:`, 130, 15);
+  doc.setFont('helvetica', 'normal');
+  doc.text(claimNumber, 170, 15);
+  
+  // Reklamasjonssak ID (internal)
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${t.claimId}:`, 130, 21);
+  doc.setFont('helvetica', 'normal');
+  doc.text(claimId, 170, 21);
+  
+  // Generated date
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${new Date().toLocaleDateString(language === 'no' ? 'nb-NO' : 'en-GB')}`, 130, 25);
+  doc.text(`Generated: ${new Date().toLocaleDateString(language === 'no' ? 'nb-NO' : 'en-GB')}`, 130, 26);
 
-  // Document title - normalized size, no forced caps
+  // Document title - smaller and normalized
   doc.setTextColor(30, 41, 59);
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   yPosition = 40;
   doc.text(t.subject, 105, yPosition, { align: 'center' });
@@ -229,7 +240,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setLineWidth(0.3);
   doc.line(20, yPosition + 3, 190, yPosition + 3);
 
-  yPosition += 10;
+  yPosition += 12;
 
   // Contact information for return correspondence
   doc.setFontSize(10);
