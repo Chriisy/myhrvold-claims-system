@@ -522,6 +522,7 @@ export const useAdvancedClaimForm = () => {
       const newParts = [...prev];
       if (index >= 0 && index < newParts.length) {
         const currentPart = newParts[index];
+        console.log('Current part before update:', currentPart);
         const updatedPart = { ...currentPart, [field]: value };
         
         // Auto-calculate total price when quantity or unitPrice changes
@@ -531,8 +532,8 @@ export const useAdvancedClaimForm = () => {
         }
         
         newParts[index] = updatedPart;
+        console.log('Updated part:', updatedPart);
       }
-      console.log('Updated parts:', newParts);
       return newParts;
     });
   }, []);
