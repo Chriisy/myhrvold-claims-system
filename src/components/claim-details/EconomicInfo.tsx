@@ -183,114 +183,13 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
           </div>
         </div>
 
-        {/* Refusjonsinformasjon */}
-        <div className="space-y-4">
-          <h4 className="font-semibold text-lg flex items-center gap-2 pb-2 border-b">
-            <TrendingUp className="h-4 w-4" />
-            Refusjonsinformasjon
-          </h4>
-          
-          <div className="bg-muted/20 rounded-lg p-4 space-y-4">
-            <div className="text-sm font-medium text-muted-foreground mb-3">
-              Kredittnotas og refusjonsdetaljer
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {data.creditNoteNumber && (
-                <div className="space-y-1">
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Kreditnota nummer</span>
-                  <div className="font-medium">{data.creditNoteNumber}</div>
-                </div>
-              )}
-              
-              {data.refundDateReceived && (
-                <div className="space-y-1">
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Refusjonsdato mottatt</span>
-                  <div className="font-medium">
-                    {new Date(data.refundDateReceived).toLocaleDateString('no-NO')}
-                  </div>
-                </div>
-              )}
-              
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">Forventet refusjon</span>
-                <div className="font-medium">{formatCurrency(data.expectedRefund)}</div>
-              </div>
-              
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">Faktisk refusjon</span>
-                <div className="font-medium">{formatCurrency(data.totalRefunded || 0)}</div>
-              </div>
-            </div>
-
-            {data.refundStatus && (
-              <div className="flex justify-between items-center pt-2">
-                <span className="text-sm font-medium">Refusjonsstatus:</span>
-                <Badge className={getRefundStatusColor(data.refundStatus)}>
-                  {data.refundStatus === 'received' ? 'Mottatt' : 
-                   data.refundStatus === 'pending' ? 'Venter' : 
-                   data.refundStatus === 'rejected' ? 'Avvist' : 
-                   data.refundStatus === 'completed' ? 'Fullført' : data.refundStatus}
-                </Badge>
-              </div>
-            )}
-          </div>
-
-          {/* Netto kostnad fremhevet */}
-          <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
-            <div className="flex justify-between items-center">
-              <span className="font-semibold text-lg">Netto kostnad:</span>
-              <span className={`font-bold text-xl ${(data.totalCost - (data.totalRefunded || 0)) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                {formatCurrency(data.totalCost - (data.totalRefunded || 0))}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Detaljert refusjon - kun vis hvis det finnes data */}
-        {(data.refundedWorkCost || data.refundedPartsCost || data.refundedTravelCost || data.refundedVehicleCost || data.refundedOtherCost) && (
-          <div className="space-y-4">
-            <h4 className="font-semibold text-lg pb-2 border-b">Refunderte poster</h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {data.refundedWorkCost && (
-                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
-                  <span className="text-sm">Arbeid refundert</span>
-                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedWorkCost)}</span>
-                </div>
-              )}
-              {data.refundedPartsCost && (
-                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
-                  <span className="text-sm">Deler refundert</span>
-                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedPartsCost)}</span>
-                </div>
-              )}
-              {data.refundedTravelCost && (
-                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
-                  <span className="text-sm">Reise refundert</span>
-                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedTravelCost)}</span>
-                </div>
-              )}
-              {data.refundedVehicleCost && (
-                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
-                  <span className="text-sm">Kjøretøy refundert</span>
-                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedVehicleCost)}</span>
-                </div>
-              )}
-              {data.refundedOtherCost && (
-                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
-                  <span className="text-sm">Annet refundert</span>
-                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedOtherCost)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Tilpassede poster - forbedret layout */}
+        {/* Tilpassede poster - flyttet opp */}
         {data.customLineItems && data.customLineItems.length > 0 && (
           <div className="space-y-4">
-            <h4 className="font-semibold text-lg pb-2 border-b">Tilpassede poster</h4>
+            <h4 className="font-semibold text-lg flex items-center gap-2 pb-2 border-b">
+              <Calculator className="h-4 w-4" />
+              Tilpassede poster
+            </h4>
             
             <div className="space-y-4">
               {data.customLineItems.map((item, index) => {
@@ -364,6 +263,110 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
             </div>
           </div>
         )}
+
+        {/* Detaljert refusjon - kun vis hvis det finnes data */}
+        {(data.refundedWorkCost || data.refundedPartsCost || data.refundedTravelCost || data.refundedVehicleCost || data.refundedOtherCost) && (
+          <div className="space-y-4">
+            <h4 className="font-semibold text-lg pb-2 border-b">Refunderte poster</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data.refundedWorkCost && (
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Arbeid refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedWorkCost)}</span>
+                </div>
+              )}
+              {data.refundedPartsCost && (
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Deler refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedPartsCost)}</span>
+                </div>
+              )}
+              {data.refundedTravelCost && (
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Reise refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedTravelCost)}</span>
+                </div>
+              )}
+              {data.refundedVehicleCost && (
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Kjøretøy refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedVehicleCost)}</span>
+                </div>
+              )}
+              {data.refundedOtherCost && (
+                <div className="flex justify-between items-center py-2 px-3 bg-green-50 dark:bg-green-900/20 rounded">
+                  <span className="text-sm">Annet refundert</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(data.refundedOtherCost)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Refusjonsinformasjon - flyttet til bunnen */}
+        <div className="space-y-4">
+          <h4 className="font-semibold text-lg flex items-center gap-2 pb-2 border-b">
+            <TrendingUp className="h-4 w-4" />
+            Refusjonsinformasjon
+          </h4>
+          
+          <div className="bg-muted/20 rounded-lg p-4 space-y-4">
+            <div className="text-sm font-medium text-muted-foreground mb-3">
+              Kredittnotas og refusjonsdetaljer
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data.creditNoteNumber && (
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Kreditnota nummer</span>
+                  <div className="font-medium">{data.creditNoteNumber}</div>
+                </div>
+              )}
+              
+              {data.refundDateReceived && (
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Refusjonsdato mottatt</span>
+                  <div className="font-medium">
+                    {new Date(data.refundDateReceived).toLocaleDateString('no-NO')}
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Forventet refusjon</span>
+                <div className="font-medium">{formatCurrency(data.expectedRefund)}</div>
+              </div>
+              
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Faktisk refusjon</span>
+                <div className="font-medium">{formatCurrency(data.totalRefunded || 0)}</div>
+              </div>
+            </div>
+
+            {data.refundStatus && (
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-sm font-medium">Refusjonsstatus:</span>
+                <Badge className={getRefundStatusColor(data.refundStatus)}>
+                  {data.refundStatus === 'received' ? 'Mottatt' : 
+                   data.refundStatus === 'pending' ? 'Venter' : 
+                   data.refundStatus === 'rejected' ? 'Avvist' : 
+                   data.refundStatus === 'completed' ? 'Fullført' : data.refundStatus}
+                </Badge>
+              </div>
+            )}
+          </div>
+
+          {/* Netto kostnad fremhevet */}
+          <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-lg">Netto kostnad:</span>
+              <span className={`font-bold text-xl ${(data.totalCost - (data.totalRefunded || 0)) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                {formatCurrency(data.totalCost - (data.totalRefunded || 0))}
+              </span>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
