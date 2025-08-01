@@ -127,7 +127,7 @@ const Dashboard = () => {
                   </Button>
                 </Link>
               )}
-              <Link to="/claims/new" className="w-full sm:w-auto">
+              <Link to="/claims/new-advanced" className="w-full sm:w-auto">
                 <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">Ny reklamasjon</span>
