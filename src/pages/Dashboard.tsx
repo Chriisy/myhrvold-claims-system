@@ -383,7 +383,7 @@ const Dashboard = () => {
                     <div className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <p className="font-medium">{claim.claim_number}</p>
+                          <p className="font-bold text-lg text-primary">{claim.claim_number}</p>
                           <Badge className={getStatusColor(claim.status)}>
                             {getStatusLabel(claim.status)}
                           </Badge>
