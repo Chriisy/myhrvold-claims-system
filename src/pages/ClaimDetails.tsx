@@ -89,7 +89,9 @@ const ClaimDetails = () => {
   const totalRefunded = Number(claimData.refunded_work_cost || 0) + Number(claimData.refunded_parts_cost || 0) + 
                         Number(claimData.refunded_travel_cost || 0) + Number(claimData.refunded_vehicle_cost || 0) + 
                         Number(claimData.refunded_other_cost || 0);
-  const calculatedNetCost = calculatedTotalCost - totalRefunded;
+  // Use actual_refund if it's higher than the sum of individual refunded costs
+  const actualTotalRefunded = Math.max(totalRefunded, Number(claimData.actual_refund || 0));
+  const calculatedNetCost = calculatedTotalCost - actualTotalRefunded;
   
   const economicData = {
     workHours: claimData.work_hours || 0,
@@ -114,7 +116,7 @@ const ClaimDetails = () => {
     refundedTravelCost: claimData.refunded_travel_cost,
     refundedVehicleCost: claimData.refunded_vehicle_cost,
     refundedOtherCost: claimData.refunded_other_cost,
-    totalRefunded: totalRefunded
+    totalRefunded: actualTotalRefunded
   };
 
   // Prepare organization data
