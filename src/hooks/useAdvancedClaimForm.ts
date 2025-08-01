@@ -517,17 +517,23 @@ export const useAdvancedClaimForm = () => {
   }, []);
 
   const handleUpdatePart = useCallback((index: number, field: string, value: any) => {
-    setParts(prev => prev.map((part, i) => {
-      if (i === index) {
-        const updatedPart = { ...part, [field]: value };
-        // Auto-calculate total price when quantity or unitPrice changes
-        if (field === 'quantity' || field === 'unitPrice') {
-          updatedPart.price = updatedPart.quantity * updatedPart.unitPrice;
+    console.log('handleUpdatePart called:', { index, field, value });
+    setParts(prev => {
+      const newParts = prev.map((part, i) => {
+        if (i === index) {
+          const updatedPart = { ...part, [field]: value };
+          // Auto-calculate total price when quantity or unitPrice changes
+          if (field === 'quantity' || field === 'unitPrice') {
+            updatedPart.price = updatedPart.quantity * updatedPart.unitPrice;
+            console.log('Auto-calculated price:', updatedPart.price, 'from quantity:', updatedPart.quantity, 'unitPrice:', updatedPart.unitPrice);
+          }
+          return updatedPart;
         }
-        return updatedPart;
-      }
-      return part;
-    }));
+        return part;
+      });
+      console.log('Updated parts:', newParts);
+      return newParts;
+    });
   }, []);
 
   const handleAddCustomLineItem = useCallback(() => {
