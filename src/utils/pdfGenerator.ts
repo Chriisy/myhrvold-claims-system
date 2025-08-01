@@ -494,11 +494,11 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
     yPosition += LINE_HEIGHT;
     doc.text(`Generated: ${formatDate(new Date().toISOString(), language)}`, LABEL_X, yPosition);
     
-    // Optional QR code generation
+    // QR code generation pointing to public view
     try {
-      const followUpUrl = `${window.location.origin}/claims/${claim.id}`;
+      const publicUrl = `${window.location.origin}/public/claims/${claim.id}`;
       
-      const qrCodeDataUrl = await QRCode.toDataURL(followUpUrl, {
+      const qrCodeDataUrl = await QRCode.toDataURL(publicUrl, {
         width: 200,
         margin: 1,
         color: {

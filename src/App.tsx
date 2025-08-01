@@ -22,6 +22,7 @@ import { ClaimEconomics } from "./pages/ClaimEconomics";
 import Auth from "./pages/Auth";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
+import PublicClaimView from "./pages/PublicClaimView";
 import { Suspense, lazy } from "react";
 import { LoadingSpinner } from "./components/ui/loading";
 
@@ -51,6 +52,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/public/claims/:id" element={<PublicClaimView />} />
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
       <Route path="/claims" element={<ProtectedRoute><ClaimsList /></ProtectedRoute>} />
