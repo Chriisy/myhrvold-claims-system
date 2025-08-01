@@ -183,7 +183,7 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   // Layout constants for consistent spacing and alignment
   const SECTION_GAP = 5;
   const LABEL_X = 20;
-  const VALUE_X = 70;
+  const VALUE_X = 55; // Reduced from 70 to minimize whitespace
   const LINE_HEIGHT = 4;
   
   let yPosition = 20;
