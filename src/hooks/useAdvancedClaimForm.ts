@@ -62,6 +62,11 @@ export interface AdvancedFormData {
   creditNoteNumber: string;
   refundDateReceived: string;
   
+  // Expected and actual refund
+  expectedRefund: number;
+  actualRefund: number;
+  refundStatus: string;
+  
   // Refund status checkboxes
   workCostRefunded: boolean;
   travelCostRefunded: boolean;
@@ -130,6 +135,9 @@ export const useAdvancedClaimForm = () => {
     refundedOtherCost: 0,
     creditNoteNumber: "",
     refundDateReceived: "",
+    expectedRefund: 0,
+    actualRefund: 0,
+    refundStatus: "pending",
     workCostRefunded: false,
     travelCostRefunded: false,
     vehicleCostRefunded: false,
@@ -306,6 +314,9 @@ export const useAdvancedClaimForm = () => {
         refundedOtherCost: data.refunded_other_cost || 0,
         creditNoteNumber: data.credit_note_number || "",
         refundDateReceived: data.refund_date_received || "",
+        expectedRefund: data.expected_refund || 0,
+        actualRefund: data.actual_refund || 0,
+        refundStatus: data.refund_status || "pending",
         workCostRefunded: data.work_cost_refunded || false,
         travelCostRefunded: data.travel_cost_refunded || false,
         vehicleCostRefunded: data.vehicle_cost_refunded || false,

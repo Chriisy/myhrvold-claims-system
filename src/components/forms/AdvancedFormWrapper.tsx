@@ -12,6 +12,7 @@ import { ProductSection } from "./ProductSection";
 import { IssueSection } from "./IssueSection";
 import { BusinessSection } from "./BusinessSection";
 import { CostSection } from "./CostSection";
+import { RefundSection } from "./RefundSection";
 
 interface AdvancedFormWrapperProps {
   formData: any;
@@ -110,12 +111,13 @@ export const AdvancedFormWrapper = memo<AdvancedFormWrapperProps>(({
       <main className="container mx-auto px-4 py-6 max-w-6xl">
         <form onSubmit={onSubmit} className="space-y-6">
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="customer">Kunde</TabsTrigger>
               <TabsTrigger value="product">Produkt</TabsTrigger>
               <TabsTrigger value="issue">Problem</TabsTrigger>
               <TabsTrigger value="business">Forretning</TabsTrigger>
               <TabsTrigger value="costs">Kostnader</TabsTrigger>
+              <TabsTrigger value="refunds">Refusjon</TabsTrigger>
             </TabsList>
 
             <TabsContent value="customer">
@@ -201,6 +203,22 @@ export const AdvancedFormWrapper = memo<AdvancedFormWrapperProps>(({
                 onUpdateNewEquipment={onUpdateNewEquipment}
                 disabled={loading}
               />
+            </TabsContent>
+
+            <TabsContent value="refunds">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Refusjonsinformasjon</CardTitle>
+                  <CardDescription>Kreditnota og refusjonsdetaljer</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RefundSection
+                    formData={formData}
+                    onFieldChange={onInputChange}
+                    disabled={loading}
+                  />
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 
