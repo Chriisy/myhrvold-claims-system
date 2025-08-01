@@ -96,8 +96,8 @@ const ClaimsFormAdvanced = () => {
           id: part.id,
           partNumber: part.partNumber,
           description: part.description,
-          quantity: 1,
-          unitPrice: part.price,
+          quantity: part.quantity,
+          unitPrice: part.unitPrice,
           category: 'parts'
         })),
         ...customLineItems.map(item => ({
