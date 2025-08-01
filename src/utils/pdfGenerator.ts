@@ -216,12 +216,22 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   doc.setFont('helvetica', 'normal');
   doc.text(claimNumber, 170, 15);
   
-  // Reklamasjonssak ID (internal)
+  // Reklamasjonssak ID (internal) - with proper text wrapping
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text(`${t.claimId}:`, 130, 21);
   doc.setFont('helvetica', 'normal');
-  doc.text(claimId, 170, 21);
+  
+  // Handle long claim IDs with proper wrapping
+  const maxClaimIdWidth = 35; // Limited space in header
+  if (doc.getTextWidth(claimId) > maxClaimIdWidth) {
+    const claimIdLines = splitTextToLines(doc, claimId, maxClaimIdWidth);
+    claimIdLines.forEach((line, index) => {
+      doc.text(line, 170, 21 + (index * 3));
+    });
+  } else {
+    doc.text(claimId, 170, 21);
+  }
   
   // Generated date
   doc.setFontSize(8);
@@ -382,8 +392,15 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(claim.issue_description, LABEL_X, yPosition);
-  yPosition += LINE_HEIGHT;
+  
+  // Handle long issue descriptions with proper text wrapping
+  const maxIssueWidth = 165;
+  const issueLines = splitTextToLines(doc, claim.issue_description, maxIssueWidth);
+  
+  issueLines.forEach((line, index) => {
+    doc.text(line, LABEL_X, yPosition + (index * LINE_HEIGHT));
+  });
+  yPosition += issueLines.length * LINE_HEIGHT;
 
   // Service Action Taken - tight grouping with issue
   yPosition += SECTION_GAP;
