@@ -36,6 +36,8 @@ interface EconomicData {
   refundedVehicleCost?: number;
   refundedOtherCost?: number;
   totalRefunded?: number;
+  creditNoteNumber?: string;
+  refundDateReceived?: string;
 }
 
 interface EconomicInfoProps {
@@ -158,35 +160,56 @@ export const EconomicInfo = ({ data }: EconomicInfoProps) => {
           </div>
         </div>
 
-        {/* Refusjons informasjon */}
+        {/* Refusjonsinformasjon */}
         <div>
           <h4 className="font-medium mb-3 flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Refusjon
+            Refusjonsinformasjon
           </h4>
-          <div className="space-y-3">
+          <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+            <div className="text-sm font-medium text-muted-foreground mb-3">
+              Kredittnotas og refusjonsdetaljer
+            </div>
+            
+            {data.creditNoteNumber && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Kreditnota nummer:</span>
+                <span className="font-medium">{data.creditNoteNumber}</span>
+              </div>
+            )}
+            
+            {data.refundDateReceived && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Refusjonsdato mottatt:</span>
+                <span className="font-medium">
+                  {new Date(data.refundDateReceived).toLocaleDateString('no-NO')}
+                </span>
+              </div>
+            )}
+            
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Forventet refusjon:</span>
+              <span className="text-sm text-muted-foreground">Forventet refusjon (kr):</span>
               <span className="font-medium">{formatCurrency(data.expectedRefund)}</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Total refundert:</span>
+              <span className="text-sm text-muted-foreground">Faktisk refusjon (kr):</span>
               <span className="font-medium">{formatCurrency(data.totalRefunded || 0)}</span>
             </div>
 
             {data.refundStatus && (
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Status:</span>
+                <span className="text-sm text-muted-foreground">Refusjonsstatus:</span>
                 <Badge className={getRefundStatusColor(data.refundStatus)}>
                   {data.refundStatus === 'received' ? 'Mottatt' : 
                    data.refundStatus === 'pending' ? 'Venter' : 
-                   data.refundStatus === 'rejected' ? 'Avvist' : data.refundStatus}
+                   data.refundStatus === 'rejected' ? 'Avvist' : 
+                   data.refundStatus === 'completed' ? 'Fullført' : data.refundStatus}
                 </Badge>
               </div>
             )}
 
-            <div className="flex justify-between items-center font-semibold border-t pt-2">
+            <div className="flex justify-between items-center font-semibold border-t pt-3 mt-3">
               <span>Netto kostnad:</span>
               <span className={(data.totalCost - (data.totalRefunded || 0)) > 0 ? 'text-red-600' : 'text-green-600'}>
                 {formatCurrency(data.totalCost - (data.totalRefunded || 0))}

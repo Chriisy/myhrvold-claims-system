@@ -116,7 +116,9 @@ const ClaimDetails = () => {
     refundedTravelCost: claimData.refunded_travel_cost,
     refundedVehicleCost: claimData.refunded_vehicle_cost,
     refundedOtherCost: claimData.refunded_other_cost,
-    totalRefunded: actualTotalRefunded
+    totalRefunded: actualTotalRefunded,
+    creditNoteNumber: claimData.credit_note_number,
+    refundDateReceived: claimData.refund_date_received
   };
 
   // Prepare organization data
