@@ -1,12 +1,33 @@
 import { memo, useMemo, useCallback } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Trash2 } from "lucide-react";
+
+interface Part {
+  id: string;
+  partNumber: string;
+  description: string;
+  price: number;
+  refundRequested: boolean;
+  refundApproved: boolean;
+}
+
+interface CustomLineItem {
+  id: string;
+  partNumber: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
 
 interface CostSectionProps {
   formData: {
     workHours: number;
     hourlyRate: number;
+    overtime50Hours: number;
+    overtime100Hours: number;
     travelHours: number;
     travelDistanceKm: number;
     vehicleCostPerKm: number;
@@ -15,36 +36,69 @@ interface CostSectionProps {
     externalServicesCost: number;
     travelCost: number;
   };
+  parts: Part[];
+  customLineItems: CustomLineItem[];
   onFieldChange: (field: string, value: number) => void;
+  onAddPart: () => void;
+  onRemovePart: (index: number) => void;
+  onUpdatePart: (index: number, field: string, value: any) => void;
+  onAddCustomLineItem: () => void;
+  onRemoveCustomLineItem: (index: number) => void;
+  onUpdateCustomLineItem: (index: number, field: string, value: any) => void;
   disabled?: boolean;
 }
 
 export const CostSection = memo<CostSectionProps>(({ 
   formData, 
+  parts,
+  customLineItems,
   onFieldChange, 
+  onAddPart,
+  onRemovePart,
+  onUpdatePart,
+  onAddCustomLineItem,
+  onRemoveCustomLineItem,
+  onUpdateCustomLineItem,
   disabled = false 
 }) => {
   // Memoized calculations to prevent unnecessary recalculations
   const calculations = useMemo(() => {
     const workCost = formData.workHours * formData.hourlyRate;
+    const overtime50Cost = formData.overtime50Hours * formData.hourlyRate * 1.5;
+    const overtime100Cost = formData.overtime100Hours * formData.hourlyRate * 2;
+    const travelHoursCost = formData.travelHours * formData.hourlyRate;
     const vehicleCost = formData.travelDistanceKm * formData.vehicleCostPerKm;
-    const totalCost = workCost + formData.travelCost + vehicleCost + formData.partsCost + 
-                     formData.consumablesCost + formData.externalServicesCost;
+    const partsTotal = parts.reduce((sum, part) => sum + part.price, 0);
+    const customLineItemsTotal = customLineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    
+    const totalCost = workCost + overtime50Cost + overtime100Cost + travelHoursCost + 
+                     vehicleCost + formData.consumablesCost + formData.externalServicesCost + 
+                     formData.travelCost + partsTotal + customLineItemsTotal;
 
     return {
       workCost,
+      overtime50Cost,
+      overtime100Cost,
+      travelHoursCost,
       vehicleCost,
+      partsTotal,
+      customLineItemsTotal,
       totalCost
     };
   }, [
     formData.workHours,
     formData.hourlyRate,
+    formData.overtime50Hours,
+    formData.overtime100Hours,
+    formData.travelHours,
     formData.travelDistanceKm,
     formData.vehicleCostPerKm,
     formData.travelCost,
     formData.partsCost,
     formData.consumablesCost,
-    formData.externalServicesCost
+    formData.externalServicesCost,
+    parts,
+    customLineItems
   ]);
 
   // Memoized number input handler
@@ -90,8 +144,36 @@ export const CostSection = memo<CostSectionProps>(({
                 placeholder="0"
               />
             </div>
-            <div className="text-sm text-muted-foreground">
-              Arbeidskostnad: {calculations.workCost.toLocaleString('no-NO')} kr
+            <div className="space-y-2">
+              <Label htmlFor="overtime50Hours">Overtid 50% (timer)</Label>
+              <Input
+                id="overtime50Hours"
+                type="number"
+                min="0"
+                step="0.5"
+                value={formData.overtime50Hours}
+                onChange={(e) => handleNumberChange('overtime50Hours', e.target.value)}
+                disabled={disabled}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="overtime100Hours">Overtid 100% (timer)</Label>
+              <Input
+                id="overtime100Hours"
+                type="number"
+                min="0"
+                step="0.5"
+                value={formData.overtime100Hours}
+                onChange={(e) => handleNumberChange('overtime100Hours', e.target.value)}
+                disabled={disabled}
+                placeholder="0"
+              />
+            </div>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <div>Arbeidskostnad: {calculations.workCost.toLocaleString('no-NO')} kr</div>
+              <div>Overtid 50%: {calculations.overtime50Cost.toLocaleString('no-NO')} kr</div>
+              <div>Overtid 100%: {calculations.overtime100Cost.toLocaleString('no-NO')} kr</div>
             </div>
           </CardContent>
         </Card>
@@ -207,6 +289,168 @@ export const CostSection = memo<CostSectionProps>(({
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Parts section */}
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">
+              Reservedeler
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onAddPart}
+                disabled={disabled}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Legg til del
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {parts.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                Ingen reservedeler lagt til ennå
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {parts.map((part, index) => (
+                  <div key={part.id} className="flex gap-2 items-end">
+                    <div className="flex-1 space-y-2">
+                      <Label>Delenummer</Label>
+                      <Input
+                        value={part.partNumber}
+                        onChange={(e) => onUpdatePart(index, 'partNumber', e.target.value)}
+                        disabled={disabled}
+                        placeholder="Delenummer"
+                      />
+                    </div>
+                    <div className="flex-2 space-y-2">
+                      <Label>Beskrivelse</Label>
+                      <Input
+                        value={part.description}
+                        onChange={(e) => onUpdatePart(index, 'description', e.target.value)}
+                        disabled={disabled}
+                        placeholder="Beskrivelse av del"
+                      />
+                    </div>
+                    <div className="w-32 space-y-2">
+                      <Label>Pris (kr)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={part.price}
+                        onChange={(e) => onUpdatePart(index, 'price', parseFloat(e.target.value) || 0)}
+                        disabled={disabled}
+                        placeholder="0"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRemovePart(index)}
+                      disabled={disabled}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="text-sm text-muted-foreground text-right">
+                  Totalt reservedeler: {calculations.partsTotal.toLocaleString('no-NO')} kr
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Custom line items section */}
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">
+              Tilpassede linjeartikler
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onAddCustomLineItem}
+                disabled={disabled}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Legg til artikkel
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {customLineItems.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                Ingen tilpassede artikler lagt til ennå
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {customLineItems.map((item, index) => (
+                  <div key={item.id} className="flex gap-2 items-end">
+                    <div className="w-32 space-y-2">
+                      <Label>Artikkelkode</Label>
+                      <Input
+                        value={item.partNumber}
+                        onChange={(e) => onUpdateCustomLineItem(index, 'partNumber', e.target.value)}
+                        disabled={disabled}
+                        placeholder="Kode"
+                      />
+                    </div>
+                    <div className="flex-2 space-y-2">
+                      <Label>Beskrivelse</Label>
+                      <Input
+                        value={item.description}
+                        onChange={(e) => onUpdateCustomLineItem(index, 'description', e.target.value)}
+                        disabled={disabled}
+                        placeholder="Beskrivelse av artikkel"
+                      />
+                    </div>
+                    <div className="w-24 space-y-2">
+                      <Label>Antall</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={item.quantity}
+                        onChange={(e) => onUpdateCustomLineItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                        disabled={disabled}
+                        placeholder="1"
+                      />
+                    </div>
+                    <div className="w-32 space-y-2">
+                      <Label>Enhetspris (kr)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.unitPrice}
+                        onChange={(e) => onUpdateCustomLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                        disabled={disabled}
+                        placeholder="0"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRemoveCustomLineItem(index)}
+                      disabled={disabled}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="text-sm text-muted-foreground text-right">
+                  Totalt tilpassede artikler: {calculations.customLineItemsTotal.toLocaleString('no-NO')} kr
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

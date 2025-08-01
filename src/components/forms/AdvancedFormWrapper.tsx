@@ -178,7 +178,15 @@ export const AdvancedFormWrapper = memo<AdvancedFormWrapperProps>(({
             <TabsContent value="costs">
               <CostSection
                 formData={formData}
+                parts={parts}
+                customLineItems={customLineItems}
                 onFieldChange={onInputChange}
+                onAddPart={onAddPart}
+                onRemovePart={onRemovePart}
+                onUpdatePart={onUpdatePart}
+                onAddCustomLineItem={onAddCustomLineItem}
+                onRemoveCustomLineItem={onRemoveCustomLineItem}
+                onUpdateCustomLineItem={onUpdateCustomLineItem}
                 disabled={loading}
               />
             </TabsContent>
