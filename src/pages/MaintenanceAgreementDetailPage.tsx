@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Edit, FileText, Calendar, MapPin, User, Phone, Mail, Download, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, FileText, Calendar, MapPin, User, Phone, Mail, Download, Trash2, Image as ImageIcon, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -19,6 +19,7 @@ interface MaintenanceAgreement {
   id: string;
   avtale_nummer: string;
   kunde_navn: string;
+  kunde_nummer: string | null;
   kunde_adresse: string | null;
   kontaktperson: string | null;
   telefon: string | null;
@@ -36,6 +37,7 @@ interface MaintenanceAgreement {
   garantivilkar: string | null;
   prosedyrer_ved_service: string | null;
   kontakt_info: string | null;
+  bilder: string[] | null;
   created_at: string;
 }
 
@@ -77,7 +79,10 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
         return;
       }
 
-      setAgreement(data);
+      setAgreement({
+        ...data,
+        bilder: Array.isArray(data.bilder) ? data.bilder : (data.bilder ? [data.bilder] : [])
+      } as MaintenanceAgreement);
     } catch (error) {
       console.error('Error in fetchAgreement:', error);
     } finally {
@@ -369,6 +374,12 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
                   <label className="text-sm font-medium text-muted-foreground">Kundenavn</label>
                   <p className="text-lg">{agreement.kunde_navn}</p>
                 </div>
+                {agreement.kunde_nummer && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Kundenummer</label>
+                    <p>{agreement.kunde_nummer}</p>
+                  </div>
+                )}
                 {agreement.kunde_adresse && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Adresse</label>
@@ -458,6 +469,58 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Image Gallery */}
+            {agreement.bilder && agreement.bilder.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5" />
+                    Bilder og dokumenter ({agreement.bilder.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {agreement.bilder.map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <div className="cursor-pointer rounded-lg overflow-hidden border hover:border-primary transition-colors">
+                              <img
+                                src={imageUrl}
+                                alt={`Bilde ${index + 1}`}
+                                className="w-full h-24 object-cover group-hover:scale-105 transition-transform"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Ik0xMiAxNmMtMi4yIDAtNCAxLjgtNCA0czEuOCA0IDQgNCA0LTEuOCA0LTQtMS44LTQtNC00eiIgZmlsbD0iIzljYTNhZiIvPgo8L3N2Zz4K';
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Eye className="h-6 w-6 text-white" />
+                              </div>
+                            </div>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-3xl">
+                            <DialogHeader>
+                              <DialogTitle>Bilde {index + 1}</DialogTitle>
+                            </DialogHeader>
+                            <div className="mt-4">
+                              <img
+                                src={imageUrl}
+                                alt={`Bilde ${index + 1}`}
+                                className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Ik0xMiAxNmMtMi4yIDAtNCAxLjgtNCA0czEuOCA0IDQgNCA0LTEuOCA0LTQtMS44LTQtNC00eiIgZmlsbD0iIzljYTNhZiIvPgo8L3N2Zz4K';
+                                }}
+                              />
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar */}

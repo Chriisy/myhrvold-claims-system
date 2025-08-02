@@ -563,6 +563,7 @@ export type Database = {
           avtale_nummer: string
           beskrivelse: string | null
           besok_per_ar: number
+          bilder: Json | null
           created_at: string | null
           created_by: string | null
           department: Database["public"]["Enums"]["department"] | null
@@ -575,6 +576,7 @@ export type Database = {
           kunde_adresse: string | null
           kunde_id: string | null
           kunde_navn: string
+          kunde_nummer: string | null
           neste_besok: string | null
           pris_cpi_justerbar: boolean | null
           pris_grunnlag: number
@@ -594,6 +596,7 @@ export type Database = {
           avtale_nummer: string
           beskrivelse?: string | null
           besok_per_ar?: number
+          bilder?: Json | null
           created_at?: string | null
           created_by?: string | null
           department?: Database["public"]["Enums"]["department"] | null
@@ -606,6 +609,7 @@ export type Database = {
           kunde_adresse?: string | null
           kunde_id?: string | null
           kunde_navn: string
+          kunde_nummer?: string | null
           neste_besok?: string | null
           pris_cpi_justerbar?: boolean | null
           pris_grunnlag?: number
@@ -625,6 +629,7 @@ export type Database = {
           avtale_nummer?: string
           beskrivelse?: string | null
           besok_per_ar?: number
+          bilder?: Json | null
           created_at?: string | null
           created_by?: string | null
           department?: Database["public"]["Enums"]["department"] | null
@@ -637,6 +642,7 @@ export type Database = {
           kunde_adresse?: string | null
           kunde_id?: string | null
           kunde_navn?: string
+          kunde_nummer?: string | null
           neste_besok?: string | null
           pris_cpi_justerbar?: boolean | null
           pris_grunnlag?: number

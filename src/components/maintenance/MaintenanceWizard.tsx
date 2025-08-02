@@ -199,6 +199,7 @@ Kristian Rambøl - 95 26 16 23 - Kristian.Rambol@myhrvold.no`,
         garantivilkar: data.garantivilkar,
         prosedyrer_ved_service: data.prosedyrer_ved_service,
         kontakt_info: data.kontakt_info,
+        bilder: data.bilder || [],
         created_by: user.id,
       };
 
