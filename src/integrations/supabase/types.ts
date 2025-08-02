@@ -565,6 +565,7 @@ export type Database = {
           besok_per_ar: number
           created_at: string | null
           created_by: string | null
+          department: Database["public"]["Enums"]["department"] | null
           epost: string | null
           garantivilkar: string | null
           id: string
@@ -594,6 +595,7 @@ export type Database = {
           besok_per_ar?: number
           created_at?: string | null
           created_by?: string | null
+          department?: Database["public"]["Enums"]["department"] | null
           epost?: string | null
           garantivilkar?: string | null
           id?: string
@@ -623,6 +625,7 @@ export type Database = {
           besok_per_ar?: number
           created_at?: string | null
           created_by?: string | null
+          department?: Database["public"]["Enums"]["department"] | null
           epost?: string | null
           garantivilkar?: string | null
           id?: string

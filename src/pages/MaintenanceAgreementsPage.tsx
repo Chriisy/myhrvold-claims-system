@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Wrench, FileText, Plus, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowLeft, Wrench, FileText, Plus, Search, MapPin } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -22,15 +22,18 @@ interface MaintenanceAgreement {
   besok_per_ar: number;
   pris_grunnlag: number;
   status: 'planlagt' | 'pågår' | 'fullført' | 'avbrutt';
+  department: string;
   created_at: string;
 }
 
 const MaintenanceAgreementsPage: React.FC = () => {
   const { isEnabled } = useFeatureFlags();
+  const navigate = useNavigate();
   const [agreements, setAgreements] = useState<MaintenanceAgreement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
 
   const fetchAgreements = async () => {
     try {
@@ -41,6 +44,10 @@ const MaintenanceAgreementsPage: React.FC = () => {
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter as 'planlagt' | 'pågår' | 'fullført' | 'avbrutt');
+      }
+
+      if (departmentFilter !== 'all') {
+        query = query.eq('department', departmentFilter as 'oslo' | 'bergen' | 'trondheim' | 'stavanger' | 'kristiansand' | 'nord_norge' | 'innlandet');
       }
 
       const { data, error } = await query;
@@ -78,7 +85,7 @@ const MaintenanceAgreementsPage: React.FC = () => {
     if (isEnabled('maintenance_enabled')) {
       fetchAgreements();
     }
-  }, [searchTerm, statusFilter, isEnabled]);
+  }, [searchTerm, statusFilter, departmentFilter, isEnabled]);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -100,6 +107,19 @@ const MaintenanceAgreementsPage: React.FC = () => {
         {labels[status as keyof typeof labels] || status}
       </Badge>
     );
+  };
+
+  const getDepartmentLabel = (dept: string) => {
+    const labels = {
+      oslo: 'Oslo',
+      bergen: 'Bergen', 
+      trondheim: 'Trondheim',
+      stavanger: 'Stavanger',
+      kristiansand: 'Kristiansand',
+      nord_norge: 'Nord-Norge',
+      innlandet: 'Innlandet'
+    };
+    return labels[dept as keyof typeof labels] || dept;
   };
 
   if (!isEnabled('maintenance_enabled')) {
@@ -166,7 +186,7 @@ const MaintenanceAgreementsPage: React.FC = () => {
               Søk og filtrer
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Input
                 placeholder="Søk kunde eller avtalenummer..."
@@ -185,6 +205,23 @@ const MaintenanceAgreementsPage: React.FC = () => {
                   <SelectItem value="pågår">Pågår</SelectItem>
                   <SelectItem value="fullført">Fullført</SelectItem>
                   <SelectItem value="avbrutt">Avbrutt</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Velg avdeling" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle avdelinger</SelectItem>
+                  <SelectItem value="oslo">Oslo</SelectItem>
+                  <SelectItem value="bergen">Bergen</SelectItem>
+                  <SelectItem value="trondheim">Trondheim</SelectItem>
+                  <SelectItem value="stavanger">Stavanger</SelectItem>
+                  <SelectItem value="kristiansand">Kristiansand</SelectItem>
+                  <SelectItem value="nord_norge">Nord-Norge</SelectItem>
+                  <SelectItem value="innlandet">Innlandet</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -220,7 +257,11 @@ const MaintenanceAgreementsPage: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 {agreements.map((agreement) => (
-                  <Card key={agreement.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <Card 
+                    key={agreement.id} 
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => navigate(`/vedlikehold/avtaler/${agreement.id}`)}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -235,6 +276,10 @@ const MaintenanceAgreementsPage: React.FC = () => {
                         <div className="text-right">
                           <div className="flex items-center gap-2 mb-1">
                             {getStatusBadge(agreement.status)}
+                            <Badge variant="outline" className="text-xs">
+                              <MapPin className="mr-1 h-3 w-3" />
+                              {getDepartmentLabel(agreement.department)}
+                            </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {agreement.besok_per_ar} besøk/år

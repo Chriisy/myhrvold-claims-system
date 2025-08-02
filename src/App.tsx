@@ -34,6 +34,7 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const NewMaintenanceAgreementPage = lazy(() => import("./pages/NewMaintenanceAgreementPage"));
 const MaintenanceAgreementsPage = lazy(() => import("./pages/MaintenanceAgreementsPage"));
+const MaintenanceAgreementDetailPage = lazy(() => import("./pages/MaintenanceAgreementDetailPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,6 +97,13 @@ function AppRoutes() {
         <ProtectedRoute>
           <Suspense fallback={<LoadingSpinner size="lg" />}>
             <MaintenanceAgreementsPage />
+          </Suspense>
+        </ProtectedRoute>
+      } />
+      <Route path="/vedlikehold/avtaler/:id" element={
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner size="lg" />}>
+            <MaintenanceAgreementDetailPage />
           </Suspense>
         </ProtectedRoute>
       } />

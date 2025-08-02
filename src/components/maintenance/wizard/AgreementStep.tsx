@@ -4,6 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -173,29 +174,56 @@ export const AgreementStep: React.FC<AgreementStepProps> = ({ form, onNext }) =>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
-          </div>
-
-          <FormField
-            control={form.control}
-            name="pris_cpi_justerbar"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">KPI-justering</FormLabel>
-                  <div className="text-sm text-muted-foreground">
-                    Skal prisen justeres årlig basert på konsumprisindeksen?
-                  </div>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
             )}
           />
 
           <FormField
+            control={form.control}
+            name="department"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Avdeling *</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Velg avdeling" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="oslo">Oslo</SelectItem>
+                    <SelectItem value="bergen">Bergen</SelectItem>
+                    <SelectItem value="trondheim">Trondheim</SelectItem>
+                    <SelectItem value="stavanger">Stavanger</SelectItem>
+                    <SelectItem value="kristiansand">Kristiansand</SelectItem>
+                    <SelectItem value="nord_norge">Nord-Norge</SelectItem>
+                    <SelectItem value="innlandet">Innlandet</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="pris_cpi_justerbar"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">KPI-justering</FormLabel>
+                <div className="text-sm text-muted-foreground">
+                  Skal prisen justeres årlig basert på konsumprisindeksen?
+                </div>
+              </div>
+              <FormControl>
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
             control={form.control}
             name="beskrivelse"
             render={({ field }) => (
