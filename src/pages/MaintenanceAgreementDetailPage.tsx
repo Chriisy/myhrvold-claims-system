@@ -4,11 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Edit, FileText, Calendar, MapPin, User, Phone, Mail } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ArrowLeft, Edit, FileText, Calendar, MapPin, User, Phone, Mail, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
+import { generateMaintenancePDF } from '@/utils/maintenancePdfGenerator';
 
 interface MaintenanceAgreement {
   id: string;
@@ -25,6 +27,7 @@ interface MaintenanceAgreement {
   pris_cpi_justerbar: boolean;
   status: 'planlagt' | 'pågår' | 'fullført' | 'avbrutt';
   department: string;
+  tekniker_id: string | null;
   beskrivelse: string | null;
   vilkar: string | null;
   garantivilkar: string | null;
@@ -33,11 +36,20 @@ interface MaintenanceAgreement {
   created_at: string;
 }
 
+interface Profile {
+  id: string;
+  full_name: string;
+  role: string;
+}
+
 const MaintenanceAgreementDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [agreement, setAgreement] = useState<MaintenanceAgreement | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [technicians, setTechnicians] = useState<Profile[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const fetchAgreement = async () => {
     if (!id) return;
@@ -64,6 +76,25 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
       console.error('Error in fetchAgreement:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTechnicians = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, role')
+        .eq('role', 'technician')
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Error fetching technicians:', error);
+        return;
+      }
+
+      setTechnicians(data || []);
+    } catch (error) {
+      console.error('Error in fetchTechnicians:', error);
     }
   };
 
@@ -99,8 +130,84 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
     }
   };
 
+  const updateTechnician = async (technicianId: string) => {
+    if (!agreement) return;
+    
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('maintenance_agreements')
+        .update({ tekniker_id: technicianId })
+        .eq('id', agreement.id);
+
+      if (error) {
+        console.error('Error updating technician:', error);
+        toast({
+          title: "Feil",
+          description: "Kunne ikke oppdatere tekniker",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setAgreement({ ...agreement, tekniker_id: technicianId });
+      toast({
+        title: "Suksess",
+        description: "Tekniker oppdatert"
+      });
+    } catch (error) {
+      console.error('Error in updateTechnician:', error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const downloadPDF = async () => {
+    if (!agreement) return;
+    
+    setDownloading(true);
+    try {
+      await generateMaintenancePDF({
+        agreement: {
+          avtale_nummer: agreement.avtale_nummer,
+          kunde_navn: agreement.kunde_navn,
+          kunde_adresse: agreement.kunde_adresse || '',
+          kontaktperson: agreement.kontaktperson || '',
+          telefon: agreement.telefon || '',
+          epost: agreement.epost || '',
+          start_dato: agreement.start_dato,
+          slutt_dato: agreement.slutt_dato || '',
+          besok_per_ar: agreement.besok_per_ar,
+          pris_grunnlag: agreement.pris_grunnlag,
+          pris_cpi_justerbar: agreement.pris_cpi_justerbar,
+          beskrivelse: agreement.beskrivelse || '',
+          vilkar: agreement.vilkar || '',
+          garantivilkar: agreement.garantivilkar || '',
+          prosedyrer_ved_service: agreement.prosedyrer_ved_service || '',
+          kontakt_info: agreement.kontakt_info || '',
+          equipment: []
+        }
+      });
+      
+      toast({
+        title: "Suksess",
+        description: "PDF lastet ned"
+      });
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast({
+        title: "Feil",
+        description: "Kunne ikke laste ned PDF",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAgreement();
+    fetchTechnicians();
   }, [id]);
 
   const getStatusBadge = (status: string) => {
@@ -352,6 +459,26 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Tekniker</label>
+                  <Select 
+                    value={agreement.tekniker_id || ""} 
+                    onValueChange={updateTechnician}
+                    disabled={updating}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Velg tekniker" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Ingen tekniker</SelectItem>
+                      {technicians.map((tech) => (
+                        <SelectItem key={tech.id} value={tech.id}>
+                          {tech.full_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardContent>
             </Card>
 
@@ -361,13 +488,30 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
                 <CardTitle>Handlinger</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full">
-                  <Edit className="mr-2 h-4 w-4" />
-                  Rediger avtale
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Last ned PDF
+                <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Edit className="mr-2 h-4 w-4" />
+                      Rediger avtale
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Rediger avtale</DialogTitle>
+                      <DialogDescription>
+                        Denne funksjonen er under utvikling.
+                      </DialogDescription>
+                    </DialogHeader>
+                  </DialogContent>
+                </Dialog>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={downloadPDF}
+                  disabled={downloading}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {downloading ? 'Laster ned...' : 'Last ned PDF'}
                 </Button>
               </CardContent>
             </Card>

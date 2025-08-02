@@ -585,6 +585,7 @@ export type Database = {
           slutt_dato: string | null
           start_dato: string
           status: Database["public"]["Enums"]["maintenance_status"] | null
+          tekniker_id: string | null
           telefon: string | null
           updated_at: string | null
           vilkar: string | null
@@ -615,6 +616,7 @@ export type Database = {
           slutt_dato?: string | null
           start_dato: string
           status?: Database["public"]["Enums"]["maintenance_status"] | null
+          tekniker_id?: string | null
           telefon?: string | null
           updated_at?: string | null
           vilkar?: string | null
@@ -645,6 +647,7 @@ export type Database = {
           slutt_dato?: string | null
           start_dato?: string
           status?: Database["public"]["Enums"]["maintenance_status"] | null
+          tekniker_id?: string | null
           telefon?: string | null
           updated_at?: string | null
           vilkar?: string | null
