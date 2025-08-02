@@ -27,7 +27,7 @@ const navigationItems: NavigationItem[] = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Reklamasjoner", url: "/claims", icon: FileText },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Vedlikehold", url: "/vedlikehold", icon: Wrench },
+  { title: "Vedlikehold", url: "/vedlikehold", icon: Wrench, adminOnly: true },
   { title: "Leverandører", url: "/suppliers", icon: Building },
   { title: "Scorecard", url: "/suppliers/scorecard", icon: Award, adminOnly: true },
   { title: "Administrasjon", url: "/admin", icon: Settings, adminOnly: true },
