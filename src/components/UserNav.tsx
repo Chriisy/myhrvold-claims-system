@@ -2,15 +2,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings, Shield, TrendingUp } from "lucide-react";
+import { User, LogOut, Settings, Shield, TrendingUp, Wrench } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NotificationBell from "./NotificationBell";
 
 const UserNav = () => {
   const { profile, user, loading } = useAuth();
+  const { isEnabled } = useFeatureFlags();
   const { toast } = useToast();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -137,6 +139,19 @@ const UserNav = () => {
             </div>
           </div>
         </div>
+        
+        {/* Maintenance module for all authenticated users */}
+        {isEnabled('maintenance_enabled') && (
+          <>
+            <DropdownMenuItem asChild>
+              <Link to="/vedlikehold" className="flex items-center gap-2 w-full">
+                <Wrench className="h-4 w-4" />
+                Vedlikehold
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         
         {profile.role === 'admin' && (
           <>
