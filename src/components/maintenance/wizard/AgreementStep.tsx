@@ -24,19 +24,35 @@ export const AgreementStep: React.FC<AgreementStepProps> = ({ form, onNext }) =>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <FormField
-            control={form.control}
-            name="kunde_navn"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Kundenavn *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Firmanavn eller privatperson" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="kunde_navn"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Kundenavn *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Firmanavn eller privatperson" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="kunde_nummer"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Kundenummer *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Kundenummer" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <FormField
             control={form.control}
