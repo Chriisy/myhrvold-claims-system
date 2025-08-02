@@ -37,8 +37,13 @@ const AppSidebar = memo(() => {
   const { state } = useSidebar();
   const location = useLocation();
   const { profile } = useAuth();
-  const { isEnabled } = useFeatureFlags();
+  const { isEnabled, loading } = useFeatureFlags();
   const currentPath = location.pathname;
+
+  // Force re-render when feature flags finish loading
+  if (loading) {
+    return null; // or loading skeleton
+  }
 
   const isActive = (path: string) => {
     if (path === "/") {
