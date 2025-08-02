@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Edit, FileText, Calendar, MapPin, User, Phone, Mail, Download } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ArrowLeft, Edit, FileText, Calendar, MapPin, User, Phone, Mail, Download, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { generateMaintenancePDF } from '@/utils/maintenancePdfGenerator';
+import { useAuth } from '@/hooks/useOptimizedAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface MaintenanceAgreement {
   id: string;
@@ -44,9 +47,12 @@ interface Profile {
 
 const MaintenanceAgreementDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
   const [agreement, setAgreement] = useState<MaintenanceAgreement | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [technicians, setTechnicians] = useState<Profile[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -202,6 +208,36 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
       });
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const deleteAgreement = async () => {
+    if (!agreement) return;
+    
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('maintenance_agreements')
+        .delete()
+        .eq('id', agreement.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Suksess",
+        description: "Avtalen ble slettet",
+      });
+      
+      navigate('/vedlikehold/avtaler');
+    } catch (error) {
+      console.error('Error deleting agreement:', error);
+      toast({
+        title: "Feil",
+        description: "Kunne ikke slette avtalen",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -513,6 +549,38 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
                   <Download className="mr-2 h-4 w-4" />
                   {downloading ? 'Laster ned...' : 'Last ned PDF'}
                 </Button>
+                {(profile?.role === 'admin' || profile?.role === 'saksbehandler') && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="destructive" 
+                        className="w-full"
+                        disabled={deleting}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        {deleting ? 'Sletter...' : 'Slett avtale'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Dette vil permanent slette avtalen "{agreement?.avtale_nummer}" for {agreement?.kunde_navn}. 
+                          Denne handlingen kan ikke angres.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={deleteAgreement}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Slett avtale
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </CardContent>
             </Card>
           </div>
