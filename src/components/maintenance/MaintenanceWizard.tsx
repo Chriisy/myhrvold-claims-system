@@ -28,6 +28,9 @@ const maintenanceSchema = z.object({
   pris_cpi_justerbar: z.boolean().default(false),
   beskrivelse: z.string().optional(),
   vilkar: z.string().optional(),
+  garantivilkar: z.string().optional(),
+  prosedyrer_ved_service: z.string().optional(),
+  kontakt_info: z.string().optional(),
   
   // Equipment data
   equipment: z.array(z.object({
@@ -63,6 +66,86 @@ export const MaintenanceWizard: React.FC = () => {
       pris_cpi_justerbar: true,
       beskrivelse: '',
       vilkar: '',
+      garantivilkar: `Garantivilkår - Myhrvold Gruppen
+Garantien er gjeldende hvis følgende betingelser er oppfylt:
+• Produktet brukes til det formål som det er beregnet for
+• Bruksanvisningen er fulgt
+• Produktet er riktig installert, i henhold til produsentens instruksjoner
+• Produktet vedlikeholdes av bruker i henhold til produsentens instruksjoner
+• Regelmessig vedlikeholds service utføres og dokumenteres minst 1 gang i året eller i henhold til produsentens spesifikasjoner
+• Service på produkt utføres av profesjonelle
+• All hasteservice/reparasjon som dekkes av garanti blir utført av Myhrvold Gruppen eller dens servicepartnere
+• All garanti/reklamasjonsarbeid utføres innen normal arbeidstid som er mandag-fredag mellom 08.00-16.00. Alt arbeid utenom dette tidsrom er overtidsberettiget
+
+Hvis den oppståtte feilen kan utbedres ved noen av eksemplene nedenfor, gjelder ikke garantien:
+• Normal vedlikeholds service
+• Pakninger/O-ringer
+• Glødelamper
+• Avkalkning
+• Normale slitedeler
+• Forbruksmateriell, slik som dørpakninger, smøremiddel og avkalkningsmiddel
+• Omprogrammering av parameter
+• Ingen åpenbare/påvisbar feil
+• Feil på trykk eller temperatur på tilførsel
+• Sikring/glødelamper som kan skiftes uten verktøy
+• Rengjøring av kondensor, vaskearmer, varmeveksler, siler, vannfilter, avkalkning, samt øvrig renhold
+• Brukerfeil`,
+      prosedyrer_ved_service: `Prosedyrer ved service:
+Før man ringer burde man sjekke noen få ting:
+• Er det strøm til maskinen?
+• Hvis noe ikke virker prøv å ta strømmen på maskinen, for å la den stå strømløs i ca 1-3 min før man setter på strømmen og prøver igjen
+• Hvis det gjelder en oppvaskmaskin må man påse at det er vann til maskinen
+
+Når man må ringe etter service:
+Før man ringer må man ha klart:
+• Type maskin
+• Produsent
+• Serienummer / Maskin nummer
+• Hva som er feil / eventuelle feilkoder som vises på display
+• Hvor er maskinen plassert
+• Når passer det at man kommer for service
+• Haste grad
+
+Disse punktene er av høy nødvendighet, slik at våre teknikere kan ha med seg relevante deler og dermed unngå unødvendig tidsforbruk.
+
+Responstid:
+Avtalekunder prioriteres i oppdragskøen.
+Viktig at kunde opplyser om hastegrad på jobben når den meldes MG
+Oppdrag som blir registrert før klokken 10:00, vil så godt det lar seg gjøre bli påbegynt samme dag.
+Oppdrag registrert etter klokken 10:00, vil bli påbegynt snarest mulig.
+
+Tilgjengelighet:
+Servicetekniker fra MG skal ha full tilgjengelighet til maskinene når service skal gjennomføres.
+
+Arbeidstid:
+Arbeidstid er mandag til fredag 08:00 – 16:00, bortsett fra offentlige fridager. Service utenom disse tidene, er overtidsberettiget og tillegg belastes i henhold til priser og betingelser.`,
+      kontakt_info: `Kontakt Info
+
+Service:
+Ved service 08:00-16:00 kontakter man servicemottaket på telefon: 400 03 900
+Eller service@myhrvold.no
+
+Vakttelefon:
+400 03 900 (tastevalg vakt) (16:00-23:00 og 06:00-08:00)
+
+Service Koordinator:
+Cecilia Franklin - Cecilia.Franklin@myhrvold.no
+Marija Keser - Marija.keser@myhrvold.no
+
+Teknisk:
+Christopher Strøm - 95 11 44 07 - Christopher.strøm@myhrvold.no
+
+Stykksalg / Prosjekt:
+Kontakt din selger eller: Post@myhrvold.no - 22 70 10 00
+
+Regnskap:
+22 70 10 00 - regnskap@myhrvold.no
+
+Sentralbord:
+22 70 10 00 - sentralbordet@myhrvold.no
+
+Service sjef:
+Kristian Rambøl - 95 26 16 23 - Kristian.Rambol@myhrvold.no`,
       equipment: [{
         produkt_navn: '',
         modell: '',
@@ -103,6 +186,9 @@ export const MaintenanceWizard: React.FC = () => {
         pris_cpi_justerbar: data.pris_cpi_justerbar,
         beskrivelse: data.beskrivelse,
         vilkar: data.vilkar,
+        garantivilkar: data.garantivilkar,
+        prosedyrer_ved_service: data.prosedyrer_ved_service,
+        kontakt_info: data.kontakt_info,
         created_by: user.id,
       };
 

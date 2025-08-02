@@ -228,6 +228,60 @@ export const AgreementStep: React.FC<AgreementStepProps> = ({ form, onNext }) =>
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="garantivilkar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Garantivilkår</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Garantivilkår og betingelser..."
+                    className="min-h-32"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="prosedyrer_ved_service"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Prosedyrer ved service</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Prosedyrer og instruksjoner for service..."
+                    className="min-h-32"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="kontakt_info"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Kontaktinformasjon</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Kontaktinformasjon for service og support..."
+                    className="min-h-32"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </CardContent>
       </Card>
 
