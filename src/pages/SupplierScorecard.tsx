@@ -1,11 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SupplierScorecardCard } from "@/components/supplier/SupplierScorecardCard";
 import { SupplierRankingTable } from "@/components/supplier/SupplierRankingTable";
 import { useSupplierScorecards, useTopSuppliers } from "@/hooks/useSupplierScorecard";
-import { TrendingUp, TrendingDown, Target, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, BarChart3, ArrowLeft } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading";
+import { Link } from "react-router-dom";
 
 export default function SupplierScorecard() {
   const { data: allScorecards, isLoading } = useSupplierScorecards();
@@ -28,11 +30,19 @@ export default function SupplierScorecard() {
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Leverandør-scorecard</h1>
-          <p className="text-muted-foreground">
-            Rangering og ytelse av leverandører basert på responstid, refund-rate og kostnader
-          </p>
+        <div className="flex items-center gap-4">
+          <Link to="/dashboard">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Tilbake
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Leverandør-scorecard</h1>
+            <p className="text-muted-foreground">
+              Rangering og ytelse av leverandører basert på responstid, refund-rate og kostnader
+            </p>
+          </div>
         </div>
         <Badge variant="outline" className="text-sm">
           {allScorecards?.length || 0} leverandører
