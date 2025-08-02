@@ -1,7 +1,8 @@
 import { memo, useState } from "react";
-import { Home, FileText, BarChart3, Users, Settings, Award, Building, Shield } from "lucide-react";
+import { Home, FileText, BarChart3, Users, Settings, Award, Building, Shield, Wrench } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useOptimizedAuth";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import {
   Sidebar,
   SidebarContent,
@@ -26,6 +27,7 @@ const navigationItems: NavigationItem[] = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Reklamasjoner", url: "/claims", icon: FileText },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Vedlikehold", url: "/vedlikehold", icon: Wrench },
   { title: "Leverandører", url: "/suppliers", icon: Building },
   { title: "Scorecard", url: "/suppliers/scorecard", icon: Award, adminOnly: true },
   { title: "Administrasjon", url: "/admin", icon: Settings, adminOnly: true },
@@ -35,6 +37,7 @@ const AppSidebar = memo(() => {
   const { state } = useSidebar();
   const location = useLocation();
   const { profile } = useAuth();
+  const { isEnabled } = useFeatureFlags();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => {
@@ -49,9 +52,15 @@ const AppSidebar = memo(() => {
       ? "bg-muted text-primary font-medium" 
       : "hover:bg-muted/50 transition-colors";
 
-  const filteredItems = navigationItems.filter(item => 
-    !item.adminOnly || profile?.role === 'admin'
-  );
+  const filteredItems = navigationItems.filter(item => {
+    // Filter admin-only items
+    if (item.adminOnly && profile?.role !== 'admin') return false;
+    
+    // Filter maintenance module if feature flag is disabled
+    if (item.url === '/vedlikehold' && !isEnabled('maintenance_enabled')) return false;
+    
+    return true;
+  });
 
   return (
     <Sidebar collapsible="icon">

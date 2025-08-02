@@ -30,6 +30,11 @@ const SupplierManagement = lazy(() => import("./pages/SupplierManagement"));
 const SupplierScorecard = lazy(() => import("./pages/SupplierScorecard"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 
+// Lazy load maintenance components
+const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
+const NewMaintenanceAgreementPage = lazy(() => import("./pages/NewMaintenanceAgreementPage"));
+const MaintenanceAgreementsPage = lazy(() => import("./pages/MaintenanceAgreementsPage"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -77,6 +82,27 @@ function AppRoutes() {
         <ProtectedRoute>
           <Suspense fallback={<LoadingSpinner size="lg" />}>
             <AdminSettings />
+          </Suspense>
+        </ProtectedRoute>
+      } />
+      <Route path="/vedlikehold" element={
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner size="lg" />}>
+            <MaintenancePage />
+          </Suspense>
+        </ProtectedRoute>
+      } />
+      <Route path="/vedlikehold/avtaler" element={
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner size="lg" />}>
+            <MaintenanceAgreementsPage />
+          </Suspense>
+        </ProtectedRoute>
+      } />
+      <Route path="/vedlikehold/avtaler/ny" element={
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner size="lg" />}>
+            <NewMaintenanceAgreementPage />
           </Suspense>
         </ProtectedRoute>
       } />
