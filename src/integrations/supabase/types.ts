@@ -566,8 +566,10 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           epost: string | null
+          garantivilkar: string | null
           id: string
           intern_notat: string | null
+          kontakt_info: string | null
           kontaktperson: string | null
           kunde_adresse: string | null
           kunde_id: string | null
@@ -575,6 +577,7 @@ export type Database = {
           neste_besok: string | null
           pris_cpi_justerbar: boolean | null
           pris_grunnlag: number
+          prosedyrer_ved_service: string | null
           signert_dato: string | null
           signert_kpi_verdi: number | null
           sist_cpi_justert: string | null
@@ -592,8 +595,10 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           epost?: string | null
+          garantivilkar?: string | null
           id?: string
           intern_notat?: string | null
+          kontakt_info?: string | null
           kontaktperson?: string | null
           kunde_adresse?: string | null
           kunde_id?: string | null
@@ -601,6 +606,7 @@ export type Database = {
           neste_besok?: string | null
           pris_cpi_justerbar?: boolean | null
           pris_grunnlag?: number
+          prosedyrer_ved_service?: string | null
           signert_dato?: string | null
           signert_kpi_verdi?: number | null
           sist_cpi_justert?: string | null
@@ -618,8 +624,10 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           epost?: string | null
+          garantivilkar?: string | null
           id?: string
           intern_notat?: string | null
+          kontakt_info?: string | null
           kontaktperson?: string | null
           kunde_adresse?: string | null
           kunde_id?: string | null
@@ -627,6 +635,7 @@ export type Database = {
           neste_besok?: string | null
           pris_cpi_justerbar?: boolean | null
           pris_grunnlag?: number
+          prosedyrer_ved_service?: string | null
           signert_dato?: string | null
           signert_kpi_verdi?: number | null
           sist_cpi_justert?: string | null

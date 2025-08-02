@@ -16,6 +16,9 @@ interface MaintenanceAgreement {
   pris_cpi_justerbar: boolean;
   beskrivelse?: string;
   vilkar?: string;
+  garantivilkar?: string;
+  prosedyrer_ved_service?: string;
+  kontakt_info?: string;
   equipment: Array<{
     produkt_navn: string;
     modell?: string;
@@ -195,7 +198,97 @@ export const generateMaintenancePDF = async (data: GeneratePDFData) => {
     
     yPosition += 10;
   }
-  
+
+  // Warranty terms
+  if (agreement.garantivilkar) {
+    // Check if we need a new page
+    if (yPosition > 180) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.setTextColor(0, 51, 102);
+    doc.text('GARANTIVILKÅR', margin, yPosition);
+    
+    yPosition += 8;
+    doc.setFontSize(9);
+    doc.setTextColor(0, 0, 0);
+    
+    const warrantyLines = doc.splitTextToSize(agreement.garantivilkar, contentWidth);
+    warrantyLines.forEach((line: string) => {
+      // Check if we need a new page
+      if (yPosition > 280) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      doc.text(line, margin, yPosition);
+      yPosition += 4;
+    });
+    
+    yPosition += 10;
+  }
+
+  // Service procedures
+  if (agreement.prosedyrer_ved_service) {
+    // Check if we need a new page
+    if (yPosition > 180) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.setTextColor(0, 51, 102);
+    doc.text('PROSEDYRER VED SERVICE', margin, yPosition);
+    
+    yPosition += 8;
+    doc.setFontSize(9);
+    doc.setTextColor(0, 0, 0);
+    
+    const procedureLines = doc.splitTextToSize(agreement.prosedyrer_ved_service, contentWidth);
+    procedureLines.forEach((line: string) => {
+      // Check if we need a new page
+      if (yPosition > 280) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      doc.text(line, margin, yPosition);
+      yPosition += 4;
+    });
+    
+    yPosition += 10;
+  }
+
+  // Contact information
+  if (agreement.kontakt_info) {
+    // Check if we need a new page
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.setTextColor(0, 51, 102);
+    doc.text('KONTAKTINFORMASJON', margin, yPosition);
+    
+    yPosition += 8;
+    doc.setFontSize(9);
+    doc.setTextColor(0, 0, 0);
+    
+    const contactLines = doc.splitTextToSize(agreement.kontakt_info, contentWidth);
+    contactLines.forEach((line: string) => {
+      // Check if we need a new page
+      if (yPosition > 280) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      doc.text(line, margin, yPosition);
+      yPosition += 4;
+    });
+    
+    yPosition += 10;
+  }
+
   // Standard terms (always include)
   if (yPosition > 200) {
     doc.addPage();
