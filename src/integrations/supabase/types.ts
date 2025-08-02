@@ -421,6 +421,80 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment: {
+        Row: {
+          avtale_id: string | null
+          created_at: string | null
+          driftstimer: number | null
+          id: string
+          installasjon_dato: string | null
+          is_active: boolean | null
+          kategori: string | null
+          lokasjon: string | null
+          miljø_fuktighet: number | null
+          miljø_temperatur: number | null
+          modell: string | null
+          neste_service: string | null
+          notater: string | null
+          produkt_navn: string
+          produsent: string | null
+          serienummer: string | null
+          service_intervall_måneder: number | null
+          siste_service: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avtale_id?: string | null
+          created_at?: string | null
+          driftstimer?: number | null
+          id?: string
+          installasjon_dato?: string | null
+          is_active?: boolean | null
+          kategori?: string | null
+          lokasjon?: string | null
+          miljø_fuktighet?: number | null
+          miljø_temperatur?: number | null
+          modell?: string | null
+          neste_service?: string | null
+          notater?: string | null
+          produkt_navn: string
+          produsent?: string | null
+          serienummer?: string | null
+          service_intervall_måneder?: number | null
+          siste_service?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avtale_id?: string | null
+          created_at?: string | null
+          driftstimer?: number | null
+          id?: string
+          installasjon_dato?: string | null
+          is_active?: boolean | null
+          kategori?: string | null
+          lokasjon?: string | null
+          miljø_fuktighet?: number | null
+          miljø_temperatur?: number | null
+          modell?: string | null
+          neste_service?: string | null
+          notater?: string | null
+          produkt_navn?: string
+          produsent?: string | null
+          serienummer?: string | null
+          service_intervall_måneder?: number | null
+          siste_service?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_avtale_id_fkey"
+            columns: ["avtale_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_agreements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           created_at: string
@@ -462,6 +536,186 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          enabled: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      maintenance_agreements: {
+        Row: {
+          avtale_nummer: string
+          beskrivelse: string | null
+          besok_per_ar: number
+          created_at: string | null
+          created_by: string | null
+          epost: string | null
+          id: string
+          intern_notat: string | null
+          kontaktperson: string | null
+          kunde_adresse: string | null
+          kunde_id: string | null
+          kunde_navn: string
+          neste_besok: string | null
+          pris_cpi_justerbar: boolean | null
+          pris_grunnlag: number
+          signert_dato: string | null
+          signert_kpi_verdi: number | null
+          sist_cpi_justert: string | null
+          slutt_dato: string | null
+          start_dato: string
+          status: Database["public"]["Enums"]["maintenance_status"] | null
+          telefon: string | null
+          updated_at: string | null
+          vilkar: string | null
+        }
+        Insert: {
+          avtale_nummer: string
+          beskrivelse?: string | null
+          besok_per_ar?: number
+          created_at?: string | null
+          created_by?: string | null
+          epost?: string | null
+          id?: string
+          intern_notat?: string | null
+          kontaktperson?: string | null
+          kunde_adresse?: string | null
+          kunde_id?: string | null
+          kunde_navn: string
+          neste_besok?: string | null
+          pris_cpi_justerbar?: boolean | null
+          pris_grunnlag?: number
+          signert_dato?: string | null
+          signert_kpi_verdi?: number | null
+          sist_cpi_justert?: string | null
+          slutt_dato?: string | null
+          start_dato: string
+          status?: Database["public"]["Enums"]["maintenance_status"] | null
+          telefon?: string | null
+          updated_at?: string | null
+          vilkar?: string | null
+        }
+        Update: {
+          avtale_nummer?: string
+          beskrivelse?: string | null
+          besok_per_ar?: number
+          created_at?: string | null
+          created_by?: string | null
+          epost?: string | null
+          id?: string
+          intern_notat?: string | null
+          kontaktperson?: string | null
+          kunde_adresse?: string | null
+          kunde_id?: string | null
+          kunde_navn?: string
+          neste_besok?: string | null
+          pris_cpi_justerbar?: boolean | null
+          pris_grunnlag?: number
+          signert_dato?: string | null
+          signert_kpi_verdi?: number | null
+          sist_cpi_justert?: string | null
+          slutt_dato?: string | null
+          start_dato?: string
+          status?: Database["public"]["Enums"]["maintenance_status"] | null
+          telefon?: string | null
+          updated_at?: string | null
+          vilkar?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_agreements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_agreements_kunde_id_fkey"
+            columns: ["kunde_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_tasks: {
+        Row: {
+          created_at: string | null
+          equipment_id: string | null
+          estimert_tid_minutter: number | null
+          fullført_tid: string | null
+          id: string
+          kommentar: string | null
+          måleverdier: Json | null
+          oppgave_beskrivelse: string
+          prioritet: number | null
+          resultat: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          updated_at: string | null
+          visit_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          equipment_id?: string | null
+          estimert_tid_minutter?: number | null
+          fullført_tid?: string | null
+          id?: string
+          kommentar?: string | null
+          måleverdier?: Json | null
+          oppgave_beskrivelse: string
+          prioritet?: number | null
+          resultat?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          updated_at?: string | null
+          visit_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          equipment_id?: string | null
+          estimert_tid_minutter?: number | null
+          fullført_tid?: string | null
+          id?: string
+          kommentar?: string | null
+          måleverdier?: Json | null
+          oppgave_beskrivelse?: string
+          prioritet?: number | null
+          resultat?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          updated_at?: string | null
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_tasks_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_tasks_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "service_visits"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_settings: {
         Row: {
@@ -654,6 +908,102 @@ export type Database = {
         }
         Relationships: []
       }
+      service_visits: {
+        Row: {
+          anbefalinger: string | null
+          avtale_id: string | null
+          beskrivelse: string | null
+          bilder: Json | null
+          created_at: string | null
+          deler_kostnad: number | null
+          faktisk_slutttid: string | null
+          faktisk_starttid: string | null
+          funn: string | null
+          id: string
+          km_reise: number | null
+          planlagt_tid: string
+          rapport_pdf_url: string | null
+          signatur_kunde: string | null
+          signatur_tekniker: string | null
+          status: Database["public"]["Enums"]["maintenance_status"] | null
+          tekniker_id: string | null
+          tekniker_navn: string | null
+          timer_arbeid: number | null
+          timer_reise: number | null
+          total_kostnad: number | null
+          updated_at: string | null
+          utført_arbeid: string | null
+          visit_type: Database["public"]["Enums"]["visit_type"] | null
+        }
+        Insert: {
+          anbefalinger?: string | null
+          avtale_id?: string | null
+          beskrivelse?: string | null
+          bilder?: Json | null
+          created_at?: string | null
+          deler_kostnad?: number | null
+          faktisk_slutttid?: string | null
+          faktisk_starttid?: string | null
+          funn?: string | null
+          id?: string
+          km_reise?: number | null
+          planlagt_tid: string
+          rapport_pdf_url?: string | null
+          signatur_kunde?: string | null
+          signatur_tekniker?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"] | null
+          tekniker_id?: string | null
+          tekniker_navn?: string | null
+          timer_arbeid?: number | null
+          timer_reise?: number | null
+          total_kostnad?: number | null
+          updated_at?: string | null
+          utført_arbeid?: string | null
+          visit_type?: Database["public"]["Enums"]["visit_type"] | null
+        }
+        Update: {
+          anbefalinger?: string | null
+          avtale_id?: string | null
+          beskrivelse?: string | null
+          bilder?: Json | null
+          created_at?: string | null
+          deler_kostnad?: number | null
+          faktisk_slutttid?: string | null
+          faktisk_starttid?: string | null
+          funn?: string | null
+          id?: string
+          km_reise?: number | null
+          planlagt_tid?: string
+          rapport_pdf_url?: string | null
+          signatur_kunde?: string | null
+          signatur_tekniker?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"] | null
+          tekniker_id?: string | null
+          tekniker_navn?: string | null
+          timer_arbeid?: number | null
+          timer_reise?: number | null
+          total_kostnad?: number | null
+          updated_at?: string | null
+          utført_arbeid?: string | null
+          visit_type?: Database["public"]["Enums"]["visit_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_visits_avtale_id_fkey"
+            columns: ["avtale_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_visits_tekniker_id_fkey"
+            columns: ["tekniker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_refund_profiles: {
         Row: {
           created_at: string | null
@@ -801,6 +1151,10 @@ export type Database = {
           account_string: string
         }[]
       }
+      generate_agreement_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_claim_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -858,14 +1212,17 @@ export type Database = {
         | "claim"
         | "service_callback"
         | "extended_warranty"
+      maintenance_status: "planlagt" | "pågår" | "fullført" | "avbrutt"
       refund_status:
         | "pending"
         | "received"
         | "rejected"
         | "completed"
         | "partial"
+      task_status: "avventer" | "fullført" | "utsatt"
       urgency_level: "low" | "normal" | "high" | "critical"
       user_role: "technician" | "admin" | "saksbehandler"
+      visit_type: "rutine" | "reparasjon" | "installasjon" | "inspeksjon"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1020,6 +1377,7 @@ export const Constants = {
         "service_callback",
         "extended_warranty",
       ],
+      maintenance_status: ["planlagt", "pågår", "fullført", "avbrutt"],
       refund_status: [
         "pending",
         "received",
@@ -1027,8 +1385,10 @@ export const Constants = {
         "completed",
         "partial",
       ],
+      task_status: ["avventer", "fullført", "utsatt"],
       urgency_level: ["low", "normal", "high", "critical"],
       user_role: ["technician", "admin", "saksbehandler"],
+      visit_type: ["rutine", "reparasjon", "installasjon", "inspeksjon"],
     },
   },
 } as const
