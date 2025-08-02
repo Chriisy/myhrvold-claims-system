@@ -184,10 +184,10 @@ export const generateClaimPDF = async (claim: ClaimData, language: 'no' | 'en', 
   const SECTION_GAP = 5;
   const LABEL_X = 20;
   const VALUE_X = 40; // Further reduced from 45 to 40 for tighter spacing
-  const VALUE_X_PRODUCT = 34; // 1 space more for Product (was 33)
-  const VALUE_X_MODEL = 32; // 1 space less for Model (was 33)
-  const VALUE_X_SERIAL = 44; // 2 spaces more for Serial Number (was 42)
-  const VALUE_X_PURCHASE = 44; // 2 spaces more for Purchase Date (was 42)
+  const VALUE_X_PRODUCT = 35; // 1 space more for Product (34 + 1)
+  const VALUE_X_MODEL = 31; // 1 space less for Model (32 - 1) 
+  const VALUE_X_SERIAL = 45; // 1 space more for Serial Number (44 + 1)
+  const VALUE_X_PURCHASE = 45; // 1 space more for Purchase Date (44 + 1)
   const LINE_HEIGHT = 4;
   
   let yPosition = 20;
