@@ -462,15 +462,15 @@ const MaintenanceAgreementDetailPage: React.FC = () => {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Tekniker</label>
                   <Select 
-                    value={agreement.tekniker_id || ""} 
-                    onValueChange={updateTechnician}
+                    value={agreement.tekniker_id || "none"} 
+                    onValueChange={(value) => updateTechnician(value === "none" ? "" : value)}
                     disabled={updating}
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Velg tekniker" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Ingen tekniker</SelectItem>
+                      <SelectItem value="none">Ingen tekniker</SelectItem>
                       {technicians.map((tech) => (
                         <SelectItem key={tech.id} value={tech.id}>
                           {tech.full_name}
