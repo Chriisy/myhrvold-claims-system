@@ -56,7 +56,7 @@ const MaintenancePage: React.FC = () => {
                   Se alle avtaler
                 </Button>
               </Link>
-              {(profile?.role === 'admin' || profile?.role === 'technician') && (
+              {(profile?.role === 'admin' || profile?.role === 'saksbehandler') && (
                 <Link to="/vedlikehold/avtaler/ny" className="w-full sm:w-auto">
                   <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />

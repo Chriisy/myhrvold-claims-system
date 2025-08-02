@@ -40,7 +40,12 @@ export const gdprService = {
 
   // Get user consent status
   async getUserConsent(userId?: string) {
-    const targetUserId = userId || (await supabase.auth.getUser()).data.user?.id;
+    const user = await supabase.auth.getUser();
+    const targetUserId = userId || user.data.user?.id;
+    
+    if (!targetUserId) {
+      return []; // Return empty array if no user is authenticated
+    }
     
     const { data, error } = await supabase
       .from('user_consent')
@@ -53,7 +58,12 @@ export const gdprService = {
 
   // Export user data (GDPR Article 20)
   async exportUserData(userId?: string): Promise<UserDataExport> {
-    const targetUserId = userId || (await supabase.auth.getUser()).data.user?.id;
+    const user = await supabase.auth.getUser();
+    const targetUserId = userId || user.data.user?.id;
+    
+    if (!targetUserId) {
+      throw new Error('User not authenticated');
+    }
     
     const { data, error } = await supabase.rpc('export_user_data', {
       p_user_id: targetUserId
@@ -65,7 +75,12 @@ export const gdprService = {
 
   // Request data deletion (GDPR Article 17)
   async requestDataDeletion(userId?: string) {
-    const targetUserId = userId || (await supabase.auth.getUser()).data.user?.id;
+    const user = await supabase.auth.getUser();
+    const targetUserId = userId || user.data.user?.id;
+    
+    if (!targetUserId) {
+      throw new Error('User not authenticated');
+    }
     
     const { data, error } = await supabase.rpc('anonymize_user_data', {
       p_user_id: targetUserId
